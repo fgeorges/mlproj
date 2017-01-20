@@ -13,7 +13,7 @@ var commands = [
 
 program
     .version('0.0.1')
-    //.option('-x, --xxx <path>', 'some global option');
+    .option('-v, --verbose', 'Verbose mode');
 
 commands.forEach(cmd => {
     var prg = program
@@ -23,6 +23,9 @@ commands.forEach(cmd => {
         prg = prg.option(opt.option, opt.label) });
     prg.action(function(path) {
         resolved = true;
+	if ( program.verbose ) {
+	    cmd.verbose(true);
+	}
         try {
             cmd.prepare(path);
             cmd.execute();

@@ -21,12 +21,18 @@
              console.log(this.msg);
          }
 
-         execute(env, error, success)
+         execute(env, verbose, error, success)
          {
              console.warn(green('post') + '  ' + this.msg);
+             var url = 'http://' + env.backstage.host + ':8002/manage/v2' + this.url;
+             if ( verbose ) {
+                 console.warn('[' + bold('verbose') + '] POST to ' + url);
+                 console.warn('[' + bold('verbose') + '] Body:');
+                 console.warn(this.data);
+             }
              request.post(
                  {
-                     url: 'http://' + env.backstage.host + ':8002/manage/v2' + this.url,
+                     url:  url,
                      json: this.data,
                      auth: {
                          user: env.backstage.admin.user,
@@ -53,11 +59,12 @@
       */
      class ActionList
      {
-         constructor()
+         constructor(v)
          {
-             this.todo  = [];
-             this.done  = [];
-             this.error = null;
+             this.verbose = v;
+             this.todo    = [];
+             this.done    = [];
+             this.error   = null;
          }
 
          add(a)
@@ -73,7 +80,7 @@
              }
              else {
                  var action = this.todo.shift();
-                 action.execute(env, msg => {
+                 action.execute(env, this.verbose, msg => {
                      this.error = { action: action, message: msg };
                      // stop processing
                      this.display();
@@ -131,9 +138,6 @@
      module.exports = {
          Action     : Action,
          ActionList : ActionList,
-         // bold       : bold,
-         // green      : green,
-         // yellow     : yellow,
          red        : red
      };
  }
