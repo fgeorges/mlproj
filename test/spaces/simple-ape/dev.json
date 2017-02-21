@@ -1,0 +1,17 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "import": "base.json",
+        "connect": {
+            "host": "ml9ea4",
+            "user": "admin",
+            "password": "admin"
+        },
+        "servers": [{
+	    "compose": "merge",
+	    "id": "server",
+            "modules": null,
+	    "comment": "By default, with no modules DB, root is `{proj}/src/`."
+        }]
+    }
+}

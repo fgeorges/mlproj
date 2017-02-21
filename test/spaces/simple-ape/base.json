@@ -1,0 +1,22 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "code": "simple-ape",
+        "title": "Simple base space example",
+        "params": {
+            "port": "8910"
+        },
+        "servers": [{
+	    "id": "server",
+            "name": "@{code}",
+            "type": "http",
+            "port": "${port}",
+            "content": {
+		"name": "@{code}-content"
+            },
+            "modules": {
+		"name": "@{code}-modules"
+            }
+        }]
+    }
+}
