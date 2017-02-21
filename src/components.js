@@ -2,13 +2,15 @@
 
 (function() {
 
+    const act = require('./action');
+
     /*~
      * Interface of a component.
      */
     class Component
     {
-        api() {
-	    throw new Error('Component.api is abstract');
+        prepare(actions) {
+	    throw new Error('Component.prepare is abstract');
 	}
     }
 
@@ -26,13 +28,26 @@
             this.indexes = new Indexes(db.indexes);
         }
 
-        api()
+        prepare(actions)
         {
             var obj = {
                 "database-name": this.name
             };
-            this.indexes.api(obj);
-            return obj;
+            this.indexes.prepare(obj);
+            actions.add(new act.Post(
+                '/databases',
+                obj,
+                'Create database: ' + this.name));
+            // its forests
+	    // TODO: Supports numeric values for forests, and default of "1"
+            if ( this.forests ) {
+                this.forests.forEach(f => {
+                    actions.add(new act.Post(
+                        '/forests',
+                        { "forest-name": f, "database": this.name },
+                        'Create forest: ' + f));
+                });
+            }
         }
     }
 
@@ -53,8 +68,8 @@
             this.modules = srv.modules;
         }
 
-        api()
-        {
+        prepare(actions)
+	{
             var obj = {
                 "server-name":      this.name,
                 "server-type":      this.type,
@@ -65,18 +80,21 @@
             if ( this.modules && this.modules.name ) {
                 obj['modules-database'] = this.modules.name;
             }
-            return obj;
-        }
+            actions.add(new act.Post(
+                // TODO: Support group-id other than Default...
+                '/servers?group-id=Default',
+                obj,
+                'Create server: ' + this.name));
+	}
     }
 
     /*~
      * All the indexes of a database.
      */
-    class Indexes extends Component
+    class Indexes
     {
         constructor(indexes)
         {
-	    super();
             this.rangeElem = [];
             // this.rangeAttr = [];
             // ...
@@ -100,10 +118,10 @@
             }
         }
 
-        api(db)
+        prepare(db)
         {
             if ( this.rangeElem.length ) {
-                db['range-element-index'] = this.rangeElem.map(idx => idx.api());
+                db['range-element-index'] = this.rangeElem.map(idx => idx.prepare());
             }
         }
     }
@@ -111,11 +129,10 @@
     /*~
      * One range index.
      */
-    class ElementRangeIndex extends Component
+    class ElementRangeIndex
     {
         constructor(idx)
         {
-	    super();
             this.type      = idx.type;
             this.name      = idx.name;
             this.positions = idx.positions;
@@ -124,7 +141,7 @@
             this.collation = idx.collation ? idx.collation : 'http://marklogic.com/collation/';
         }
 
-        api()
+        prepare()
         {
             var obj = {
                 "scalar-type":           this.type,
