@@ -53,6 +53,33 @@ class Node extends s.Platform
         return '\u001b[1m' + s + '\u001b[22m'
     }
 
+    get(url, user, pwd, error, success) {
+	if ( this.dry ) {
+	    success();
+	    return;
+	}
+        request.get(
+	    {
+                url:  url,
+                auth: {
+		    user: user,
+		    pass: pwd,
+		    sendImmediately: false
+                }
+	    },
+	    (err, http, body) => {
+                if ( err ) {
+		    error('Error performing a GET action: ' + err);
+                }
+                else if ( http.statusCode !== 200 ) {
+		    error('Entity not retrieved: ' + body.errorResponse.message);
+                }
+                else {
+		    success();
+                }
+	    });
+    }
+
     post(url, data, user, pwd, error, success) {
 	if ( this.dry ) {
 	    success();
@@ -70,7 +97,7 @@ class Node extends s.Platform
 	    },
 	    (err, http, body) => {
                 if ( err ) {
-		    error('Error creating a database: ' + err);
+		    error('Error performing a POST action: ' + err);
                 }
                 else if ( http.statusCode !== 201 ) {
 		    error('Entity not created: ' + body.errorResponse.message);

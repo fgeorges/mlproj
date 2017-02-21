@@ -33,6 +33,9 @@
 	bold(s) {
 	    throw new Error('Platform.bold is abstract');
 	}
+	get(url, user, pwd, error, success) {
+	    throw new Error('Platform.get is abstract');
+	}
 	post(url, data, user, pwd, error, success) {
 	    throw new Error('Platform.post is abstract');
 	}

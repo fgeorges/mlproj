@@ -9,11 +9,12 @@
      */
     class Action
     {
-        constructor(url, data, msg)
+        constructor(url, verb, msg, data)
         {
             this.url  = url;
-            this.data = data;
+            this.verb = verb;
             this.msg  = msg;
+            this.data = data;
         }
 
         display(platform)
@@ -22,17 +23,53 @@
         }
 
         execute(platform, space, verbose, error, success)
-        {
+	{
             platform.warn(platform.green('post') + '  ' + this.msg);
             var url = 'http://' + space.param('@host') + ':8002/manage/v2' + this.url;
             if ( verbose ) {
-                platform.warn('[' + platform.bold('verbose') + '] POST to ' + url);
-                platform.warn('[' + platform.bold('verbose') + '] Body:');
-                platform.warn(this.data);
+                platform.warn('[' + platform.bold('verbose') + '] ' + this.verb + ' to ' + url);
+		if ( this.data ) {
+                    platform.warn('[' + platform.bold('verbose') + '] Body:');
+                    platform.warn(this.data);
+		}
             }
             var user = space.param('@user');
             var pwd  = space.param('@password');
-	    platform.post(url, this.data, user, pwd, error, success);
+	    this.send(platform, url, this.data, user, pwd, error, success);
+        }
+    }
+
+    /*~
+     * A GET action.
+     */
+    class Get extends Action
+    {
+        constructor(url, msg) {
+	    super(url, 'GET', msg);
+        }
+
+        send(platform, url, data, user, pwd, error, success) {
+	    if ( data ) {
+		throw new Error('Data in a GET: ' + url + ', ' + data);
+	    }
+	    platform.get(url, user, pwd, error, success);
+        }
+    }
+
+    /*~
+     * A POST action.
+     */
+    class Post extends Action
+    {
+        constructor(url, data, msg) {
+	    super(url, 'POST', msg, data);
+        }
+
+        send(platform, url, data, user, pwd, error, success) {
+	    if ( ! data ) {
+		throw new Error('No data in a POST: ' + url);
+	    }
+	    platform.post(url, data, user, pwd, error, success);
         }
     }
 
@@ -159,7 +196,7 @@
             // actions to create databases
             this.space.databases().forEach(db => {
                 // the database itself
-                this.actions.add(new Action(
+                this.actions.add(new Post(
                     '/databases',
                     db.api(),
                     'Create database: ' + db.name));
@@ -167,7 +204,7 @@
 		// TODO: Supports numeric values for forests, and default of "1"
                 if ( db.forests ) {
                     db.forests.forEach(f => {
-                        this.actions.add(new Action(
+                        this.actions.add(new Post(
                             '/forests',
                             { "forest-name": f, "database": db.name },
                             'Create forest: ' + f));
@@ -176,7 +213,7 @@
             });
             // actions to create servers
             this.space.servers().forEach(srv => {
-                this.actions.add(new Action(
+                this.actions.add(new Post(
                     // TODO: Support group-id other than Default...
                     '/servers?group-id=Default',
                     srv.api(),
