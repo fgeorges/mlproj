@@ -89,6 +89,9 @@
 
         execute(space)
         {
+	    if ( ! this.error && ! this.done.length ) {
+		this.platform.log('--- ' + this.platform.bold('Activity') + ' ---');
+	    }
             if ( ! this.todo.length ) {
                 // nothing left to do
                 this.display();
@@ -111,14 +114,15 @@
         display()
         {
 	    var _ = this.platform;
-            _.log('--- ' + _.bold('Summary') + ' ---');
+            _.log('\n--- ' + _.bold('Summary') + ' ---');
             if ( this.done.length ) {
                 _.log(_.green('Done') + ':');
                 this.done.forEach(a => a.display(_));
             }
             if ( this.error ) {
-                _.log(_.red('Error') + ': ' + this.error.message);
+                _.log(_.red('Error') + ':');
                 this.error.action.display(_);
+                _.log(this.error.message);
             }
             if ( this.todo.length ) {
                 _.log(_.yellow('Not done') + ':');
