@@ -22,10 +22,33 @@
         constructor(db)
         {
 	    super();
+	    var that = this;
             this.id      = db.id;
             this.name    = db.name;
-            this.forests = db.forests ? db.forests : [];
+            this.forests = [];
             this.indexes = new Indexes(db.indexes);
+	    var forests = db.forests;
+	    if ( forests === null || forests === undefined ) {
+		forests = 1;
+	    }
+	    if ( Number.isInteger(forests) ) {
+		if ( forests < 0 ) {
+		    throw new Error('Negative number of forests (' + forests + ') on id:'
+				    + db.id + '|name:' + db.name);
+		}
+		if ( forests > 100 ) {
+		    throw new Error('Number of forests greater than 100 (' + forests + ') on id:'
+				    + db.id + '|name:' + db.name);
+		}
+		var array = [];
+		for ( var i = 1; i <= forests; ++i ) {
+		    array.push(db.name + '-' + i.toLocaleString('en-IN', { minimumIntegerDigits: 3 }));
+		}
+		forests = array;
+	    }
+	    forests.forEach(f => {
+		that.forests.push(new Forest(that, f));
+	    });
         }
 
         prepare(actions)
@@ -37,17 +60,29 @@
             actions.add(new act.Post(
                 '/databases',
                 obj,
-                'Create database: ' + this.name));
-            // its forests
-	    // TODO: Supports numeric values for forests, and default of "1"
-            if ( this.forests ) {
-                this.forests.forEach(f => {
-                    actions.add(new act.Post(
-                        '/forests',
-                        { "forest-name": f, "database": this.name },
-                        'Create forest: ' + f));
-                });
-            }
+                'Create database: \t' + this.name));
+            this.forests.forEach(f => f.prepare(actions));
+        }
+    }
+
+    /*~
+     * A forest.
+     */
+    class Forest extends Component
+    {
+        constructor(db, name)
+        {
+	    super();
+	    this.db   = db;
+	    this.name = name;
+	}
+
+        prepare(actions)
+        {
+            actions.add(new act.Post(
+                '/forests',
+                { "forest-name": this.name, "database": this.db.name },
+                'Create forest:  \t' + this.name));
         }
     }
 
@@ -84,7 +119,7 @@
                 // TODO: Support group-id other than Default...
                 '/servers?group-id=Default',
                 obj,
-                'Create server: ' + this.name));
+                'Create server: \t' + this.name));
 	}
     }
 
