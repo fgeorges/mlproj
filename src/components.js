@@ -9,8 +9,14 @@
      */
     class Component
     {
-        prepare(actions) {
-	    throw new Error('Component.prepare is abstract');
+        setup(actions) {
+	    throw new Error('Component.setup is abstract');
+	}
+        create(actions) {
+	    throw new Error('Component.create is abstract');
+	}
+        remove(actions) {
+	    throw new Error('Component.remove is abstract');
 	}
     }
 
@@ -51,18 +57,35 @@
 	    });
         }
 
-        prepare(actions)
+        setup(actions)
         {
-            var obj = {
-                "database-name": this.name
-            };
-            this.indexes.prepare(obj);
-            actions.add(new act.Post(
-                '/databases',
-                obj,
-                'Create database: \t' + this.name));
-            this.forests.forEach(f => f.prepare(actions));
+	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
+		// TODO: Integrate more nicely in the reporting...
+		throw new Error('');
+            }, (body) => {
+		// if DB does not exist yet
+		if ( ! body ) {
+		    this.create(actions);
+		}
+		// if DB already exists
+		else {
+		    throw new Error('Not suported yet, DB exists: ' + this.name);
+		}
+            });
         }
+
+        create(actions)
+        {
+	    var obj = {
+		"database-name": this.name
+	    };
+	    this.indexes.create(obj);
+	    actions.add(new act.Post(
+		'/databases',
+		obj,
+		'Create database: \t' + this.name));
+	    this.forests.forEach(f => f.create(actions));
+	}
     }
 
     /*~
@@ -77,7 +100,7 @@
 	    this.name = name;
 	}
 
-        prepare(actions)
+        create(actions)
         {
             actions.add(new act.Post(
                 '/forests',
@@ -103,7 +126,13 @@
             this.modules = srv.modules;
         }
 
-        prepare(actions)
+        setup(actions)
+	{
+	    // TODO: More than that... (what if it already exists...?)
+	    this.create(actions);
+	}
+
+        create(actions)
 	{
             var obj = {
                 "server-name":      this.name,
@@ -153,9 +182,9 @@
             }
         }
 
-        prepare(db)
+        create(db)
         {
-            db['range-element-index'] = this.rangeElem.map(idx => idx.prepare());
+            db['range-element-index'] = this.rangeElem.map(idx => idx.create());
         }
     }
 
@@ -174,7 +203,7 @@
             this.collation = idx.collation ? idx.collation : 'http://marklogic.com/collation/';
         }
 
-        prepare()
+        create()
         {
             var obj = {
                 "scalar-type":           this.type,

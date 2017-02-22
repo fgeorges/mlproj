@@ -70,11 +70,11 @@
             this.actions = new act.ActionList(this.platform, this.verbose());
             // databases
             this.space.databases().forEach(db => {
-                db.prepare(this.actions);
+                db.setup(this.actions);
             });
             // servers
             this.space.servers().forEach(srv => {
-                srv.prepare(this.actions);
+                srv.setup(this.actions);
             });
         }
 

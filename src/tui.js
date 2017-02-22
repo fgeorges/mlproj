@@ -88,8 +88,11 @@ class Node extends s.Platform
 	var creds = this.credentials();
         request.get(
 	    {
-                url:  url,
-                auth: {
+                url:     url,
+		headers: {
+		    Accept: 'application/json'
+		},
+                auth:    {
 		    user: creds[0],
 		    pass: creds[1],
 		    sendImmediately: false
@@ -100,7 +103,7 @@ class Node extends s.Platform
 		    error('Error performing a GET action: ' + err);
                 }
                 else if ( http.statusCode === 200 ) {
-		    success(body);
+		    success(JSON.parse(body));
                 }
                 else if ( http.statusCode === 404 ) {
 		    success();
