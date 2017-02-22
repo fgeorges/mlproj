@@ -28,6 +28,7 @@
 	prepare(path, base) {
             this.path  = path;
 	    this.space = s.Space.load(this.platform, path, base);
+	    this.platform.space = this.space;
 	}
 
 	execute() {

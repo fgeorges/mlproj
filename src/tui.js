@@ -53,17 +53,45 @@ class Node extends s.Platform
         return '\u001b[1m' + s + '\u001b[22m'
     }
 
-    get(url, user, pwd, error, success) {
+    url(endpoint) {
+	if ( ! this.space ) {
+	    throw new Error('No space set on the platform for host');
+	}
+        var host = this.space.param('@host');
+	if ( ! host ) {
+	    throw new Error('No host in space');
+	}
+	return 'http://' + host + ':8002/manage/v2' + endpoint;
+    }
+
+    credentials() {
+	if ( ! this.space ) {
+	    throw new Error('No space set on the platform for credentials');
+	}
+        var user = this.space.param('@user');
+        var pwd  = this.space.param('@password');
+	if ( ! user ) {
+	    throw new Error('No user in space');
+	}
+	if ( ! pwd ) {
+	    throw new Error('No password in space');
+	}
+	return [ user, pwd ];
+    }
+
+    get(endpoint, error, success) {
 	if ( this.dry ) {
 	    success();
 	    return;
 	}
+	var url   = this.url(endpoint);
+	var creds = this.credentials();
         request.get(
 	    {
                 url:  url,
                 auth: {
-		    user: user,
-		    pass: pwd,
+		    user: creds[0],
+		    pass: creds[1],
 		    sendImmediately: false
                 }
 	    },
@@ -71,27 +99,32 @@ class Node extends s.Platform
                 if ( err ) {
 		    error('Error performing a GET action: ' + err);
                 }
-                else if ( http.statusCode !== 200 ) {
-		    error('Entity not retrieved: ' + body.errorResponse.message);
+                else if ( http.statusCode === 200 ) {
+		    success(body);
+                }
+                else if ( http.statusCode === 404 ) {
+		    success();
                 }
                 else {
-		    success();
+		    error('Error retrieving entity: ' + body.errorResponse.message);
                 }
 	    });
     }
 
-    post(url, data, user, pwd, error, success) {
+    post(endpoint, data, error, success) {
 	if ( this.dry ) {
 	    success();
 	    return;
 	}
+	var url   = this.url(endpoint);
+	var creds = this.credentials();
         request.post(
 	    {
                 url:  url,
                 json: data,
                 auth: {
-		    user: user,
-		    pass: pwd,
+		    user: creds[0],
+		    pass: creds[1],
 		    sendImmediately: false
                 }
 	    },

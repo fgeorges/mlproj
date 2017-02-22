@@ -23,17 +23,14 @@
         execute(platform, space, verbose, error, success)
 	{
             platform.warn(platform.green('post') + '  ' + this.msg);
-            var url = 'http://' + space.param('@host') + ':8002/manage/v2' + this.url;
             if ( verbose ) {
-                platform.warn('[' + platform.bold('verbose') + '] ' + this.verb + ' to ' + url);
+                platform.warn('[' + platform.bold('verbose') + '] ' + this.verb + ' to ' + this.url);
 		if ( this.data ) {
                     platform.warn('[' + platform.bold('verbose') + '] Body:');
                     platform.warn(this.data);
 		}
             }
-            var user = space.param('@user');
-            var pwd  = space.param('@password');
-	    this.send(platform, url, this.data, user, pwd, error, success);
+	    this.send(platform, this.url, this.data, error, success);
         }
     }
 
@@ -46,11 +43,11 @@
 	    super(url, 'GET', msg);
         }
 
-        send(platform, url, data, user, pwd, error, success) {
+        send(platform, url, data, error, success) {
 	    if ( data ) {
 		throw new Error('Data in a GET: ' + url + ', ' + data);
 	    }
-	    platform.get(url, user, pwd, error, success);
+	    platform.get(url, error, success);
         }
     }
 
@@ -63,11 +60,11 @@
 	    super(url, 'POST', msg, data);
         }
 
-        send(platform, url, data, user, pwd, error, success) {
+        send(platform, url, data, error, success) {
 	    if ( ! data ) {
 		throw new Error('No data in a POST: ' + url);
 	    }
-	    platform.post(url, data, user, pwd, error, success);
+	    platform.post(url, data, error, success);
         }
     }
 
