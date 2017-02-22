@@ -119,7 +119,7 @@
                 // TODO: Support group-id other than Default...
                 '/servers?group-id=Default',
                 obj,
-                'Create server: \t' + this.name));
+                'Create server:  \t' + this.name));
 	}
     }
 
@@ -155,9 +155,7 @@
 
         prepare(db)
         {
-            if ( this.rangeElem.length ) {
-                db['range-element-index'] = this.rangeElem.map(idx => idx.prepare());
-            }
+            db['range-element-index'] = this.rangeElem.map(idx => idx.prepare());
         }
     }
 
