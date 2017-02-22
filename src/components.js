@@ -28,10 +28,9 @@
         constructor(db)
         {
 	    super();
-	    var that = this;
             this.id      = db.id;
             this.name    = db.name;
-            this.forests = [];
+            this.forests = {};
             this.indexes = new Indexes(db.indexes);
 	    var forests = db.forests;
 	    if ( forests === null || forests === undefined ) {
@@ -53,7 +52,7 @@
 		forests = array;
 	    }
 	    forests.forEach(f => {
-		that.forests.push(new Forest(that, f));
+		this.forests[f] = new Forest(this, f);
 	    });
         }
 
@@ -69,7 +68,7 @@
 		}
 		// if DB already exists
 		else {
-		    throw new Error('Not suported yet, DB exists: ' + this.name);
+		    this.update(actions, body);
 		}
             });
         }
@@ -84,7 +83,31 @@
 		'/databases',
 		obj,
 		'Create database: \t' + this.name));
-	    this.forests.forEach(f => f.create(actions));
+	    Object.values(this.forests).forEach(f => f.create(actions));
+	}
+
+        update(actions, body)
+        {
+	    // check forests...
+	    // to remove: in `body.forest` but not in `desired`
+	    // to add: in `desired` but not in `body.forest`
+	    var desired = Object.keys(this.forests);
+	    var rem     = body.forest.filter(n => ! desired.includes(n));
+	    var add     = desired.filter(n => ! body.forest.includes(n));
+	    var _ = actions.platform;
+	    _.debug('Forests to remove: ' + rem);
+	    _.debug('Forests to    add: ' + add);
+	    rem.forEach(n => {
+		this.forests[n] = new Forest(this, n);
+		this.forests[n].remove(actions);
+	    });
+	    add.forEach(n => {
+		this.forests[n].create(actions);
+	    });
+
+	    // TODO: Check indexes...
+
+	    // TODO: Check other properties...
 	}
     }
 
@@ -106,6 +129,15 @@
                 '/forests',
                 { "forest-name": this.name, "database": this.db.name },
                 'Create forest:  \t' + this.name));
+        }
+
+        remove(actions)
+        {
+	    // just detach it, not delete it for real
+            actions.add(new act.Post(
+                '/forests/' + this.name,
+                { "state": "detach" },
+                'Detach forest:  \t' + this.name));
         }
     }
 

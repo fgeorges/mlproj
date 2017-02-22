@@ -20,6 +20,10 @@ class Node extends s.Platform
 	this.dry = dry;
     }
 
+    debug(msg) {
+	console.log('DEBUG: ' + msg);
+    }
+
     log(msg) {
 	console.log(msg);
     }

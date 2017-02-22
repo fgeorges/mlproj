@@ -9,6 +9,9 @@
      */
     class Platform
     {
+	debug(msg) {
+	    throw new Error('Platform.debug is abstract');
+	}
 	log(msg) {
 	    throw new Error('Platform.log is abstract');
 	}
