@@ -209,8 +209,8 @@
     {
         constructor(indexes)
         {
-            this.rangeElem = [];
-            // this.rangeAttr = [];
+            this.rangeElem = {};
+            // this.rangeAttr = {};
             // ...
             if ( indexes ) {
 		var keys = Object.keys(indexes);
@@ -228,7 +228,7 @@
 			    }
 			    while ( names.length ) {
 				idx.name = names.shift();
-				this.rangeElem.push(new ElementRangeIndex(idx));
+				this.rangeElem[idx.name] = new ElementRangeIndex(idx);
 			    }
 			}
 		    });
@@ -241,7 +241,9 @@
 
         create(db)
         {
-            db['range-element-index'] = this.rangeElem.map(idx => idx.create());
+            db['range-element-index'] =
+		Object.entries(this.rangeElem)
+		.map(idx => idx.create());
         }
     }
 
