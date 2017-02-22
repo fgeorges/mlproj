@@ -204,7 +204,14 @@
 			    throw new Error('Attribute range index not supported yet');
 			}
 			else {
-			    this.rangeElem.push(new ElementRangeIndex(idx));
+			    var names = idx.name;
+			    if ( ! Array.isArray(names) ) {
+				names = [ idx.name ];
+			    }
+			    while ( names.length ) {
+				idx.name = names.shift();
+				this.rangeElem.push(new ElementRangeIndex(idx));
+			    }
 			}
 		    });
 		}
