@@ -15,9 +15,10 @@ const s       = require('./space');
 
 class Node extends s.Platform
 {
-    constructor(dry) {
+    constructor(dry, verbose) {
 	super();
-	this.dry = dry;
+	this.dry     = dry;
+	this.verbose = verbose;
     }
 
     debug(msg) {
@@ -26,6 +27,12 @@ class Node extends s.Platform
 
     log(msg) {
 	console.log(msg);
+    }
+
+    info(msg) {
+	if ( this.verbose ) {
+	    console.log(this.yellow('Info') + ': ' + msg);
+	}
     }
 
     warn(msg) {
@@ -182,7 +189,7 @@ commands.forEach(cmd => {
     }
     prg.action(function(path) {
         resolved = true;
-	var platform = new Node(program.dry ? true : false);
+	var platform = new Node(program.dry ? true : false, program.verbose ? true : false);
 	var command  = new cmd.clazz(platform);
 	if ( program.verbose ) {
 	    command.verbose(true);
@@ -190,11 +197,6 @@ commands.forEach(cmd => {
         try {
 	    var base = process.cwd();
             command.prepare(path, base);
-	    if ( command.verbose() ) {
-		command.space.messages.forEach(msg => {
-		    console.log(platform.yellow('Info') + ': ' + msg);
-		});
-	    }
             command.execute();
         }
         catch ( err ) {

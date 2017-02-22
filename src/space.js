@@ -15,6 +15,9 @@
 	log(msg) {
 	    throw new Error('Platform.log is abstract');
 	}
+	info(msg) {
+	    throw new Error('Platform.info is abstract');
+	}
 	warn(msg) {
 	    throw new Error('Platform.warn is abstract');
 	}
@@ -100,10 +103,9 @@
 	}
 
 	// cache databases and servers (resolving import priority)
-	cache()
+	cache(platform)
 	{
 	    var ctxt = {
-		infos    : [],
 		href     : "@root",
 		dbs      : [],
 		dbIds    : {},
@@ -112,7 +114,7 @@
 		srvIds   : {},
 		srvNames : {}
 	    };
-	    this.cacheImpl(ctxt);
+	    this.cacheImpl(ctxt, platform);
 	    this.messages  = ctxt.infos;
 	    this._allDbs   = ctxt.dbs;
 	    this._dbIds    = ctxt.dbIds;
@@ -177,7 +179,7 @@
 	}
 
 	// recursive implementation of cache(), caching databases and servers
-	cacheImpl(ctxt)
+	cacheImpl(ctxt, platform)
 	{
 	    // small helper to format info and error messages
 	    var _ = (c) => {
@@ -206,7 +208,7 @@
 					+ _(comp) + '|compose=' + comp.compose);
 		    }
 		    else if ( derived.compose === 'merge' ) {
-			ctxt.infos.push('Merge ' + kind + 's derived:' + _(derived) + ' and base:' + _(comp));
+			platform.info('Merge ' + kind + 's derived:' + _(derived) + ' and base:' + _(comp));
 			var overriden = Object.keys(derived);
 			for ( var p in comp ) {
 			    if ( overriden.indexOf(p) === -1 ) {
@@ -221,7 +223,7 @@
 			}
 		    }
 		    else if ( derived.compose === 'hide' ) {
-			ctxt.infos.push('Hide ' + kind + ' base:' + _(comp) + ' by derived:' + _(derived));
+			platform.info('Hide ' + kind + ' base:' + _(comp) + ' by derived:' + _(derived));
 		    }
 		    else {
 			throw new Error('Unknown compose on ' + kind + ': ' + _(derived) + '|compose=' + derived.compose);
@@ -250,7 +252,7 @@
 	    // recurse on imports
 	    this._imports.forEach((i) => {
 		ctxt.href = i.href;
-		i.space.cacheImpl(ctxt);
+		i.space.cacheImpl(ctxt, platform);
 	    });
 	}
 
@@ -395,7 +397,7 @@
 	    // resolve the param references
 	    root.resolve(root);
 	    // resolve import priority and cache databses and servers
-	    root.cache();
+	    root.cache(platform);
 	    // return the loaded root (with imported spaces)
 	    return root;
 	}
