@@ -202,8 +202,9 @@ commands.forEach(cmd => {
 	}
         try {
 	    var base = process.cwd();
-            command.prepare(path, base);
-            command.execute();
+            command.prepare(path, base, () => {
+		command.execute();
+	    });
         }
         catch ( err ) {
             console.warn(platform.red('Error') + ': ' + err.message);

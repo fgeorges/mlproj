@@ -9,13 +9,13 @@
      */
     class Component
     {
-        setup(actions) {
+        setup(actions, callback) {
 	    throw new Error('Component.setup is abstract');
 	}
-        create(actions) {
+        create(actions, callback) {
 	    throw new Error('Component.create is abstract');
 	}
-        remove(actions) {
+        remove(actions, callback) {
 	    throw new Error('Component.remove is abstract');
 	}
     }
@@ -56,24 +56,31 @@
 	    });
         }
 
-        setup(actions)
+        setup(actions, callback)
         {
 	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
 		// TODO: Integrate more nicely in the reporting...
-		throw new Error('');
+		throw new Error('Error during GET DB: ' + this.name);
             }, (body) => {
-		// if DB does not exist yet
-		if ( ! body ) {
-		    this.create(actions);
-		}
-		// if DB already exists
-		else {
-		    this.update(actions, body);
-		}
+		actions.platform.get('/forests', msg => {
+		    // TODO: Integrate more nicely in the reporting...
+		    throw new Error('Error during GET forests');
+		}, (forests) => {
+		    var items = forests['forest-default-list']['list-items']['list-item'];
+		    var names = items.map(o => o.nameref);
+		    // if DB does not exist yet
+		    if ( ! body ) {
+			this.create(actions, callback, names);
+		    }
+		    // if DB already exists
+		    else {
+			this.update(actions, callback, body, names);
+		    }
+		});
             });
         }
 
-        create(actions)
+        create(actions, callback, forests)
         {
 	    var obj = {
 		"database-name": this.name
@@ -83,31 +90,32 @@
 		'/databases',
 		obj,
 		'Create database: \t' + this.name));
-	    Object.values(this.forests).forEach(f => f.create(actions));
+	    Object.values(this.forests).forEach(f => f.create(actions, forests));
+	    callback();
 	}
 
-        update(actions, body)
+        update(actions, callback, body, forests)
         {
 	    // check forests...
-	    // to remove: in `body.forest` but not in `desired`
-	    // to add: in `desired` but not in `body.forest`
+	    // to remove: in `actual` but not in `desired`
+	    // to add: in `desired` but not in `actual`
+	    var actual  = body.forest || [];
 	    var desired = Object.keys(this.forests);
-	    var rem     = body.forest.filter(n => ! desired.includes(n));
-	    var add     = desired.filter(n => ! body.forest.includes(n));
-	    var _ = actions.platform;
-	    _.debug('Forests to remove: ' + rem);
-	    _.debug('Forests to    add: ' + add);
+	    var rem     = actual.filter(n => ! desired.includes(n));
+	    var add     = desired.filter(n => ! actual.includes(n));
 	    rem.forEach(n => {
 		this.forests[n] = new Forest(this, n);
 		this.forests[n].remove(actions);
 	    });
 	    add.forEach(n => {
-		this.forests[n].create(actions);
+		this.forests[n].create(actions, forests);
 	    });
 
 	    // TODO: Check indexes...
 
 	    // TODO: Check other properties...
+
+	    callback();
 	}
     }
 
@@ -123,12 +131,21 @@
 	    this.name = name;
 	}
 
-        create(actions)
+        create(actions, forests)
         {
-            actions.add(new act.Post(
-                '/forests',
-                { "forest-name": this.name, "database": this.db.name },
-                'Create forest:  \t' + this.name));
+	    // if already exists, attach it instead of creating it
+	    if ( forests.includes(this.name) ) {
+		actions.add(new act.Post(
+                    '/forests/' + this.name + '?state=attach&database=' + this.db.name,
+                    null,
+                    'Attach forest:  \t' + this.name));
+	    }
+	    else {
+		actions.add(new act.Post(
+                    '/forests',
+                    { "forest-name": this.name, "database": this.db.name },
+                    'Create forest:  \t' + this.name));
+	    }
         }
 
         remove(actions)
@@ -158,13 +175,13 @@
             this.modules = srv.modules;
         }
 
-        setup(actions)
+        setup(actions, callback)
 	{
 	    // TODO: More than that... (what if it already exists...?)
-	    this.create(actions);
+	    this.create(actions, callback);
 	}
 
-        create(actions)
+        create(actions, callback)
 	{
             var obj = {
                 "server-name":      this.name,
@@ -181,6 +198,7 @@
                 '/servers?group-id=Default',
                 obj,
                 'Create server:  \t' + this.name));
+	    callback();
 	}
     }
 

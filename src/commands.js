@@ -25,7 +25,7 @@
 	    }
 	}
 
-	prepare(path, base) {
+	prepare(path, base, callback) {
             this.path  = path;
 	    this.space = s.Space.load(this.platform, path, base);
 	    this.platform.space = this.space;
@@ -41,6 +41,11 @@
      */
     class DebugCommand extends Command
     {
+	prepare(path, base, callback) {
+	    super.prepare(path, base, callback);
+	    callback();
+	}
+
 	execute() {
 	    var _ = this.platform;
 	    _.log(_.green('Databases') + ':');
@@ -63,19 +68,22 @@
      */
     class SetupCommand extends Command
     {
-        prepare(path, base)
-        {
-	    super.prepare(path, base);
+	prepare(path, base, callback)
+	{
+	    super.prepare(path, base, callback);
 	    // the action list
             this.actions = new act.ActionList(this.platform, this.verbose());
-            // databases
-            this.space.databases().forEach(db => {
-                db.setup(this.actions);
-            });
-            // servers
-            this.space.servers().forEach(srv => {
-                srv.setup(this.actions);
-            });
+	    var impl = comps => {
+		if ( comps.length ) {
+		    comps[0].setup(this.actions, () => impl(comps.slice(1)));
+		}
+		else {
+		    callback();
+		}
+	    };
+	    var dbs  = this.space.databases();
+	    var srvs = this.space.servers();
+	    impl(dbs.concat(srvs));
         }
 
         execute() {
