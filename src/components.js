@@ -135,8 +135,8 @@
         {
 	    // just detach it, not delete it for real
             actions.add(new act.Post(
-                '/forests/' + this.name,
-                { "state": "detach" },
+                '/forests/' + this.name + '?state=detach',
+                null,
                 'Detach forest:  \t' + this.name));
         }
     }

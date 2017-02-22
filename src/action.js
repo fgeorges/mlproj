@@ -61,9 +61,6 @@
         }
 
         send(platform, url, data, error, success) {
-	    if ( ! data ) {
-		throw new Error('No data in a POST: ' + url);
-	    }
 	    platform.post(url, data, error, success);
         }
     }

@@ -132,27 +132,33 @@ class Node extends s.Platform
 	}
 	var url   = this.url(endpoint);
 	var creds = this.credentials();
-        request.post(
-	    {
-                url:  url,
-                json: data,
-                auth: {
-		    user: creds[0],
-		    pass: creds[1],
-		    sendImmediately: false
-                }
-	    },
-	    (err, http, body) => {
-                if ( err ) {
-		    error('Error performing a POST action: ' + err);
-                }
-                else if ( http.statusCode !== 201 ) {
-		    error('Entity not created: ' + body.errorResponse.message);
-                }
-                else {
-		    success();
-                }
-	    });
+	var options = {
+            url:  url,
+            auth: {
+		user: creds[0],
+		pass: creds[1],
+		sendImmediately: false
+            }
+	};
+	if ( data ) {
+            options.json = data;
+	}
+	else {
+	    options.headers = {
+		"Content-Type": 'application/x-www-form-urlencoded'
+	    };
+	}
+        request.post(options, (err, http, body) => {
+            if ( err ) {
+		error('Error performing a POST action: ' + err);
+            }
+            else if ( http.statusCode !== (data ? 201 : 200) ) {
+		error('Entity not created: ' + body.errorResponse.message);
+            }
+            else {
+		success();
+            }
+	});
     }
 }
 
