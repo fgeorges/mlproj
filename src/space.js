@@ -71,7 +71,11 @@
 		    }
 		});
 	    };
-	    extract(json, ['code', 'title']);
+	    // TODO: @srcdir should be initialized automatically to the project
+	    // source dir (the subdir src/ in the dir containing xproject/),
+	    // @srcdir being just a way to override it (or sometimes to set it,
+	    // especially in tests.)
+	    extract(json, ['code', 'title', 'srcdir']);
 	    if ( json.connect ) {
 		extract(json.connect, ['host', 'user', 'password']);
 	    }
@@ -102,7 +106,7 @@
 
 	servers()
 	{
-	    return this._allSrvs.map(srv => new cmp.Server(srv));
+	    return this._allSrvs.map(srv => new cmp.Server(srv, this));
 	}
 
 	// cache databases and servers (resolving import priority)

@@ -11,6 +11,7 @@
 	    "compose": "merge",
 	    "id": "server",
             "modules": null,
+            "root": null,
 	    "comment": "By default, with no modules DB, root is `{proj}/src/`."
         }]
     }

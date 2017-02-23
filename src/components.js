@@ -213,9 +213,10 @@
      */
     class Server extends Component
     {
-        constructor(srv)
+        constructor(srv, space)
         {
 	    super();
+            this.space   = space;
             this.id      = srv.id;
             this.name    = srv.name;
             this.type    = srv.type;
@@ -240,9 +241,16 @@
                 "root":             this.root,
                 "content-database": this.content.name
             };
-            if ( this.modules && this.modules.name ) {
+            if ( this.modules ) {
                 obj['modules-database'] = this.modules.name;
             }
+	    else if ( ! obj.root ) {
+		var dir = this.space.param('@srcdir');
+		if ( ! dir ) {
+		    throw new Error('No @srcdir for the root of the server: ' + this.name);
+		}
+		obj.root = dir;
+	    }
             actions.add(new act.Post(
                 // TODO: Support group-id other than Default...
                 '/servers?group-id=Default',
