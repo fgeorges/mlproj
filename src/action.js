@@ -15,14 +15,14 @@
             this.data = data;
         }
 
-        display(platform)
+        display(platform, indent)
         {
-            platform.log(this.msg);
+            platform.log(indent + ' ' + this.msg);
         }
 
         execute(platform, space, verbose, error, success)
 	{
-            platform.warn(platform.green('post') + '  ' + this.msg);
+            platform.warn(platform.yellow('→') + ' ' + this.msg);
             if ( verbose ) {
                 platform.warn('[' + platform.bold('verbose') + '] ' + this.verb + ' to ' + this.url);
 		if ( this.data ) {
@@ -103,46 +103,44 @@
             this.todo.push(a);
         }
 
-        execute(space)
+        execute(space, callback)
         {
-	    if ( ! this.error && ! this.done.length ) {
-		this.platform.log('--- ' + this.platform.bold('Activity') + ' ---');
-	    }
-            if ( ! this.todo.length ) {
-                // nothing left to do
-                this.display();
-            }
-            else {
+            if ( this.todo.length ) {
                 var action = this.todo.shift();
                 action.execute(this.platform, space, this.verbose, msg => {
                     this.error = { action: action, message: msg };
                     // stop processing
-                    this.display();
+		    callback();
                 }, () => {
                     this.done.push(action);
                     // TODO: Keep the idea of an event log?
                     // events.push('Database created: ' + db.name);
-                    this.execute(space);
+                    this.execute(space, callback);
                 });
             }
+	    else {
+		callback();
+	    }
         }
 
         summary()
         {
 	    var _ = this.platform;
-            _.log('\n--- ' + _.bold('Summary') + ' ---');
             if ( this.done.length ) {
                 _.log(_.green('Done') + ':');
-                this.done.forEach(a => a.display(_));
+                this.done.forEach(a => a.display(_, _.green('✓')));
             }
             if ( this.error ) {
                 _.log(_.red('Error') + ':');
-                this.error.action.display(_);
+                this.error.action.display(_, _.red('✗'));
                 _.log(this.error.message);
             }
             if ( this.todo.length ) {
                 _.log(_.yellow('Not done') + ':');
-                this.todo.forEach(a => a.display(_));
+                this.todo.forEach(a => a.display(_, _.yellow('✗')));
+            }
+            if ( ! this.done.length && ! this.error && ! this.todo.length ) {
+                _.log('Nothing to do.');
             }
         }
     }

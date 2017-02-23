@@ -4,6 +4,33 @@
 
     const act = require('./action');
 
+    function logCheck(actions, indent, msg, arg) {
+	var p = actions.platform;
+	var s = '';
+	while ( indent-- ) {
+	    s += '   ';
+	}
+	p.log(s + '• ' + p.yellow('checking') + ' ' + msg + (arg ? ': \t' + arg : ''));
+    }
+
+    function logAdd(actions, indent, verb, msg, arg) {
+	var p = actions.platform;
+	var s = '';
+	while ( indent-- ) {
+	    s += '   ';
+	}
+	p.log(s + '  need to ' + p.green(verb) + ' ' + msg + (arg ? ': \t' + arg : ''));
+    }
+
+    function logRemove(actions, indent, verb, msg, arg) {
+	var p = actions.platform;
+	var s = '';
+	while ( indent-- ) {
+	    s += '   ';
+	}
+	p.log(s + '  need to ' + p.red(verb) + ' ' + msg + (arg ? ': \t' + arg : ''));
+    }
+
     /*~
      * Interface of a component.
      */
@@ -58,6 +85,7 @@
 
         setup(actions, callback)
         {
+	    logCheck(actions, 0, 'database', this.name);
 	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
 		// TODO: Integrate more nicely in the reporting...
 		throw new Error('Error during GET DB: ' + this.name);
@@ -82,6 +110,7 @@
 
         create(actions, callback, forests)
         {
+	    logAdd(actions, 0, 'create', 'database', this.name);
 	    var obj = {
 		"database-name": this.name
 	    };
@@ -90,6 +119,7 @@
 		'/databases',
 		obj,
 		'Create database: \t' + this.name));
+	    logCheck(actions, 1, 'forests');
 	    Object.values(this.forests).forEach(f => f.create(actions, forests));
 	    callback();
 	}
@@ -97,6 +127,7 @@
         update(actions, callback, body, forests)
         {
 	    // check forests...
+	    logCheck(actions, 1, 'forests');
 	    var actual  = body.forest || [];
 	    var desired = Object.keys(this.forests);
 	    // to remove: those in `actual` but not in `desired`
@@ -113,6 +144,7 @@
 		});
 
 	    // check indexes...
+	    logCheck(actions, 1, 'indexes');
 	    var elemRanges = {};
 	    var ranges     = body['range-element-index'] || [];
 	    ranges.forEach(idx => {
@@ -150,12 +182,14 @@
         {
 	    // if already exists, attach it instead of creating it
 	    if ( forests.includes(this.name) ) {
+		logAdd(actions, 1, 'attach', 'forest', this.name);
 		actions.add(new act.Post(
                     '/forests/' + this.name + '?state=attach&database=' + this.db.name,
                     null,
                     'Attach forest:  \t' + this.name));
 	    }
 	    else {
+		logAdd(actions, 1, 'create', 'forest', this.name);
 		actions.add(new act.Post(
                     '/forests',
                     { "forest-name": this.name, "database": this.db.name },
@@ -165,6 +199,7 @@
 
         remove(actions)
         {
+	    logRemove(actions, 1, 'detach', 'forest', this.name);
 	    // just detach it, not delete it for real
             actions.add(new act.Post(
                 '/forests/' + this.name + '?state=detach',
@@ -269,6 +304,7 @@
 	    });
 	    // if there is any change...
 	    if ( keep.length !== actual.length || keep.length !== desired.length ) {
+		logAdd(actions, 1, 'update', 'element range indexes');
 		// reconstruct the whole `range-element-index` property array
 		var body = {};
 		this.create(body);
