@@ -30,7 +30,12 @@
                     platform.warn(this.data);
 		}
             }
-	    this.send(platform, this.url, this.data, error, success);
+	    if ( platform.dry ) {
+		success();
+	    }
+	    else {
+		this.send(platform, this.url, this.data, error, success);
+	    }
         }
     }
 

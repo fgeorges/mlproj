@@ -99,10 +99,6 @@ class Node extends s.Platform
     }
 
     get(endpoint, error, success) {
-	if ( this.dry ) {
-	    success();
-	    return;
-	}
 	var url   = this.url(endpoint);
 	var creds = this.credentials();
         request.get(
@@ -136,10 +132,6 @@ class Node extends s.Platform
     }
 
     post(endpoint, data, error, success) {
-	if ( this.dry ) {
-	    success();
-	    return;
-	}
 	var url   = this.url(endpoint);
 	var creds = this.credentials();
 	var options = {
