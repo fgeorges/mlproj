@@ -127,7 +127,7 @@
             }
         }
 
-        display()
+        summary()
         {
 	    var _ = this.platform;
             _.log('\n--- ' + _.bold('Summary') + ' ---');

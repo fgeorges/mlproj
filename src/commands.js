@@ -31,8 +31,12 @@
 	    this.platform.space = this.space;
 	}
 
-	execute() {
+	execute(callback) {
 	    throw new Error('Command.execute is abstract');
+	}
+
+	summary() {
+	    throw new Error('Command.summary is abstract');
 	}
     }
 
@@ -46,7 +50,7 @@
 	    callback();
 	}
 
-	execute() {
+	execute(callback) {
 	    var _ = this.platform;
 	    _.log(_.green('Databases') + ':');
 	    _.log(this.space.databases());
@@ -60,6 +64,10 @@
 	    _.log(Object.keys(this.space._srvIds));
 	    _.log(_.green('Servers names') + ':');
 	    _.log(Object.keys(this.space._srvNames));
+	    callback();
+	}
+
+	summary() {
 	}
     }
 
@@ -71,6 +79,7 @@
 	prepare(path, base, callback)
 	{
 	    super.prepare(path, base, callback);
+	    this.platform.log('--- ' + this.platform.bold('Prepare') + ' ---');
 	    // the action list
             this.actions = new act.ActionList(this.platform, this.verbose());
 	    var impl = comps => {
@@ -86,8 +95,16 @@
 	    impl(dbs.concat(srvs));
         }
 
-        execute() {
-            this.actions.execute(this.space);
+        execute(callback) {
+	    this.platform.log('\n--- ' + this.platform.bold('Progress') + ' ---'
+			      + (this.platform.dry ? ' (dry mode, not for real)' : ''));
+            this.actions.execute(this.space, callback);
+        }
+
+        summary() {
+	    this.platform.log('\n--- ' + this.platform.bold('Summary') + ' ---'
+			      + (this.platform.dry ? ' (dry mode, not for real)' : ''));
+            this.actions.summary();
         }
     }
 
