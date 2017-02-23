@@ -9,7 +9,7 @@
             "password": "admin"
         },
         "databases": [{
-	    "name": "@{code}-content",
+	    "name": "@{code}",
 	    "indexes": {
                 "ranges": [{
 		    "type":      "string",
