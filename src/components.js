@@ -88,11 +88,11 @@
 	    logCheck(actions, 0, 'database', this.name);
 	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
 		// TODO: Integrate more nicely in the reporting...
-		throw new Error('Error during GET DB: ' + this.name);
+		throw new Error('Error during GET DB ' + this.name + ': ' + msg);
             }, (body) => {
 		actions.platform.get('/forests', msg => {
 		    // TODO: Integrate more nicely in the reporting...
-		    throw new Error('Error during GET forests');
+		    throw new Error('Error during GET forests: ' + msg);
 		}, (forests) => {
 		    var items = forests['forest-default-list']['list-items']['list-item'];
 		    var names = items.map(o => o.nameref);

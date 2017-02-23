@@ -115,8 +115,7 @@ class Node extends s.Platform
 	    },
 	    (err, http, body) => {
                 if ( err ) {
-		    this.verboseHttp(http, body);
-		    error('Error performing a GET action: ' + err);
+		    error(err);
                 }
                 else if ( http.statusCode === 200 ) {
 		    success(JSON.parse(body));
@@ -152,8 +151,7 @@ class Node extends s.Platform
 	}
         request.post(options, (err, http, body) => {
             if ( err ) {
-		this.verboseHttp(http, body);
-		error('Error performing a POST action: ' + err);
+		error(err);
             }
             else if ( http.statusCode !== (data ? 201 : 200) ) {
 		this.verboseHttp(http, body);
@@ -186,8 +184,7 @@ class Node extends s.Platform
 	}
         request.put(options, (err, http, body) => {
             if ( err ) {
-		this.verboseHttp(http, body);
-		error('Error performing a PUT action: ' + err);
+		error(err);
             }
             else if ( http.statusCode !== 204 ) {
 		this.verboseHttp(http, body);
@@ -238,17 +235,12 @@ commands.forEach(cmd => {
 	if ( program.verbose ) {
 	    command.verbose(true);
 	}
-        try {
-	    var base = process.cwd();
-            command.prepare(path, base, () => {
-		command.execute(() => {
-		    command.summary();
-		});
+	var base = process.cwd();
+        command.prepare(path, base, () => {
+	    command.execute(() => {
+		command.summary();
 	    });
-        }
-        catch ( err ) {
-            console.warn(platform.red('Error') + ': ' + err.message);
-        }
+	});
     });
 });
 
