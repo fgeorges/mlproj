@@ -1,6 +1,6 @@
 {
   "name": "mlproj",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Project management for MarkLogic",
   "main": "src/tui.js",
   "bin": {
