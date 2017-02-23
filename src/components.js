@@ -114,21 +114,19 @@
 
 	    // check indexes...
 	    var elemRanges = {};
-	    var ranges     = body['range-element-index'];
-	    if ( ranges ) {
-		ranges.forEach(idx => {
-		    var names = idx.localname;
-		    if ( ! Array.isArray(names) ) {
-			names = [ idx.localname ];
-		    }
-		    while ( names.length ) {
-			var ns  = idx['namespace-uri'];
-			var key = ( ns ? '{' + ns + '}' : '' ) + names.shift();
-			elemRanges[key] = idx;
-		    }
-		});
-		this.indexes.update(actions, elemRanges);
-	    }
+	    var ranges     = body['range-element-index'] || [];
+	    ranges.forEach(idx => {
+		var names = idx.localname;
+		if ( ! Array.isArray(names) ) {
+		    names = [ idx.localname ];
+		}
+		while ( names.length ) {
+		    var ns  = idx['namespace-uri'];
+		    var key = ( ns ? '{' + ns + '}' : '' ) + names.shift();
+		    elemRanges[key] = idx;
+		}
+	    });
+	    this.indexes.update(actions, elemRanges);
 
 	    // TODO: Check other properties...
 
