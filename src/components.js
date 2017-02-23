@@ -217,6 +217,7 @@
         {
 	    super();
             this.space   = space;
+            this.group   = srv.group || 'Default';
             this.id      = srv.id;
             this.name    = srv.name;
             this.type    = srv.type;
@@ -228,12 +229,26 @@
 
         setup(actions, callback)
 	{
-	    // TODO: More than that... (what if it already exists...?)
-	    this.create(actions, callback);
+	    logCheck(actions, 0, 'server', this.name);
+	    var url = '/servers/' + this.name + '/properties?group-id=' + this.group;
+	    actions.platform.get(url, msg => {
+		// TODO: Integrate more nicely in the reporting...
+		throw new Error('Error during GET DB ' + this.name + ': ' + msg);
+            }, (body) => {
+		// if AS does not exist yet
+		if ( ! body ) {
+		    this.create(actions, callback);
+		}
+		// if AS already exists
+		else {
+		    this.update(actions, callback, body);
+		}
+	    });
 	}
 
         create(actions, callback)
 	{
+	    logAdd(actions, 0, 'create', 'server', this.name);
             var obj = {
                 "server-name":      this.name,
                 "server-type":      this.type,
@@ -252,11 +267,15 @@
 		obj.root = dir;
 	    }
             actions.add(new act.Post(
-                // TODO: Support group-id other than Default...
-                '/servers?group-id=Default',
+                '/servers?group-id=' + this.group,
                 obj,
                 'Create server:  \t' + this.name));
 	    callback();
+	}
+
+        update(actions, callback, body)
+	{
+	    throw new Error('Server update not supported yet...');
 	}
     }
 
