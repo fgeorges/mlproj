@@ -90,6 +90,14 @@ class Node extends s.Platform
 	return [ user, pwd ];
     }
 
+    verboseHttp(http, body) {
+	if ( this.verbose ) {
+            this.warn('[' + this.bold('verbose') + '] Return status: ' + http.statusCode);
+            this.warn('[' + this.bold('verbose') + '] Body:');
+	    this.log(body);
+	}
+    }
+
     get(endpoint, error, success) {
 	if ( this.dry ) {
 	    success();
@@ -111,6 +119,7 @@ class Node extends s.Platform
 	    },
 	    (err, http, body) => {
                 if ( err ) {
+		    this.verboseHttp(http, body);
 		    error('Error performing a GET action: ' + err);
                 }
                 else if ( http.statusCode === 200 ) {
@@ -120,6 +129,7 @@ class Node extends s.Platform
 		    success();
                 }
                 else {
+		    this.verboseHttp(http, body);
 		    error('Error retrieving entity: ' + body.errorResponse.message);
                 }
 	    });
@@ -150,9 +160,11 @@ class Node extends s.Platform
 	}
         request.post(options, (err, http, body) => {
             if ( err ) {
+		this.verboseHttp(http, body);
 		error('Error performing a POST action: ' + err);
             }
             else if ( http.statusCode !== (data ? 201 : 200) ) {
+		this.verboseHttp(http, body);
 		error('Entity not created: ' + body.errorResponse.message);
             }
             else {
