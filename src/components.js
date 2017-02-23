@@ -216,7 +216,6 @@
         constructor(srv, space)
         {
 	    super();
-            this.space   = space;
             this.group   = srv.group || 'Default';
             this.id      = srv.id;
             this.name    = srv.name;
@@ -225,6 +224,13 @@
             this.root    = srv.root;
             this.content = srv.content;
             this.modules = srv.modules;
+            if ( ! this.modules && ! this.root ) {
+		var dir = space.param('@srcdir');
+		if ( ! dir ) {
+		    throw new Error('No @srcdir for the root of the server: ' + this.name);
+		}
+		this.root = dir;
+	    }
         }
 
         setup(actions, callback)
@@ -259,13 +265,6 @@
             if ( this.modules ) {
                 obj['modules-database'] = this.modules.name;
             }
-	    else if ( ! obj.root ) {
-		var dir = this.space.param('@srcdir');
-		if ( ! dir ) {
-		    throw new Error('No @srcdir for the root of the server: ' + this.name);
-		}
-		obj.root = dir;
-	    }
             actions.add(new act.Post(
                 '/servers?group-id=' + this.group,
                 obj,
@@ -273,9 +272,38 @@
 	    callback();
 	}
 
-        update(actions, callback, body)
+        update(actions, callback, actual)
 	{
-	    throw new Error('Server update not supported yet...');
+	    // TODO: Allow some changes, like port number...
+	    var diffs = [];
+            if ( this.type !== actual['server-type'] ) {
+	    	diffs.push('type');
+	    }
+            if ( this.port !== actual['port'].toString() ) {
+		diffs.push('port');
+	    }
+            if ( this.root !== actual['root'] ) {
+	     	diffs.push('root: ' + this.root + ' - ' + actual['root']);
+	    }
+            if ( this.content.name !== actual['content-database'] ) {
+		diffs.push('content');
+	    }
+            if ( ( ! this.modules && actual['modules-database'] )
+		 || ( this.modules && ! actual['modules-database'] )
+		 || ( this.modules && this.modules.name !== actual['modules-database'] ) ) {
+		diffs.push('modules');
+	    }
+	    if ( diffs.length ) {
+		var msg = 'Server differ by `' + diffs[0] + '`';
+		for ( var i = 1; i < diffs.length - 1; ++i ) {
+		    msg += ', `' + diffs[i] + '`';
+		}
+		if ( diffs.length > 1 ) {
+		    msg += ' and `' + diffs[diffs.length - 1] + '`';
+		}
+		throw new Error(msg);
+	    }
+	    callback();
 	}
     }
 
