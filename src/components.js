@@ -242,8 +242,10 @@
 
         create(db)
         {
+	    // if there is no index, that will be an empty array, preventing the
+	    // default DLS range indexes to be created
             db['range-element-index'] =
-		Object.entries(this.rangeElem)
+		Object.values(this.rangeElem)
 		.map(idx => idx.create());
         }
     }
