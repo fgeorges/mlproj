@@ -97,19 +97,20 @@
         update(actions, callback, body, forests)
         {
 	    // check forests...
-	    // to remove: in `actual` but not in `desired`
-	    // to add: in `desired` but not in `actual`
 	    var actual  = body.forest || [];
 	    var desired = Object.keys(this.forests);
-	    var rem     = actual.filter(n => ! desired.includes(n));
-	    var add     = desired.filter(n => ! actual.includes(n));
-	    rem.forEach(n => {
-		this.forests[n] = new Forest(this, n);
-		this.forests[n].remove(actions);
-	    });
-	    add.forEach(n => {
-		this.forests[n].create(actions, forests);
-	    });
+	    // to remove: those in `actual` but not in `desired`
+	    actual
+		.filter(name => ! desired.includes(name))
+		.forEach(name => {
+		    new Forest(this, name).remove(actions);
+		});
+	    // to add: those in `desired` but not in `actual`
+	    desired
+		.filter(name => ! actual.includes(name))
+		.forEach(name => {
+		    this.forests[name].create(actions, forests);
+		});
 
 	    // TODO: Check indexes...
 
