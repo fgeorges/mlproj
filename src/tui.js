@@ -164,6 +164,40 @@ class Node extends s.Platform
             }
 	});
     }
+
+    put(endpoint, data, error, success) {
+	var url   = this.url(endpoint);
+	var creds = this.credentials();
+	var options = {
+            url:  url,
+            auth: {
+		user: creds[0],
+		pass: creds[1],
+		sendImmediately: false
+            }
+	};
+	if ( data ) {
+            options.json = data;
+	}
+	else {
+	    options.headers = {
+		"Content-Type": 'application/x-www-form-urlencoded'
+	    };
+	}
+        request.put(options, (err, http, body) => {
+            if ( err ) {
+		this.verboseHttp(http, body);
+		error('Error performing a PUT action: ' + err);
+            }
+            else if ( http.statusCode !== 204 ) {
+		this.verboseHttp(http, body);
+		error('Entity not updated: ' + body.errorResponse.message);
+            }
+            else {
+		success();
+            }
+	});
+    }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

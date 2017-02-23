@@ -45,6 +45,9 @@
 	post(url, data, error, success) {
 	    throw new Error('Platform.post is abstract');
 	}
+	put(url, data, error, success) {
+	    throw new Error('Platform.put is abstract');
+	}
     }
 
     /*~

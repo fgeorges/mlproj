@@ -31,7 +31,7 @@
             this.id      = db.id;
             this.name    = db.name;
             this.forests = {};
-            this.indexes = new Indexes(db.indexes);
+            this.indexes = new Indexes(this, db.indexes);
 	    var forests = db.forests;
 	    if ( forests === null || forests === undefined ) {
 		forests = 1;
@@ -112,7 +112,23 @@
 		    this.forests[name].create(actions, forests);
 		});
 
-	    // TODO: Check indexes...
+	    // check indexes...
+	    var elemRanges = {};
+	    var ranges     = body['range-element-index'];
+	    if ( ranges ) {
+		ranges.forEach(idx => {
+		    var names = idx.localname;
+		    if ( ! Array.isArray(names) ) {
+			names = [ idx.localname ];
+		    }
+		    while ( names.length ) {
+			var ns  = idx['namespace-uri'];
+			var key = ( ns ? '{' + ns + '}' : '' ) + names.shift();
+			elemRanges[key] = idx;
+		    }
+		});
+		this.indexes.update(actions, elemRanges);
+	    }
 
 	    // TODO: Check other properties...
 
@@ -208,8 +224,9 @@
      */
     class Indexes
     {
-        constructor(indexes)
+        constructor(db, indexes)
         {
+	    this.db        = db;
             this.rangeElem = {};
             // this.rangeAttr = {};
             // ...
@@ -229,7 +246,9 @@
 			    }
 			    while ( names.length ) {
 				idx.name = names.shift();
-				this.rangeElem[idx.name] = new ElementRangeIndex(idx);
+				var ns  = idx.namespace;
+				var key = ( ns ? '{' + ns + '}' : '' ) + idx.name;
+				this.rangeElem[key] = new ElementRangeIndex(idx);
 			    }
 			}
 		    });
@@ -239,6 +258,28 @@
 		}
             }
         }
+
+	update(actions, ranges)
+	{
+	    var actual  = Object.keys(ranges);
+	    var desired = Object.keys(this.rangeElem);
+	    // to keep: those in both `actual` and `desired`
+	    // check they are what's desired, or fail
+	    var keep = actual.filter(name => desired.includes(name));
+	    keep.forEach(name => {
+		this.rangeElem[name].update(actions, name, ranges[name]);
+	    });
+	    // if there is any change...
+	    if ( keep.length !== actual.length || keep.length !== desired.length ) {
+		// reconstruct the whole `range-element-index` property array
+		var body = {};
+		this.create(body);
+		actions.add(new act.Put(
+                    '/databases/' + this.db.name + '/properties',
+                    body,
+                    'Update indexes:  \t' + this.db.name));
+	    }
+	}
 
         create(db)
         {
@@ -277,6 +318,47 @@
             };
             return obj;
         }
+
+	update(actions, name, actual)
+	{
+	    var diffs = [];
+            if ( this.type !== actual['scalar-type'] ) {
+		diffs.push('type');
+	    }
+            if ( this.name !== actual['localname'] ) {
+		diffs.push('name');
+	    }
+            if ( this.positions !== actual['range-value-positions'] ) {
+		diffs.push('positions');
+	    }
+	    // TODO: Don't we want to allow some changes, e.g. the value of
+	    // `invalid-values`?  What changes does the Management API allow?
+            if ( this.invalid !== actual['invalid-values'] ) {
+		diffs.push('invalid');
+	    }
+            if ( this.namespace !== actual['namespace-uri'] ) {
+		diffs.push('namespace');
+	    }
+            if ( this.collation !== actual['collation'] ) {
+		diffs.push('collation');
+	    }
+	    if ( diffs.length ) {
+		var msg = 'Range index for element `' + name + '` differ by `' + diffs[0] + '`';
+		for ( var i = 1; i < diffs.length - 1; ++i ) {
+		    msg += ', `' + diffs[i] + '`';
+		}
+		if ( diffs.length > 1 ) {
+		    msg += ' and `' + diffs[diffs.length - 1] + '`';
+		}
+		// TODO: Instead of stopping here, we should accumulate such
+		// errors in `actions` and keep going.  In `ActionList.execute`,
+		// we can then check if there is any error before going further.
+		// This way, we could accumulate all errors instead of stopping
+		// on the first one, for reporting purposes.  Applies to other
+		// places as well.
+		throw new Error(msg);
+	    }
+	}
     }
 
     module.exports = {

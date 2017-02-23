@@ -71,6 +71,20 @@
     }
 
     /*~
+     * A PUT action.
+     */
+    class Put extends Action
+    {
+        constructor(url, data, msg) {
+	    super(url, 'PUT', msg, data);
+        }
+
+        send(platform, url, data, error, success) {
+	    platform.put(url, data, error, success);
+        }
+    }
+
+    /*~
      * A list of actions.
      */
     class ActionList
@@ -136,6 +150,7 @@
     module.exports = {
         Get        : Get,
         Post       : Post,
+        Put        : Put,
         ActionList : ActionList
     }
 }
