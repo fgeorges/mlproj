@@ -130,15 +130,14 @@
 	    this._srvIds   = ctxt.srvIds;
 	    this._srvNames = ctxt.srvNames;
 
-	    // resolve databases "embedded" in servers
-	    var that  = this;
+	    // resolve databases "embedded" in databases and servers
 	    var embed = (db) => {
 		if ( db.idref ) {
 		    if ( Object.keys(db).length > 1 ) {
 			throw new Error('DB idref cannot have any other property: '
                             + JSON.stringify(db));
 		    }
-		    var res = that._dbIds[db.idref];
+		    var res = this._dbIds[db.idref];
 		    if ( ! res ) {
 			throw new Error('DB id:' + db.idref + ' does not exist');
 		    }
@@ -149,7 +148,7 @@
 			throw new Error('DB nameref cannot have any other property: '
                             + JSON.stringify(db));
 		    }
-		    var res = that._dbNames[db.nameref];
+		    var res = this._dbNames[db.nameref];
 		    if ( ! res ) {
 			throw new Error('DB name:' + db.nameref + ' does not exist');
 		    }
@@ -158,19 +157,19 @@
 		else if ( ! db.name && ! db.id ) {
 		    throw new Error('DB with no ID and no name in ' + JSON.stringify(db));
 		}
-		else if ( db.id && that._dbIds[db.id] ) {
+		else if ( db.id && this._dbIds[db.id] ) {
 		    throw new Error('Embedded DB id:' + db.id + ' already exists');
 		}
-		else if ( db.name && that._dbNames[db.name] ) {
+		else if ( db.name && this._dbNames[db.name] ) {
 		    throw new Error('Embedded DB name:' + db.name + ' already exists');
 		}
 		else {
-		    that._allDbs.push(db);
+		    this._allDbs.push(db);
 		    if ( db.id ) {
-			that._dbIds[db.id] = db;
+			this._dbIds[db.id] = db;
 		    }
 		    if ( db.name ) {
-			that._dbNames[db.name] = db;
+			this._dbNames[db.name] = db;
 		    }
 		    return db;
 		}
