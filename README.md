@@ -5,6 +5,7 @@
 - attribute range indexes
 - collection lexicon
 - word lexicons
+- url rewriter and error handler
 - publish on npmjs
     - https://www.npmjs.com/package/mlproj
     - https://docs.npmjs.com/getting-started/publishing-npm-packages
