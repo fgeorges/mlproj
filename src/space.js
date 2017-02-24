@@ -122,13 +122,10 @@
 		srvNames : {}
 	    };
 	    this.cacheImpl(ctxt, platform);
-	    this.messages  = ctxt.infos;
 	    this._allDbs   = ctxt.dbs;
 	    this._dbIds    = ctxt.dbIds;
 	    this._dbNames  = ctxt.dbNames;
 	    this._allSrvs  = ctxt.srvs;
-	    this._srvIds   = ctxt.srvIds;
-	    this._srvNames = ctxt.srvNames;
 
 	    // resolve databases "embedded" in databases and servers
 	    var embed = (db) => {
