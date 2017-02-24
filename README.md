@@ -2,7 +2,6 @@
 
 ## TODO
 
-- schema and security DBs
 - attribute range indexes
 - collection lexicon
 - word lexicons
