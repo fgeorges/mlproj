@@ -96,14 +96,16 @@
         }
 
         execute(callback) {
-	    this.platform.log('\n--- ' + this.platform.bold('Progress') + ' ---'
-			      + (this.platform.dry ? ' (dry mode, not for real)' : ''));
+	    var _ = this.platform;
+	    _.log('\n--- ' + _.bold('Progress') + ' ---'
+		  + (_.dry ? ' (' + _.red('dry run, not for real') + ')' : ''));
             this.actions.execute(this.space, callback);
         }
 
         summary() {
-	    this.platform.log('\n--- ' + this.platform.bold('Summary') + ' ---'
-			      + (this.platform.dry ? ' (dry mode, not for real)' : ''));
+	    var _ = this.platform;
+	    _.log('\n--- ' + _.bold('Summary') + ' ---'
+		  + (_.dry ? ' (' + _.red('dry run, not for real') + ')' : ''));
             this.actions.summary();
         }
     }
