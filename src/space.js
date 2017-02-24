@@ -101,17 +101,18 @@
 
 	databases()
 	{
-	    return this._allDbs.map(db => new cmp.Database(db));
+	    return this._allDbs;
 	}
 
 	servers()
 	{
-	    return this._allSrvs.map(srv => new cmp.Server(srv, this));
+	    return this._allSrvs;
 	}
 
 	// cache databases and servers (resolving import priority)
 	cache(platform)
 	{
+	    // merge database and server JSON objects
 	    var ctxt = {
 		href     : "@root",
 		dbs      : [],
@@ -122,62 +123,222 @@
 		srvNames : {}
 	    };
 	    this.cacheImpl(ctxt, platform);
-	    this._allDbs   = ctxt.dbs;
-	    this._dbIds    = ctxt.dbIds;
-	    this._dbNames  = ctxt.dbNames;
-	    this._allSrvs  = ctxt.srvs;
 
-	    // resolve databases "embedded" in databases and servers
-	    var embed = (db) => {
-		if ( db.idref ) {
-		    if ( Object.keys(db).length > 1 ) {
-			throw new Error('DB idref cannot have any other property: '
-                            + JSON.stringify(db));
+	    // build the array of database and server objects
+	    // the order of the database array guarantees there is no broken dependency
+	    var res = {
+		list  : [],
+		ids   : {},
+		names : {}
+	    };
+
+	    // instantiate a database object from its JSON object, and resolve
+	    // its schemas and security database if any to objects already
+	    // instantiated
+	    var instantiate = (json, res) => {
+		// resolve a schemas or security DB from the current result list
+		var resolve = db => {
+		    if ( ! db ) {
+			return;
 		    }
-		    var res = this._dbIds[db.idref];
-		    if ( ! res ) {
-			throw new Error('DB id:' + db.idref + ' does not exist');
+		    var end = ( db.name    && res.names[db.name]    )
+			||    ( db.nameref && res.names[db.nameref] )
+			||    ( db.id      && res.ids[db.id]        )
+			||    ( db.idref   && res.ids[db.idref]     );
+		    if ( end ) {
+			return end;
 		    }
-		    return res;
-		}
-		else if ( db.nameref ) {
-		    if ( Object.keys(db).length > 1 ) {
-			throw new Error('DB nameref cannot have any other property: '
-                            + JSON.stringify(db));
+		    // is it self-referencing by ID?
+		    if ( db.idref && db.idref === json.id ) {
+			return 'self';
 		    }
-		    var res = this._dbNames[db.nameref];
-		    if ( ! res ) {
-			throw new Error('DB name:' + db.nameref + ' does not exist');
+		    // is it self-referencing by name?
+		    if ( db.nameref && db.nameref === json.name ) {
+			return 'self';
 		    }
-		    return res;
+		};
+		var db = new cmp.Database(json, resolve(json.schemas), resolve(json.security));
+		res.list.push(db);
+		if ( json.id ) {
+		    res.ids[json.id] = db;
 		}
-		else if ( ! db.name && ! db.id ) {
-		    throw new Error('DB with no ID and no name in ' + JSON.stringify(db));
+		if ( json.name ) {
+		    res.names[json.name] = db;
 		}
-		else if ( db.id && this._dbIds[db.id] ) {
-		    throw new Error('Embedded DB id:' + db.id + ' already exists');
+		return db;
+	    };
+
+	    // return true if a database does not need instantiation anymore (if
+	    // it is already instantiated or if it is undefined)
+	    var done = (db, res) => {
+		if ( ! db ) {
+		    // no dependency
+		    return true;
 		}
-		else if ( db.name && this._dbNames[db.name] ) {
-		    throw new Error('Embedded DB name:' + db.name + ' already exists');
+		else if ( db.id && res.ids[db.id] ) {
+		    // has an ID and has been done
+		    return true;
+		}
+		else if ( db.name && res.names[db.name] ) {
+		    // has a name and has been done
+		    return true;
+		}
+		else if ( db.idref && res.ids[db.idref] ) {
+		    // is a reference to an ID that has been done
+		    return true;
+		}
+		else if ( db.nameref && res.names[db.nameref] ) {
+		    // is a reference to a name that has been done
+		    return true;
 		}
 		else {
-		    this._allDbs.push(db);
-		    if ( db.id ) {
-			this._dbIds[db.id] = db;
-		    }
-		    if ( db.name ) {
-			this._dbNames[db.name] = db;
-		    }
-		    return db;
+		    return false;
 		}
 	    };
-	    this._allSrvs.forEach((srv) => {
-		if ( srv.content ) {
-		    srv.content = embed(srv.content);
+
+	    // return true if `child` references its `parent`
+	    var selfRef = (parent, child) => {
+		if ( ! child ) {
+		    return false;
 		}
-		if ( srv.modules ) {
-		    srv.modules = embed(srv.modules);
+		else if ( parent.id && parent.id === child.idref ) {
+		    return true;
 		}
+		else if ( parent.name && parent.name === child.nameref ) {
+		    return true;
+		}
+		else {
+		    return false;
+		}
+	    };
+
+	    // return true if `db` is a reference to another DB (by ID or name)
+	    var isRef = db => {
+		if ( ! db ) {
+		    return false;
+		}
+		else if ( db.idref || db.nameref ) {
+		    return true;
+		}
+		else {
+		    return false;
+		}
+	    };
+
+	    // starting at one DB (a "standalone" DB or a server's content or
+	    // modules DB), return all the DB (itself or embedded, at any level)
+	    // that can be instantiated (meaning: with all referrenced schemas
+	    // and security DB already instantiated, with the exception of
+	    // self-referrencing DB which can be instantiated as well)
+	    var candidates = (db, res) => {
+		if ( done(db, res) ) {
+		    // if already instantiated, do nothing
+		    return [];
+		}
+		else if ( isRef(db) ) {
+		    // if the referrenced DB is instantiated, then return it
+		    if ( db.idref && res.ids[db.idref] ) {
+			return [ db ];
+		    }
+		    else if ( db.nameref && res.names[db.nameref] ) {
+			return [ db ];
+		    }
+		    else {
+			return [];
+		    }
+		}
+		else {
+		    // if both referrenced DB are instantiated, or self-refs, then return it
+		    var sch = selfRef(db, db.schemas)  || done(db.schemas, res);
+		    var sec = selfRef(db, db.security) || done(db.security, res);
+		    if ( sch && sec ) {
+			return [ db ];
+		    }
+		    // if not, recurse
+		    else {
+			return candidates(db.schemas, res)
+			    .concat(candidates(db.security, res));
+		    }
+		}
+	    }
+
+	    // return all candidates (like `candidate`, but using all "roots")
+	    var allCandidates = (ctxt, res) => {
+		var all = [];
+		ctxt.dbs.forEach(db => {
+		    all = all.concat(candidates(db, res));
+		});
+		ctxt.srvs.forEach(srv => {
+		    all = all.concat(candidates(srv.content, res));
+		    all = all.concat(candidates(srv.modules, res));
+		});
+		return all;
+	    }
+
+	    // return all databases and servers for which there is some unmet dependency
+	    var unsolved = (ctxt, res) => {
+		var impl = (db) => {
+		    if ( done(db, res) ) {
+			return [];
+		    }
+		    else {
+			return [ db ]
+			    .concat(impl(db.schemas))
+			    .concat(impl(db.security));
+		    }
+		};
+		var all  = [];
+		var srvs = [];
+		ctxt.dbs.forEach(db => {
+		    all = all.concat(impl(db));
+		});
+		ctxt.srvs.forEach(srv => {
+		    var lhs = impl(srv.content);
+		    var rhs = impl(srv.modules);
+		    if ( lhs.length || rhs.length ) {
+			srvs.push(srv);
+		    }
+		    all = all.concat(lhs).concat(rhs);
+		});
+		return all.concat(srvs);
+	    }
+
+	    // as long as we find candidates, instantiate them
+	    var cands;
+	    while ( ( cands = allCandidates(ctxt, res) ).length ) {
+		cands.forEach(db => instantiate(db, res));
+	    }
+	    this._allDbs = res.list;
+
+	    // ensure we have instatiated all databases
+	    var leftover = unsolved(ctxt, res);
+	    if ( leftover.length ) {
+		var disp = leftover.map(c => {
+		    if ( c.content || c.modules ) {
+			return '{srv ' + (c.name || '') + '}';
+		    }
+		    else if ( c.id || c.name ) {
+			return '{db ' + (c.id || '') + '|' + (c.name || '') + '}';
+		    }
+		    else {
+			return '{dbref ' + (c.idref || '') + '|' + (c.nameref || '') + '}';
+		    }
+		});
+		throw new Error('Some components have unsolved database dependencies: ' + disp);
+	    }
+
+	    // instantiate all servers now
+	    this._allSrvs = ctxt.srvs.map(srv => {
+		var resolve = db => {
+		    if ( ! db ) {
+			return;
+		    }
+		    return ( db.name    && res.names[db.name]    )
+			|| ( db.nameref && res.names[db.nameref] )
+			|| ( db.id      && res.ids[db.id]        )
+			|| ( db.idref   && res.ids[db.idref]     );
+		};
+		return new cmp.Server(srv, this, resolve(srv.content), resolve(srv.modules));
 	    });
 	}
 

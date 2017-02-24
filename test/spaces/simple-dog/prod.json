@@ -1,0 +1,59 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "code": "simple-dog",
+        "title": "More comprehensive example of database dependencies",
+        "desc": "Test representing a real graph of dependencies between databases.  With both embedded and referenced databases (via both `idref` and `nameref`), in both databases (schemas and security) and serveurs (content and modules).",
+        "connect": {
+            "host": "ml9ea4",
+            "user": "admin",
+            "password": "admin"
+        },
+        "databases": [{
+	    "id": "content",
+	    "name": "@{code}-content",
+	    "schemas": {
+		"name": "@{code}-schemas-1",
+		"schemas": {
+		    "name": "@{code}-schemas-2",
+		    "security": {
+			"nameref": "@{code}-security"
+		    }
+		},
+		"security": {
+		    "idref": "security"
+		}
+	    }
+	}, {
+	    "id": "security",
+	    "name": "@{code}-security",
+	    "security": {
+		"idref": "security"
+	    }
+	}],
+        "servers": [{
+            "name": "@{code}",
+            "type": "http",
+            "port": "7040",
+            "content": {
+		"idref": "content"
+            },
+            "modules": {
+		"name": "@{code}-modules",
+		"schemas": {
+		    "name": "@{code}-schemas-3",
+		    "schemas": {
+			"name": "@{code}-schemas-4",
+			"security": {
+			    "idref": "security"
+			}
+		    },
+		    "security": {
+			"nameref": "@{code}-security"
+		    }
+		}
+            },
+	    "root": "/"
+        }]
+    }
+}

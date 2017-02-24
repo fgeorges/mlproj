@@ -52,29 +52,32 @@
      */
     class Database extends Component
     {
-        constructor(db)
+        constructor(json, schemas, security)
         {
 	    super();
-            this.id      = db.id;
-            this.name    = db.name;
-            this.forests = {};
-            this.indexes = new Indexes(this, db.indexes);
-	    var forests = db.forests;
+            this.id       = json.id;
+            this.name     = json.name;
+            this.schemas  = schemas;
+            this.security = security;
+            this.forests  = {};
+            this.indexes  = new Indexes(this, json.indexes);
+	    var forests = json.forests;
 	    if ( forests === null || forests === undefined ) {
 		forests = 1;
 	    }
 	    if ( Number.isInteger(forests) ) {
 		if ( forests < 0 ) {
 		    throw new Error('Negative number of forests (' + forests + ') on id:'
-				    + db.id + '|name:' + db.name);
+				    + json.id + '|name:' + json.name);
 		}
 		if ( forests > 100 ) {
 		    throw new Error('Number of forests greater than 100 (' + forests + ') on id:'
-				    + db.id + '|name:' + db.name);
+				    + json.id + '|name:' + json.name);
 		}
 		var array = [];
 		for ( var i = 1; i <= forests; ++i ) {
-		    array.push(db.name + '-' + i.toLocaleString('en-IN', { minimumIntegerDigits: 3 }));
+		    var num = i.toLocaleString('en-IN', { minimumIntegerDigits: 3 });
+		    array.push(json.name + '-' + num);
 		}
 		forests = array;
 	    }
@@ -213,17 +216,17 @@
      */
     class Server extends Component
     {
-        constructor(srv, space)
+        constructor(json, space, content, modules)
         {
 	    super();
-            this.group   = srv.group || 'Default';
-            this.id      = srv.id;
-            this.name    = srv.name;
-            this.type    = srv.type;
-            this.port    = srv.port;
-            this.root    = srv.root;
-            this.content = srv.content;
-            this.modules = srv.modules;
+            this.group   = json.group || 'Default';
+            this.id      = json.id;
+            this.name    = json.name;
+            this.type    = json.type;
+            this.port    = json.port;
+            this.root    = json.root;
+            this.content = content;
+            this.modules = modules;
             if ( ! this.modules && ! this.root ) {
 		var dir = space.param('@srcdir');
 		if ( ! dir ) {
