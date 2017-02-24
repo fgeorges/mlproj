@@ -5,7 +5,7 @@
         "title": "Simple base space example",
 	"srcdir" : "/tmp/src/",
         "params": {
-            "port": "8910"
+            "port": "7010"
         },
         "servers": [{
 	    "id": "server",

@@ -29,3 +29,6 @@ names to use for projects, based on this abecedary:
 - Xenops
 - Yak
 - Zebra
+
+The simple tests are named `simple-ape`, `simple-bear`... to `simple-zebra`.
+They are each assigned the ports in the range resp. `701*`, `702*`... to `726*`.
