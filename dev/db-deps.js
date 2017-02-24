@@ -72,25 +72,25 @@ function instantiate(json) {
     return db;
 }
 
-function cached(db) {
+function done(db) {
     if ( ! db ) {
 	// no dependency
 	return true;
     }
     else if ( db.id && ids[db.id] ) {
-	// has an ID and is cached
+	// has an ID and has been done
 	return true;
     }
     else if ( db.name && names[db.name] ) {
-	// has a name and is cached
+	// has a name and has been done
 	return true;
     }
     else if ( db.idref && ids[db.idref] ) {
-	// is a reference to an ID that is cached
+	// is a reference to an ID that has been done
 	return true;
     }
     else if ( db.nameref && names[db.nameref] ) {
-	// is a reference to a name that is cached
+	// is a reference to a name that has been done
 	return true;
     }
     else {
@@ -126,7 +126,7 @@ function isRef(db) {
 }
 
 function candidates(db) {
-    if ( cached(db) ) {
+    if ( done(db) ) {
 	return [];
     }
     else if ( isRef(db) ) {
@@ -138,8 +138,8 @@ function candidates(db) {
 	}
     }
     else {
-	var sch = selfRef(db, db.schemas)  || cached(db.schemas);
-	var sec = selfRef(db, db.security) || cached(db.security);
+	var sch = selfRef(db, db.schemas)  || done(db.schemas);
+	var sec = selfRef(db, db.security) || done(db.security);
 	if ( sch && sec ) {
 	    return [ db ];
 	}
@@ -153,7 +153,7 @@ function candidates(db) {
 var databases = json.mlproj.databases;
 var servers   = json.mlproj.servers;
 
-function toAdd() {
+function allCandidates() {
     var res = [];
     databases.forEach(db => {
 	res = res.concat(candidates(db));
@@ -167,7 +167,7 @@ function toAdd() {
 
 function unsolved() {
     var impl = (db) => {
-	if ( cached(db) ) {
+	if ( done(db) ) {
 	    return [];
 	}
 	else {
@@ -193,7 +193,7 @@ function unsolved() {
 }
 
 function linearize() {
-    for ( var add = toAdd(); add.length; add = toAdd() ) {
+    for ( var add = allCandidates(); add.length; add = allCandidates() ) {
 	add.forEach(instantiate);
     }
     var leftover = unsolved();
