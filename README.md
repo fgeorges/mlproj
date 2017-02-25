@@ -2,7 +2,6 @@
 
 ## TODO
 
-- attribute range indexes
 - collection lexicon
 - word lexicons
 - url rewriter and error handler

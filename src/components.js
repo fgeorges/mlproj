@@ -148,20 +148,7 @@
 
 	    // check indexes...
 	    logCheck(actions, 1, 'indexes');
-	    var elemRanges = {};
-	    var ranges     = body['range-element-index'] || [];
-	    ranges.forEach(idx => {
-		var names = idx.localname;
-		if ( ! Array.isArray(names) ) {
-		    names = [ idx.localname ];
-		}
-		while ( names.length ) {
-		    var ns  = idx['namespace-uri'];
-		    var key = ( ns ? '{' + ns + '}' : '' ) + names.shift();
-		    elemRanges[key] = idx;
-		}
-	    });
-	    this.indexes.update(actions, elemRanges);
+	    this.indexes.update(actions, body);
 
 	    // TODO: Check other properties...
 
@@ -319,28 +306,17 @@
         {
 	    this.db        = db;
             this.rangeElem = {};
-            // this.rangeAttr = {};
-            // ...
+            this.rangeAttr = {};
             if ( indexes ) {
 		var keys = Object.keys(indexes);
 		if ( indexes.ranges ) {
 		    keys.splice(keys.indexOf('ranges'), 1);
                     indexes.ranges.forEach(idx => {
 		        if ( idx.parent ) {
-			    // this.rangeAttr.push(new AttributeRangeIndex(idx));
-			    throw new Error('Attribute range index not supported yet');
+			    AttributeRangeIndex.addToMap(this.rangeAttr, idx);
 			}
 			else {
-			    var names = idx.name;
-			    if ( ! Array.isArray(names) ) {
-				names = [ idx.name ];
-			    }
-			    while ( names.length ) {
-				idx.name = names.shift();
-				var ns  = idx.namespace;
-				var key = ( ns ? '{' + ns + '}' : '' ) + idx.name;
-				this.rangeElem[key] = new ElementRangeIndex(idx);
-			    }
+			    ElementRangeIndex.addToMap(this.rangeElem, idx);
 			}
 		    });
 		}
@@ -350,52 +326,118 @@
             }
         }
 
-	update(actions, ranges)
+	update(actions, body)
 	{
-	    var actual  = Object.keys(ranges);
-	    var desired = Object.keys(this.rangeElem);
+	    // element range indexes
+	    var elemRanges = {};
+	    ( body['range-element-index'] || [] ).forEach(idx => {
+		var name = idx['localname'];
+		var ns   = idx['namespace-uri'];
+		var key  = ElementRangeIndex.indexKey(name, ns);
+		elemRanges[key] = idx;
+	    });
+	    ElementRangeIndex.update(actions, this.rangeElem, elemRanges, this.db);
+
+	    // attribute range indexes
+	    var attrRanges = {};
+	    ( body['range-element-attribute-index'] || [] ).forEach(idx => {
+		var name  = idx['localname'];
+		var ns    = idx['namespace-uri'];
+		var pName = idx['parent-localname'];
+		var pNs   = idx['parent-namespace-uri'];
+		var key   = ElementRangeIndex.indexKey(name, ns, pName, pNs);
+		attrRanges[key] = idx;
+	    });
+	    AttributeRangeIndex.update(actions, this.rangeAttr, attrRanges, this.db);
+	}
+
+        create(db)
+        {
+	    ElementRangeIndex.create(db, this.rangeElem);
+	    AttributeRangeIndex.create(db, this.rangeAttr);
+        }
+    }
+
+    /*~
+     * One element range index.
+     */
+    class ElementRangeIndex
+    {
+	static indexKey(name, ns, parentName, parentNs)
+	{
+	    var key = ( ns ? '{' + ns + '}' : '' ) + name;
+	    if ( parentName ) {
+		key += '|' + ( parentNs ? '{' + parentNs + '}' : '' ) + parentName;
+	    }
+	    return key;
+	}
+
+	static addToMapBase(map, json, ctor)
+	{
+	    var names = json.name;
+	    if ( ! Array.isArray(names) ) {
+		names = [ json.name ];
+	    }
+	    while ( names.length ) {
+		json.name = names.shift();
+		var p   = json.parent;
+		var key = p
+		    ? ElementRangeIndex.indexKey(json.name, json.namespace, p.name, p.namespace)
+		    : ElementRangeIndex.indexKey(json.name, json.namespace);
+		map[key] = ctor(json);
+	    }
+	}
+
+	static addToMap(map, json)
+	{
+	    ElementRangeIndex.addToMapBase(map, json, idx => new ElementRangeIndex(idx));
+	}
+
+	static updateBase(actions, objects, json, db, enricher)
+	{
+	    var actual  = Object.keys(json);
+	    var desired = Object.keys(objects);
 	    // to keep: those in both `actual` and `desired`
 	    // check they are what's desired, or fail
 	    var keep = actual.filter(name => desired.includes(name));
 	    keep.forEach(name => {
-		this.rangeElem[name].update(actions, name, ranges[name]);
+		objects[name].update(actions, name, json[name]);
 	    });
 	    // if there is any change...
 	    if ( keep.length !== actual.length || keep.length !== desired.length ) {
 		logAdd(actions, 1, 'update', 'element range indexes');
 		// reconstruct the whole `range-element-index` property array
 		var body = {};
-		this.create(body);
+		enricher(body, objects);
 		actions.add(new act.Put(
-                    '/databases/' + this.db.name + '/properties',
+                    '/databases/' + db.name + '/properties',
                     body,
-                    'Update indexes:  \t' + this.db.name));
+                    'Update indexes:  \t' + db.name));
 	    }
 	}
 
-        create(db)
+	static update(actions, objects, json, db)
+	{
+	    ElementRangeIndex.updateBase(actions, objects, json, db, ElementRangeIndex.create);
+	}
+
+        static create(db, ranges)
         {
 	    // if there is no index, that will be an empty array, preventing the
 	    // default DLS range indexes to be created
             db['range-element-index'] =
-		Object.values(this.rangeElem)
+		Object.values(ranges)
 		.map(idx => idx.create());
         }
-    }
 
-    /*~
-     * One range index.
-     */
-    class ElementRangeIndex
-    {
-        constructor(idx)
+        constructor(json)
         {
-            this.type      = idx.type;
-            this.name      = idx.name;
-            this.positions = idx.positions;
-            this.invalid   = idx.invalid;
-            this.namespace = idx.namespace ? idx.namespace : '';
-            this.collation = idx.collation ? idx.collation : 'http://marklogic.com/collation/';
+            this.type      = json.type;
+            this.name      = json.name;
+            this.positions = json.positions;
+            this.invalid   = json.invalid;
+            this.namespace = json.namespace || '';
+            this.collation = json.collation || 'http://marklogic.com/collation/';
         }
 
         create()
@@ -414,6 +456,27 @@
 	update(actions, name, actual)
 	{
 	    var diffs = [];
+	    this.updateDiffs(actions, name, actual, diffs);
+	    if ( diffs.length ) {
+		var msg = 'Range index for element `' + name + '` differ by `' + diffs[0] + '`';
+		for ( var i = 1; i < diffs.length - 1; ++i ) {
+		    msg += ', `' + diffs[i] + '`';
+		}
+		if ( diffs.length > 1 ) {
+		    msg += ' and `' + diffs[diffs.length - 1] + '`';
+		}
+		// TODO: Instead of stopping here, we should accumulate such
+		// errors in `actions` and keep going.  In `ActionList.execute`,
+		// we can then check if there is any error before going further.
+		// This way, we could accumulate all errors instead of stopping
+		// on the first one, for reporting purposes.  Applies to other
+		// places as well.
+		throw new Error(msg);
+	    }
+	}
+
+	updateDiffs(actions, name, actual, diffs)
+	{
             if ( this.type !== actual['scalar-type'] ) {
 		diffs.push('type');
 	    }
@@ -434,21 +497,54 @@
             if ( this.collation !== actual['collation'] ) {
 		diffs.push('collation');
 	    }
-	    if ( diffs.length ) {
-		var msg = 'Range index for element `' + name + '` differ by `' + diffs[0] + '`';
-		for ( var i = 1; i < diffs.length - 1; ++i ) {
-		    msg += ', `' + diffs[i] + '`';
-		}
-		if ( diffs.length > 1 ) {
-		    msg += ' and `' + diffs[diffs.length - 1] + '`';
-		}
-		// TODO: Instead of stopping here, we should accumulate such
-		// errors in `actions` and keep going.  In `ActionList.execute`,
-		// we can then check if there is any error before going further.
-		// This way, we could accumulate all errors instead of stopping
-		// on the first one, for reporting purposes.  Applies to other
-		// places as well.
-		throw new Error(msg);
+	}
+    }
+
+    /*~
+     * One attribute range index.
+     */
+    class AttributeRangeIndex extends ElementRangeIndex
+    {
+	static addToMap(map, json)
+	{
+	    ElementRangeIndex.addToMapBase(map, json, idx => new AttributeRangeIndex(idx));
+	}
+
+	static update(actions, objects, json, db)
+	{
+	    ElementRangeIndex.updateBase(actions, objects, json, db, AttributeRangeIndex.create);
+	}
+
+        static create(db, ranges)
+        {
+            db['range-element-attribute-index'] =
+		Object.values(ranges)
+		.map(idx => idx.create());
+        }
+
+        constructor(json)
+        {
+	    super(json);
+            this.parentName = json.parent.name;
+            this.parentNs   = json.parent.namespace || '';
+        }
+
+        create()
+        {
+            var obj = super.create();
+	    obj['parent-localname']     = this.parentName;
+	    obj['parent-namespace-uri'] = this.parentNs;
+            return obj;
+        }
+
+	updateDiffs(actions, name, actual, diffs)
+	{
+	    super.updateDiffs(actions, name, actual, diffs);
+            if ( this.parentName !== actual['parent-localname'] ) {
+		diffs.push('parent/name');
+	    }
+            if ( this.parentNs !== actual['parent-namespace-uri'] ) {
+		diffs.push('parent/namespace');
 	    }
 	}
     }
