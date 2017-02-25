@@ -54,16 +54,8 @@
 	    var _ = this.platform;
 	    _.log(_.green('Databases') + ':');
 	    _.log(this.space.databases());
-	    _.log(_.green('Database IDs') + ':');
-	    _.log(Object.keys(this.space._dbIds));
-	    _.log(_.green('Database names') + ':');
-	    _.log(Object.keys(this.space._dbNames));
 	    _.log(_.green('Servers') + ':');
 	    _.log(this.space.servers());
-	    _.log(_.green('Servers IDs') + ':');
-	    _.log(Object.keys(this.space._srvIds));
-	    _.log(_.green('Servers names') + ':');
-	    _.log(Object.keys(this.space._srvNames));
 	    callback();
 	}
 
