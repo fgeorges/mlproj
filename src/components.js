@@ -61,6 +61,7 @@
             this.security = security;
             this.forests  = {};
             this.indexes  = new Indexes(this, json.indexes);
+            this.lexicons = new Lexicons(this, json.lexicons);
 	    var forests = json.forests;
 	    if ( forests === null || forests === undefined ) {
 		forests = 1;
@@ -118,10 +119,11 @@
 		"database-name": this.name
 	    };
 	    this.indexes.create(obj);
+	    this.lexicons.create(obj);
 	    actions.add(new act.Post(
 		'/databases',
 		obj,
-		'Create database: \t' + this.name));
+		'Create database: \t\t' + this.name));
 	    logCheck(actions, 1, 'forests');
 	    Object.values(this.forests).forEach(f => f.create(actions, forests));
 	    callback();
@@ -150,6 +152,10 @@
 	    logCheck(actions, 1, 'indexes');
 	    this.indexes.update(actions, body);
 
+	    // check lexicons...
+	    logCheck(actions, 1, 'lexicons');
+	    this.lexicons.update(actions, body);
+
 	    // TODO: Check other properties...
 
 	    callback();
@@ -176,14 +182,14 @@
 		actions.add(new act.Post(
                     '/forests/' + this.name + '?state=attach&database=' + this.db.name,
                     null,
-                    'Attach forest:  \t' + this.name));
+                    'Attach forest:  \t\t' + this.name));
 	    }
 	    else {
 		logAdd(actions, 1, 'create', 'forest', this.name);
 		actions.add(new act.Post(
                     '/forests',
                     { "forest-name": this.name, "database": this.db.name },
-                    'Create forest:  \t' + this.name));
+                    'Create forest:  \t\t' + this.name));
 	    }
         }
 
@@ -194,7 +200,7 @@
             actions.add(new act.Post(
                 '/forests/' + this.name + '?state=detach',
                 null,
-                'Detach forest:  \t' + this.name));
+                'Detach forest:  \t\t' + this.name));
         }
     }
 
@@ -258,7 +264,7 @@
             actions.add(new act.Post(
                 '/servers?group-id=' + this.group,
                 obj,
-                'Create server:  \t' + this.name));
+                'Create server:  \t\t' + this.name));
 	    callback();
 	}
 
@@ -412,7 +418,7 @@
 		actions.add(new act.Put(
                     '/databases/' + db.name + '/properties',
                     body,
-                    'Update indexes:  \t' + db.name));
+                    'Update indexes:  \t\t' + db.name));
 	    }
 	}
 
@@ -547,6 +553,43 @@
 		diffs.push('parent/namespace');
 	    }
 	}
+    }
+
+    /*~
+     * All the lexicons of a database.
+     */
+    class Lexicons
+    {
+        constructor(db, lexicons)
+        {
+	    this.db   = db;
+            this.uri  = lexicons && lexicons.uri;
+            this.coll = lexicons && lexicons.collection;
+        }
+
+	update(actions, body)
+	{
+	    if ( ( this.uri !== undefined ) && ( this.uri !== body['uri-lexicon'] ) ) {
+		logAdd(actions, 1, 'update', 'uri lexicon');
+		actions.add(new act.Put(
+                    '/databases/' + this.db.name + '/properties',
+                    { "uri-lexicon": this.uri },
+                    'Update URI lexicon: \t\t' + this.db.name));
+	    }
+	    if ( ( this.coll !== undefined ) && ( this.coll !== body['collection-lexicon'] ) ) {
+		logAdd(actions, 1, 'update', 'collection lexicon');
+		actions.add(new act.Put(
+                    '/databases/' + this.db.name + '/properties',
+                    { "collection-lexicon": this.coll },
+                    'Update collection lexicon: \t' + this.db.name));
+	    }
+	}
+
+        create(db)
+        {
+	    this.uri  && ( db['uri-lexicon']        = this.uri  );
+	    this.coll && ( db['collection-lexicon'] = this.coll );
+        }
     }
 
     module.exports = {

@@ -2,7 +2,6 @@
 
 ## TODO
 
-- collection lexicon
 - word lexicons
 - url rewriter and error handler
 - publish on npmjs
