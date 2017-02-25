@@ -1,0 +1,8 @@
+# -*- restclient -*-
+
+:host = ml9ea4
+:db   = foo-content
+
+# ...
+GET http://:host:8002/manage/v2/databases/:db/properties
+Accept: application/json
