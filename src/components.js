@@ -52,12 +52,12 @@
      */
     class Database extends Component
     {
-        constructor(json, schemas, security)
+        constructor(json, schema, security)
         {
 	    super();
             this.id       = json.id;
             this.name     = json.name;
-            this.schemas  = schemas;
+            this.schema   = schema;
             this.security = security;
             this.forests  = {};
             this.indexes  = new Indexes(this, json.indexes);

@@ -133,10 +133,10 @@
 	    };
 
 	    // instantiate a database object from its JSON object, and resolve
-	    // its schemas and security database if any to objects already
+	    // its schema and security database if any to objects already
 	    // instantiated
 	    var instantiate = (json, res) => {
-		// resolve a schemas or security DB from the current result list
+		// resolve a schema or security DB from the current result list
 		var resolve = db => {
 		    if ( ! db ) {
 			return;
@@ -157,7 +157,7 @@
 			return 'self';
 		    }
 		};
-		var db = new cmp.Database(json, resolve(json.schemas), resolve(json.security));
+		var db = new cmp.Database(json, resolve(json.schema), resolve(json.security));
 		res.list.push(db);
 		if ( json.id ) {
 		    res.ids[json.id] = db;
@@ -227,7 +227,7 @@
 
 	    // starting at one DB (a "standalone" DB or a server's content or
 	    // modules DB), return all the DB (itself or embedded, at any level)
-	    // that can be instantiated (meaning: with all referrenced schemas
+	    // that can be instantiated (meaning: with all referrenced schema
 	    // and security DB already instantiated, with the exception of
 	    // self-referrencing DB which can be instantiated as well)
 	    var candidates = (db, res) => {
@@ -249,14 +249,14 @@
 		}
 		else {
 		    // if both referrenced DB are instantiated, or self-refs, then return it
-		    var sch = selfRef(db, db.schemas)  || done(db.schemas, res);
+		    var sch = selfRef(db, db.schema)   || done(db.schema, res);
 		    var sec = selfRef(db, db.security) || done(db.security, res);
 		    if ( sch && sec ) {
 			return [ db ];
 		    }
 		    // if not, recurse
 		    else {
-			return candidates(db.schemas, res)
+			return candidates(db.schema, res)
 			    .concat(candidates(db.security, res));
 		    }
 		}
@@ -283,7 +283,7 @@
 		    }
 		    else {
 			return [ db ]
-			    .concat(impl(db.schemas))
+			    .concat(impl(db.schema))
 			    .concat(impl(db.security));
 		    }
 		};

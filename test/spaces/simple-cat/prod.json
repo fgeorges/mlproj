@@ -2,20 +2,20 @@
     "mlproj": {
         "format": "0.1",
         "code": "simple-cat",
-        "title": "Example database with security and schemas DBs",
-        "desc": "Test setting a schemas database and a security database (as opposed to use the default databases, resp. `Schemas` and `Security`).  The test database refers to the schemas DB by ID and embeds the security DB.",
+        "title": "Example database with security and schema DBs",
+        "desc": "Test setting a schema database and a security database (as opposed to use the default databases, resp. `Schemas` and `Security`).  The test database refers to the schema DB by ID and embeds the security DB.",
         "connect": {
             "host": "ml9ea4",
             "user": "admin",
             "password": "admin"
         },
         "databases": [{
-	    "id": "schemas",
-	    "name": "@{code}-schemas"
+	    "id": "schema",
+	    "name": "@{code}-schema"
 	}, {
 	    "name": "@{code}-content",
-	    "schemas": {
-		"idref": "schemas"
+	    "schema": {
+		"idref": "schema"
 	    },
 	    "security": {
 		"name": "@{code}-security"
