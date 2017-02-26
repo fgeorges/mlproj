@@ -118,15 +118,24 @@ Done:
 
 Even if this is a quite simple example, it already shows interesting features:
 
-- meta information about the application (code, title...)
-- connection info (host, credentials...)
-- one server with a content and modules database
-- declaration of parameters for internal usage
-- substitution of variables in values
+- meta information about the application (code, title)
+- connection info (host, credentials)
+- one server with a content and a modules database
+- declaration of parameters for internal usage (the port number)
+- substitution of variables (`@{code}`, `${port}`)
 
 ### How to pass environments
 
-**TODO**: Describe how to pass the env to `mlproj`, using `-e` or `-f`...
+There are 2 ways of passing an environment file to `mlproj`.  Either with the
+`-e` or with the `-f` option.  The `-f` option simply pass the complete path to
+the file (relative to the current directory).
+
+The `-e` option takes a simple "environment name".  It requires the current
+directory to be the project directory, and to have an `xproject/ml/`
+sub-directory in it.  The "environment name" is then used to construct the name
+of the file, by appending `.json` at the end.
+
+Using `-e local` for instance, is equivalent to `-f xproject/ml/local.json`.
 
 ### Environment files
 
