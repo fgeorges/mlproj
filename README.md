@@ -161,13 +161,13 @@ The environment files can have the following format:
         "password": "..."
     },
     "params": {
-        ...
+        "..."
     },
     "databases": [{
-        ...
+        "..."
     }],
     "servers": [{
-        ...
+        "..."
     }]
 }
 ```
