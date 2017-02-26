@@ -2,7 +2,6 @@
 
 ## TODO
 
-- env as first arg of the command line (+ -f option)
 - word lexicons
 - url rewriter and error handler
 - publish on npmjs

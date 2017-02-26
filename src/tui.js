@@ -204,11 +204,11 @@ class Node extends s.Platform
 var resolved = false;
 var commands = [{
     clazz       : cmd.DebugCommand,
-    command     : 'debug <path>',
+    command     : 'debug',
     description : 'log the given environment'
 }, {
     clazz       : cmd.SetupCommand,
-    command     : 'setup <path>',
+    command     : 'setup',
     description : 'setup the given environment',
     options     : [
 	// { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
@@ -217,8 +217,10 @@ var commands = [{
 
 program
     .version('0.1.0')
-    .option('-v, --verbose', 'verbose mode')
-    .option('-d, --dry',     'dry run');
+    .option('-d, --dry',            'dry run')
+    .option('-e, --environ <name>', 'environment name')
+    .option('-f, --file <file>',    'environment file')
+    .option('-v, --verbose',        'verbose mode');
 
 commands.forEach(cmd => {
     var prg = program
@@ -228,15 +230,17 @@ commands.forEach(cmd => {
 	cmd.options.forEach(opt => {
             prg = prg.option(opt.option, opt.label) });
     }
-    prg.action(function(path) {
+    prg.action(function() {
         resolved = true;
 	var platform = new Node(program.dry ? true : false, program.verbose ? true : false);
 	var command  = new cmd.clazz(platform);
 	if ( program.verbose ) {
 	    command.verbose(true);
 	}
+	var env  = program.environ;
+	var path = program.file;
 	var base = process.cwd();
-        command.prepare(path, base, () => {
+        command.prepare(env, path, base, () => {
 	    command.execute(() => {
 		command.summary();
 	    });

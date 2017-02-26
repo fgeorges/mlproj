@@ -25,9 +25,17 @@
 	    }
 	}
 
-	prepare(path, base, callback) {
-            this.path  = path;
-	    this.space = s.Space.load(this.platform, path, base);
+	prepare(env, path, base, callback) {
+	    if ( env && path ) {
+		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
+	    }
+	    if ( ! env && ! path ) {
+		throw new Error('None of `environ` and `path` set');
+	    }
+	    var actual = path ? path : 'xproject/ml/' + env + '.json';
+            this.environ = env;
+            this.path    = path;
+	    this.space   = s.Space.load(this.platform, actual, base);
 	    this.platform.space = this.space;
 	}
 
@@ -45,8 +53,8 @@
      */
     class DebugCommand extends Command
     {
-	prepare(path, base, callback) {
-	    super.prepare(path, base, callback);
+	prepare(env, path, base, callback) {
+	    super.prepare(env, path, base, callback);
 	    callback();
 	}
 
@@ -68,9 +76,9 @@
      */
     class SetupCommand extends Command
     {
-	prepare(path, base, callback)
+	prepare(env, path, base, callback)
 	{
-	    super.prepare(path, base, callback);
+	    super.prepare(env, path, base, callback);
 	    this.platform.log('--- ' + this.platform.bold('Prepare') + ' ---');
 	    // the action list
             this.actions = new act.ActionList(this.platform, this.verbose());
