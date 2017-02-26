@@ -4,6 +4,18 @@ Project and environment manager for MarkLogic.
 
 This is work in progress.  Use at your own risks.
 
+## Install
+
+Use the following:
+
+```
+npm install mlproj -g
+```
+
+This needs Node to be installed on your system.  Package managers for all
+systems include it.  Look at [Node](http://nodejs.org/) website for details and
+install options.
+
 ## Features
 
 `mlproj` let you manage, deploy and configure MarkLogic projects.  In order to
