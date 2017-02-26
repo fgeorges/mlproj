@@ -121,7 +121,7 @@
 		"database-name": this.name
 	    };
 	    // its schema, security and triggers DB
-	    this.schema   && ( obj['schema-database']   = this.schema.name );
+	    this.schema   && ( obj['schema-database']   = this.schema.name   );
 	    this.security && ( obj['security-database'] = this.security.name );
 	    this.triggers && ( obj['triggers-database'] = this.triggers.name );
 	    // its indexes and lexicons
@@ -258,14 +258,16 @@
         constructor(json, space, content, modules)
         {
 	    super();
-            this.group   = json.group || 'Default';
-            this.id      = json.id;
-            this.name    = json.name;
-            this.type    = json.type;
-            this.port    = json.port;
-            this.root    = json.root;
-            this.content = content;
-            this.modules = modules;
+            this.group    = json.group || 'Default';
+            this.id       = json.id;
+            this.name     = json.name;
+            this.type     = json.type;
+            this.port     = json.port;
+            this.root     = json.root;
+            this.rewriter = json.rewriter;
+            this.handler  = json.handler;
+            this.content  = content;
+            this.modules  = modules;
             if ( ! this.modules && ! this.root ) {
 		var dir = space.param('@srcdir');
 		if ( ! dir ) {
@@ -277,7 +279,7 @@
 
         setup(actions, callback)
 	{
-	    logCheck(actions, 0, 'server', this.name);
+	    logCheck(actions, 0, 'the ' + this.type + ' server', this.name);
 	    var url = '/servers/' + this.name + '/properties?group-id=' + this.group;
 	    actions.platform.get(url, msg => {
 		// TODO: Integrate more nicely in the reporting...
@@ -300,13 +302,13 @@
             var obj = {
                 "server-name":      this.name,
                 "server-type":      this.type,
-                "port":             this.port,
-                "root":             this.root,
                 "content-database": this.content.name
             };
-            if ( this.modules ) {
-                obj['modules-database'] = this.modules.name;
-            }
+            this.port     && ( obj['port']             = this.port         );
+            this.root     && ( obj['root']             = this.root         );
+            this.modules  && ( obj['modules-database'] = this.modules.name );
+            this.rewriter && ( obj['url-rewriter']     = this.rewriter     );
+            this.handler  && ( obj['error-handler']    = this.handler      );
             actions.add(new act.Post(
                 '/servers?group-id=' + this.group,
                 obj,
@@ -316,24 +318,10 @@
 
         update(actions, callback, actual)
 	{
-	    // TODO: Allow some changes, like port number...
+	    // incompatible changes
 	    var diffs = [];
             if ( this.type !== actual['server-type'] ) {
 	    	diffs.push('type');
-	    }
-            if ( this.port !== actual['port'].toString() ) {
-		diffs.push('port');
-	    }
-            if ( this.root !== actual['root'] ) {
-	     	diffs.push('root: ' + this.root + ' - ' + actual['root']);
-	    }
-            if ( this.content.name !== actual['content-database'] ) {
-		diffs.push('content');
-	    }
-            if ( ( ! this.modules && actual['modules-database'] )
-		 || ( this.modules && ! actual['modules-database'] )
-		 || ( this.modules && this.modules.name !== actual['modules-database'] ) ) {
-		diffs.push('modules');
 	    }
 	    if ( diffs.length ) {
 		var msg = 'Server differ by `' + diffs[0] + '`';
@@ -345,6 +333,44 @@
 		}
 		throw new Error(msg);
 	    }
+
+	    // TODO: Should be applicable, but not supported yet, because
+	    // changing it restarts MarkLogic.
+            if ( this.port !== actual['port'].toString() ) {
+		throw new Error('Server differ by `root`, which is not supported to be changed yet');
+	    }
+
+	    // applicable changes
+	    diffs = [];
+            if ( this.root !== actual['root'] ) {
+		diffs.push({ name: 'root', value: this.root });
+	    }
+            if ( this.content.name !== actual['content-database'] ) {
+		diffs.push({ name: 'content-database', value: this.content.name });
+	    }
+            if ( ( ! this.modules && actual['modules-database'] )
+		 || ( this.modules && ! actual['modules-database'] )
+		 || ( this.modules && this.modules.name !== actual['modules-database'] ) ) {
+		diffs.push({
+		    name: 'modules-database',
+		    value: this.modules ? this.modules.name : null
+		});
+	    }
+            if ( this.rewriter !== actual['url-rewriter'] ) {
+		diffs.push({ name: 'url-rewriter', value: this.rewriter });
+	    }
+            if ( this.handler !== actual['error-handler'] ) {
+		diffs.push({ name: 'error-handler', value: this.handler });
+	    }
+	    diffs.forEach(diff => {
+		logAdd(actions, 0, 'update', diff.name);
+		var body = {};
+		body[diff.name] = diff.value;
+		actions.add(new act.Put(
+                    '/servers/' + this.name + '/properties?group-id=' + this.group,
+                    body,
+                    'Update ' + diff.name + ':  \t' + this.name));
+	    });
 	    callback();
 	}
     }

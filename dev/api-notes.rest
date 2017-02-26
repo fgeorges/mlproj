@@ -6,3 +6,7 @@
 # ...
 GET http://:host:8002/manage/v2/databases/:db/properties
 Accept: application/json
+
+# ...
+GET http://:host:8002/manage/v2/servers/simple-dog/properties?group-id=Default
+Accept: application/json
