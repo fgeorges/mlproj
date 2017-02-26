@@ -137,6 +137,9 @@ of the file, by appending `.json` at the end.
 
 Using `-e local` for instance, is equivalent to `-f xproject/ml/local.json`.
 
+`mlproj` will eventually help to create and maintain a standard `XProject`
+directory structure for your MarkLogic project.
+
 ### Environment files
 
 **TODO**: Describe the format...
