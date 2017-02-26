@@ -142,11 +142,77 @@ directory structure for your MarkLogic project.
 
 ### Environment files
 
-**TODO**: Describe the format...
-
 Examples of environment files can be found in
 the [test/spaces/](http://github.com/fgeorges/mlproj/tree/master/test/spaces)
 directory.
+
+The environment files can have the following format:
+
+```json
+{ "mlproj": {
+    "format": "0.1",
+    "import": "base.json",
+    "code":   "my-fabulous-app",
+    "title":  "Short title for the project",
+    "desc":   "Longer description of the project.  You can use Markdown.",
+    "connect": {
+        "host":     "...",
+        "user":     "...",
+        "password": "..."
+    },
+    "params": {
+        ...
+    },
+    "databases": [{
+        ...
+    }],
+    "servers": [{
+        ...
+    }]
+}
+```
+
+All properties are optional, except for `format`, which is the version of the
+file format, for now always `0.1` (untill it stabilizes).
+
+There is an import mechanism.  Even though all properties are optional in each
+file, after import resolution the following properties must have been set:
+
+- `code`
+- `title`
+- `connect.host`
+- `connect.user`
+- `connect.password`
+
+*Code*
+
+The `code` is a short code, containing only ASCII alphanumeric characters (as
+well as `-` and `_`).  It is typically use to refer to the project, and to build
+component names in a consistent way (for databases, forests and servers).
+
+*Title*
+
+To do...
+
+*Description*
+
+To do...
+
+*Connection info*
+
+To do...
+
+*Parameters*
+
+To do...
+
+*Databases*
+
+To do...
+
+*Servers*
+
+To do...
 
 ## TODO
 
