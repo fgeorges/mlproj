@@ -515,7 +515,7 @@
             this.positions = json.positions;
             this.invalid   = json.invalid;
             this.namespace = json.namespace || '';
-            this.collation = json.collation || 'http://marklogic.com/collation/';
+            this.collation = json.collation || '' ;
         }
 
         create()
