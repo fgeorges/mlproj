@@ -3,7 +3,7 @@
         "format": "0.1",
         "code": "simple-dog",
         "title": "More comprehensive example of database dependencies",
-        "desc": "Test representing a real graph of dependencies between databases.  With both embedded and referenced databases (via both `idref` and `nameref`), in both databases (schema and security) and serveurs (content and modules).",
+        "desc": "Test representing a real graph of dependencies between databases.  With both embedded and referenced databases (via both `idref` and `nameref`), in both databases (schema, security and triggers) and serveurs (content and modules).",
         "connect": {
             "host": "ml9ea4",
             "user": "admin",
@@ -22,6 +22,9 @@
 		},
 		"security": {
 		    "idref": "security"
+		},
+		"triggers": {
+		    "name": "@{code}-triggers"
 		}
 	    }
 	}, {

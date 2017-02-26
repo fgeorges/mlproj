@@ -52,13 +52,14 @@
      */
     class Database extends Component
     {
-        constructor(json, schema, security)
+        constructor(json, schema, security, triggers)
         {
 	    super();
             this.id       = json.id;
             this.name     = json.name;
             this.schema   = schema;
             this.security = security;
+            this.triggers = triggers;
             this.forests  = {};
             this.indexes  = new Indexes(this, json.indexes);
             this.lexicons = new Lexicons(this, json.lexicons);
@@ -119,9 +120,10 @@
 	    var obj = {
 		"database-name": this.name
 	    };
-	    // its schema and security DB
+	    // its schema, security and triggers DB
 	    this.schema   && ( obj['schema-database']   = this.schema.name );
 	    this.security && ( obj['security-database'] = this.security.name );
+	    this.triggers && ( obj['triggers-database'] = this.triggers.name );
 	    // its indexes and lexicons
 	    this.indexes.create(obj);
 	    this.lexicons.create(obj);
@@ -141,6 +143,7 @@
 	    // check databases
 	    this.updateDb(actions, this.schema,   body, 'schema-database',   'Schemas');
 	    this.updateDb(actions, this.security, body, 'security-database', 'Security');
+	    this.updateDb(actions, this.triggers, body, 'triggers-database', null);
 
 	    // check forests
 	    logCheck(actions, 1, 'forests');

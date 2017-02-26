@@ -133,10 +133,10 @@
 	    };
 
 	    // instantiate a database object from its JSON object, and resolve
-	    // its schema and security database if any to objects already
-	    // instantiated
+	    // its schema, security and triggers database if any to objects
+	    // already instantiated
 	    var instantiate = (json, res) => {
-		// resolve a schema or security DB from the current result list
+		// resolve a schema, security or triggers DB from the current result list
 		var resolve = db => {
 		    if ( ! db ) {
 			return;
@@ -157,7 +157,10 @@
 			return 'self';
 		    }
 		};
-		var db = new cmp.Database(json, resolve(json.schema), resolve(json.security));
+		var schema   = resolve(json.schema);
+		var security = resolve(json.security);
+		var triggers = resolve(json.triggers)
+		var db       = new cmp.Database(json, schema, security, triggers);
 		res.list.push(db);
 		if ( json.id ) {
 		    res.ids[json.id] = db;
@@ -227,9 +230,9 @@
 
 	    // starting at one DB (a "standalone" DB or a server's content or
 	    // modules DB), return all the DB (itself or embedded, at any level)
-	    // that can be instantiated (meaning: with all referrenced schema
-	    // and security DB already instantiated, with the exception of
-	    // self-referrencing DB which can be instantiated as well)
+	    // that can be instantiated (meaning: with all referrenced schema,
+	    // security and triggers DB already instantiated, with the exception
+	    // of self-referrencing DB which can be instantiated as well)
 	    var candidates = (db, res) => {
 		if ( done(db, res) ) {
 		    // if already instantiated, do nothing
@@ -251,13 +254,15 @@
 		    // if both referrenced DB are instantiated, or self-refs, then return it
 		    var sch = selfRef(db, db.schema)   || done(db.schema, res);
 		    var sec = selfRef(db, db.security) || done(db.security, res);
-		    if ( sch && sec ) {
+		    var trg = selfRef(db, db.triggers) || done(db.triggers, res);
+		    if ( sch && sec && trg ) {
 			return [ db ];
 		    }
 		    // if not, recurse
 		    else {
 			return candidates(db.schema, res)
-			    .concat(candidates(db.security, res));
+			    .concat(candidates(db.security, res))
+			    .concat(candidates(db.triggers, res));
 		    }
 		}
 	    }
@@ -284,7 +289,8 @@
 		    else {
 			return [ db ]
 			    .concat(impl(db.schema))
-			    .concat(impl(db.security));
+			    .concat(impl(db.security))
+			    .concat(impl(db.triggers));
 		    }
 		};
 		var all  = [];
