@@ -127,8 +127,8 @@ Even if this is a quite simple example, it already shows interesting features:
 ### How to pass environments
 
 There are 2 ways of passing an environment file to `mlproj`.  Either with the
-`-e` or with the `-f` option.  The `-f` option simply pass the complete path to
-the file (relative to the current directory).
+`-e` or with the `-f` option.  The `-f` option simply passes the complete path
+to the file (relative to the current directory).
 
 The `-e` option takes a simple "environment name".  It requires the current
 directory to be the project directory, and to have an `xproject/ml/`
