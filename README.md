@@ -49,11 +49,11 @@ creates and/or update them as necessary.  This is a simple example:
 ```json
 { "mlproj": {
     "format": "0.1",
-    "code": "myapp",
-    "title": "Simple example of an environment description",
+    "code":   "myapp",
+    "title":  "Simple example of an environment description",
     "connect": {
-        "host": "localhost",
-        "user": "admin",
+        "host":     "localhost",
+        "user":     "admin",
         "password": "admin"
     },
     "params": {
@@ -63,13 +63,13 @@ creates and/or update them as necessary.  This is a simple example:
         "name": "@{code}",
         "type": "http",
         "port": "${port}",
+        "root": "/",
         "content": {
             "name": "@{code}-content"
         },
         "modules": {
             "name": "@{code}-modules"
-        },
-        "root": "/"
+        }
     }]
 }
 ```
