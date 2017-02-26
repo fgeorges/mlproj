@@ -184,33 +184,33 @@ file, after import resolution the following properties must have been set:
 - `connect.user`
 - `connect.password`
 
-*Code*
+**Code**
 
 The `code` is a short code, containing only ASCII alphanumeric characters (as
-well as `-` and `_`).  It is typically use to refer to the project, and to build
-component names in a consistent way (for databases, forests and servers).
+well as `-` and `_`).  It is typically used to refer to the project, and to
+build component names in a consistent way (for databases, forests and servers).
 
-*Title*
-
-To do...
-
-*Description*
+**Title**
 
 To do...
 
-*Connection info*
+**Description**
 
 To do...
 
-*Parameters*
+**Connection info**
 
 To do...
 
-*Databases*
+**Parameters**
 
 To do...
 
-*Servers*
+**Databases**
+
+To do...
+
+**Servers**
 
 To do...
 
