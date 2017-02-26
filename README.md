@@ -2,16 +2,18 @@
 
 ## TODO
 
-- word lexicons
 - publish on npmjs
     - https://www.npmjs.com/package/mlproj
     - https://docs.npmjs.com/getting-started/publishing-npm-packages
 	- http://blog.npmjs.org/post/118810260230/
 
-- allow changing a server port, as it restarts the instance
+- word lexicons
 - drive properties by configuration (on a property-by-property basis)
     - start with simple properties, like URI and collection lexicons
-	- its names (in spaces and api), default value, scalar/array, etc.
+	- create two such arrays, in cmp.Database and cmp.Server
+	- its names (in spaces and api, or JPath), default value, scalar
+      or array?, is it "changeable"?, etc.
+- allow changing a server port, as it restarts the instance
 
 Change actions from:
 

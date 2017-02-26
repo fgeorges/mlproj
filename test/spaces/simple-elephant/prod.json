@@ -2,7 +2,7 @@
     "mlproj": {
         "format": "0.1",
         "code": "simple-elephant",
-        "title": "Simple example with attribute range indexes",
+        "title": "Simple example with attribute and path range indexes",
         "connect": {
             "host": "ml9ea4",
             "user": "admin",
@@ -42,6 +42,11 @@
 			"name": "elem",
 			"namespace": "http://example.org/"
 		    }
+                }, {
+		    "type":      "int",
+		    "path":      "foo/bar",
+		    "positions": false,
+		    "invalid":   "ignore"
                 }]
 	    }
         }]
