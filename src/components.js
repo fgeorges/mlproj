@@ -120,7 +120,7 @@
 		"database-name": this.name
 	    };
 	    // its schema and security DB
-	    this.schemas  && ( obj['schema-database']   = this.schemas.name );
+	    this.schema   && ( obj['schema-database']   = this.schema.name );
 	    this.security && ( obj['security-database'] = this.security.name );
 	    // its indexes and lexicons
 	    this.indexes.create(obj);
@@ -139,7 +139,7 @@
         update(actions, callback, body, forests)
         {
 	    // check databases
-	    this.updateDb(actions, this.schemas,  body, 'schema-database',   'Schemas');
+	    this.updateDb(actions, this.schema,   body, 'schema-database',   'Schemas');
 	    this.updateDb(actions, this.security, body, 'security-database', 'Security');
 
 	    // check forests
