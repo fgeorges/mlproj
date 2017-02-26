@@ -32,8 +32,6 @@ type:
     -e, --environ <name>  environment name
     -f, --file <file>     environment file
     -v, --verbose         verbose mode
-
-> 
 ```
 
 As for now, the only command is `setup`.  It creates databases, forests and
