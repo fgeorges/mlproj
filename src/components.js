@@ -89,7 +89,7 @@
 
         setup(actions, callback)
         {
-	    logCheck(actions, 0, 'database', this.name);
+	    logCheck(actions, 0, 'the database', this.name);
 	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
 		// TODO: Integrate more nicely in the reporting...
 		throw new Error('Error during GET DB ' + this.name + ': ' + msg);
@@ -115,23 +115,34 @@
         create(actions, callback, forests)
         {
 	    logAdd(actions, 0, 'create', 'database', this.name);
+	    // the base database object
 	    var obj = {
 		"database-name": this.name
 	    };
+	    // its schema and security DB
+	    this.schemas  && ( obj['schema-database']   = this.schemas.name );
+	    this.security && ( obj['security-database'] = this.security.name );
+	    // its indexes and lexicons
 	    this.indexes.create(obj);
 	    this.lexicons.create(obj);
+	    // enqueue the "create db" action
 	    actions.add(new act.Post(
 		'/databases',
 		obj,
 		'Create database: \t\t' + this.name));
 	    logCheck(actions, 1, 'forests');
+	    // check the forests
 	    Object.values(this.forests).forEach(f => f.create(actions, forests));
 	    callback();
 	}
 
         update(actions, callback, body, forests)
         {
-	    // check forests...
+	    // check databases
+	    this.updateDb(actions, this.schemas,  body, 'schema-database',   'Schemas');
+	    this.updateDb(actions, this.security, body, 'security-database', 'Security');
+
+	    // check forests
 	    logCheck(actions, 1, 'forests');
 	    var actual  = body.forest || [];
 	    var desired = Object.keys(this.forests);
@@ -148,17 +159,49 @@
 		    this.forests[name].create(actions, forests);
 		});
 
-	    // check indexes...
+	    // check indexes
 	    logCheck(actions, 1, 'indexes');
 	    this.indexes.update(actions, body);
 
-	    // check lexicons...
+	    // check lexicons
 	    logCheck(actions, 1, 'lexicons');
 	    this.lexicons.update(actions, body);
 
-	    // TODO: Check other properties...
-
 	    callback();
+	}
+
+        updateDb(actions, db, body, prop, dflt)
+        {
+	    var actual = body[prop];
+	    var newName;
+
+	    // do not exist, not desired
+	    if ( ! actual && ! db || (actual === dflt && ! db) ) {
+		// nothing
+	    }
+	    // does exist, to remove
+	    else if ( ! db ) {
+		newName = dflt || null;
+	    }
+	    // do not exist, to create, or does exist, to chamge
+	    else if ( ! actual || (actual !== db.name) ) {
+		newName = db.name;
+	    }
+	    // already set to the right db
+	    else {
+		// nothing
+	    }
+
+	    // enqueue the action if necessary
+	    if ( newName !== undefined ) {
+		logAdd(actions, 0, 'update', prop);
+		var body = {};
+		body[prop] = newName;
+		actions.add(new act.Put(
+                    '/databases/' + this.name + '/properties',
+                    body,
+                    'Update ' + prop + ':  \t' + this.name));
+	    }
 	}
     }
 
