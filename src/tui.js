@@ -57,7 +57,7 @@ class Node extends s.Platform
     }
 
     red(s) {
-	return '\u001b[35m' + s + '\u001b[39m'
+	return '\u001b[31m' + s + '\u001b[39m'
     }
 
     bold(s) {
