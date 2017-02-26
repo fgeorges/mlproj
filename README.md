@@ -116,6 +116,14 @@ Done:
 ✓ Create server:                myapp
 ```
 
+Even if this is a quite simple example, it already shows interesting features:
+
+- meta information about the application (code, title...)
+- connection info (host, credentials...)
+- one server with a content and modules database
+- declaration of parameters for internal usage
+- substitution of variables in values
+
 ### How to pass environments
 
 **TODO**: Describe how to pass the env to `mlproj`, using `-e` or `-f`...
@@ -123,6 +131,10 @@ Done:
 ### Environment files
 
 **TODO**: Describe the format...
+
+Examples of environment files can be found in
+the [test/spaces/](http://github.com/fgeorges/mlproj/tree/master/test/spaces)
+directory.
 
 ## TODO
 
@@ -138,21 +150,3 @@ Done:
     - its names (in spaces and api, or JPath), default value, scalar or array?,
       is it "changeable"?, etc.
 - allow changing a server port, as it restarts the instance
-
-Change actions from:
-
-```
-new act.Put(
-    '/databases/' + this.db.name + '/properties',
-    body,
-    'Update indexes:  \t' + this.db.name));
-```
-
-to:
-
-```
-new act.ChangeDatabaseProperty(
-    this.db.name,
-    body,
-    'Update indexes:  \t' + this.db.name));
-```
