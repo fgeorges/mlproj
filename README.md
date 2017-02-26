@@ -60,7 +60,7 @@ creates and/or update them as necessary.  This is a simple example:
         "port": "8080"
     },
     "servers": [{
-        "name": "@{code}"
+        "name": "@{code}",
         "type": "http",
         "port": "${port}",
         "content": {
