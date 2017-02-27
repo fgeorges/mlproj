@@ -355,7 +355,38 @@ capture variable parts like port numbers:
 
 **Servers**
 
-To do...
+`servers` is an array of servers.  Servers look like the following:
+
+```json
+{
+    "id":   "server",
+    "name": "@{code}",
+    "type": "http",
+    "port": "${port}",
+    "root": "/",
+    "rewriter": "/plumbing/rewriter.sjs",
+    "handler":  "/plumbing/errors.sjs",
+    "content": {
+        "name": "@{code}-content"
+    },
+    "modules": {
+        "name": "@{code}-modules"
+    }
+}
+```
+
+The `id` is a unique ID used only in the environment files, to refer to servers.
+The `name` is the name of the server, as it will be set on MarkLogic, and `type`
+is its type (either `http`, `webdav`, `xdbc` or `odbc`).  `port` is the port
+number to use for the server.
+
+`root` is the root for modules (either on the file system, or on the modules
+database if it is set).  `rewriter` is the path to the URL rewriter, and
+`handler` to the error handler.
+
+`content` and `modules` are resp. the content database and the modules database.
+They can be either a full-fledged database description, or a reference to an
+existing database description (using `idref` or `nameref`).
 
 **Databases**
 
@@ -367,6 +398,9 @@ or by name.  Databases look like the following:
 {
     "id":   "...",
     "name": "...",
+    "forests": [
+        "..."
+    ],
     "schema": {
 	   "idref": "..."
     },
@@ -399,6 +433,12 @@ or by name.  Databases look like the following:
 The `id` is a unique ID used only in the environment files, to refer to
 databases (e.g. from a server, to be its modules database).  The `name` is the
 name of the database, as it will be set on MarkLogic.
+
+`forests` describes the forests attached to the database.  If it is an array,
+its values must be strings, used as names for the forests.  It can also by a
+number (must be a positive integer then, including zero), which gives the number
+of forests to attach to the database.  The forest names are then derived from
+the database name, by appending `-001`, `-002`, etc.
 
 `schema`, `security` and `triggers` are resp. the database's Schema DB, Security
 DB and Triggers DB.  As always, they can be either ID or name reference to an
