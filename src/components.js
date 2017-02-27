@@ -31,6 +31,16 @@
 	p.log(s + '  need to ' + p.red(verb) + ' ' + msg + (arg ? ': \t' + arg : ''));
     }
 
+    function values(o) {
+	const reduce = Function.bind.call(Function.call, Array.prototype.reduce);
+	const isEnumerable = Function.bind.call(Function.call, Object.prototype.propertyIsEnumerable);
+	const concat = Function.bind.call(Function.call, Array.prototype.concat);
+	const keys = Reflect.ownKeys;
+	return reduce(keys(o), (v, k) => {
+	    return concat(v, typeof k === 'string' && isEnumerable(o, k) ? [o[k]] : []);
+	}, []);
+    }
+
     /*~
      * Interface of a component.
      */
@@ -134,7 +144,7 @@
 		'Create database: \t\t' + this.name));
 	    logCheck(actions, 1, 'forests');
 	    // check the forests
-	    Object.values(this.forests).forEach(f => f.create(actions, forests));
+	    values(this.forests).forEach(f => f.create(actions, forests));
 	    callback();
 	}
 
@@ -584,7 +594,7 @@
 	    // if there is no index, that will be an empty array, preventing the
 	    // default DLS range indexes to be created
             db['range-element-index'] =
-		Object.values(ranges)
+		values(ranges)
 		.map(idx => idx.create());
         }
 
@@ -632,7 +642,7 @@
         static create(db, ranges)
         {
             db['range-element-attribute-index'] =
-		Object.values(ranges)
+		values(ranges)
 		.map(idx => idx.create());
         }
 
@@ -681,7 +691,7 @@
         static create(db, ranges)
         {
             db['range-path-index'] =
-		Object.values(ranges)
+		values(ranges)
 		.map(idx => idx.create());
         }
 
