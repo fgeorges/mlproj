@@ -187,7 +187,106 @@ file, after import resolution the following properties must have been set:
 
 **Imports**
 
-To do...
+The `import` value is a path to another file to import, relative to the current
+file.  Usually it is simply a file name, as they are all grouped in the same
+directory.  Starting at one file, it `import` is resolved if any, then
+recursively all their imports are resolved, to get a larger environment object.
+
+At each step, if the imported file contains a parameter already existing in an
+importing file, it is "overriden" (hidden).
+
+At each step, if the imported file contains a component (database or server)
+already existing in an importing file (same ID or same name), it is "merged".
+The properties of that component in the importing file hide the properties with
+the same name in the imported file.
+
+If you want a component to entirely override one with the same name in an
+imported file, use the property `compose` with the value `hide`.  By default it
+is `merge`.
+
+Let say we point to the following environment file:
+
+```json
+{ "mlproj": {
+    "format": "0.1",
+    "import": "base.json",
+    "connect": {
+        "host":     "localhost",
+        "user":     "admin",
+        "password": "admin"
+    },
+    "params": {
+        "port": 8099
+    },
+    "servers": [{
+        "id": "server",
+        "modules": {
+		    "name": "@{code}-modules"
+		}
+    }]
+}
+```
+
+and the following in `base.json`:
+
+```json
+{ "mlproj": {
+    "format": "0.1",
+    "code":   "my-app",
+    "title":  "My project",
+    "params": {
+        "port": 8080,
+		"root": "/"
+    },
+    "databases": [{
+        "id":   "content",
+        "name": "@{code}-content"
+    }],
+    "servers": [{
+        "id":   "server",
+        "name": "@{code}",
+        "type": "http",
+        "port": "${port}",
+        "root": "${root}",
+        "content": {
+		    "idref": "content"
+		}
+    }]
+}
+```
+
+The it is somewhat equivalent to the following file, where imports and variable
+substitutions have been resolved:
+
+```json
+{ "mlproj": {
+    "format": "0.1",
+    "code":   "my-app",
+    "title":  "My project",
+    "connect": {
+        "host":     "localhost",
+        "user":     "admin",
+        "password": "admin"
+    },
+    "servers": [{
+        "name": "my-app",
+        "type": "http",
+        "port": "8099",
+        "root": "/",
+        "content": {
+		    "name": "my-app-content"
+		},
+        "modules": {
+		    "name": "my-app-modules"
+		}
+    }]
+}
+```
+
+Note like the properties for the server have been merged from both files.  Note
+as well that `${port}` is resolved to the parameter with that name with the
+highest import precedence (in the importing file), even though it is used in
+another file (in the imported file).
 
 **Code**
 
