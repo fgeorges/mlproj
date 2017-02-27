@@ -155,6 +155,7 @@ The environment files can have the following format:
     "code":   "my-fabulous-app",
     "title":  "Short title for the project",
     "desc":   "Longer description of the project.  You can use Markdown.",
+    "srcdir": "...",
     "connect": {
         "host":     "...",
         "user":     "...",
@@ -184,6 +185,10 @@ file, after import resolution the following properties must have been set:
 - `connect.user`
 - `connect.password`
 
+**Imports**
+
+To do...
+
 **Code**
 
 The `code` is a short code, containing only ASCII alphanumeric characters (as
@@ -192,27 +197,135 @@ build component names in a consistent way (for databases, forests and servers).
 
 **Title**
 
-To do...
+The `title` is a short, human-friendly description of the project.  It can use
+Markdown notation (the notation used in Github).
 
 **Description**
+
+The `desc` is a longer description of the project than the title.  It can use
+Markdown notation.
+
+**Sources dir**
 
 To do...
 
 **Connection info**
 
-To do...
+The `connect` contains connection information: the `user` name to use, its
+`password`, as well as the `host` where MarkLogic is installed.
 
 **Parameters**
+
+This is a plain JSON object for you to create variables.  Parameters have a name
+(the object property key) and a value (the corresponding object value).  Values
+must be strings.
+
+They can be referred to in other places of the files, by using the `${...}`
+notation.  Anywhere in a string value, this notation is replaced by the actual
+value of the parameter of that name.  Parameters can be "overriden" (assigned a
+different value) in an importing file.
+
+The notation `@{...}` (with an "at" sign instead of a "dollar" sign) do not use
+parameters, but values comming from "standard" properties.  You can use the
+following variable substitutions, referring to properties with the same name:
+
+- `@{code}`
+- `@{title}`
+- `@{desc}`
+- `@{srcdir}`
+- `@{host}`
+- `@{user}`
+- `@{password}`
+
+A typical use of `@{code}` is to construct component names, and parameters is to
+capture variable parts like port numbers:
+
+```json
+{
+    "name": "@{code}-server",
+    "type": "http",
+    "port": "${port}"
+}
+```
+
+**Servers**
 
 To do...
 
 **Databases**
 
-To do...
+`databases` is an array of databases.  Anywhere you can have a database, you can
+either have an actual database description, of a reference to a database by ID
+or by name.  Databases look like the following:
 
-**Servers**
+```json
+{
+    "id":   "...",
+    "name": "...",
+    "schema": {
+	   "idref": "..."
+    },
+    "security": {
+	   "idref": "..."
+    },
+    "triggers": {
+	   "nameref": "..."
+    },
+    "indexes": {
+        "ranges": [{
+            "type":      "string",
+            "name":      "ape",
+            "positions": false,
+            "invalid":   "ignore"
+        }, {
+            "type":      "string",
+            "name":      [ "bear", "cat" ],
+            "positions": false,
+            "invalid":   "ignore"
+        }]
+    },
+    "lexicons": {
+        "uri": false,
+        "collection": true
+    }
+}
+```
 
-To do...
+The `id` is a unique ID used only in the environment files, to refer to
+databases (e.g. from a server, to be its modules database).  The `name` is the
+name of the database, as it will be set on MarkLogic.
+
+`schema`, `security` and `triggers` are resp. the database's Schema DB, Security
+DB and Triggers DB.  As always, they can be either ID or name reference to an
+existing database description, or be a full, embedded database description.
+
+Range indexes can be set in the `ranges` array.  Each is an object with the
+following properties (if there is `path` it is a path range index, if there is
+`parent` it is an attribute range index, and if not it is an element range
+index):
+
+- `type`: the scalar type of the range index (`int`, `string`...)
+- `positions`: a boolean, whether to save or not the range value positions
+- `invalid`: what to do in case of invalid values: `reject` or `ignore`
+- `colation`: the collation to use for the range index
+- `name`: the local name of the element or attribute (only for element and
+  attribute range indexes)
+- `namespace`: the namespace URI of the element or attribute (only for element and
+  attribute range indexes)
+- `parent.name`: the local name of the parent element of the attribute (only for
+  attribute range indexes)
+- `parent.namespace`: the namespace URI of the parent element of the attribute
+  (only for attribute range indexes)
+- `path`: the path expression to use (only for path range indexes)
+
+`lexicons.uri` and `lexicons.collection` set whether to maintain resp. a URI or
+a collection lexicon for that database.
+
+This is far from covering all aspects and all possible properties of databases,
+forests and servers.  It is a work in progress.  The goal is to support all
+properties supported by the Management API of MarkLogic.  If you need one that
+is not supported yet, make sure to open an issue about it, so it moves to the
+top of the list.
 
 ## TODO
 
