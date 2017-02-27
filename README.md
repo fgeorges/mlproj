@@ -474,11 +474,6 @@ top of the list.
 
 ## TODO
 
-- publish on npmjs
-    - https://www.npmjs.com/package/mlproj
-    - https://docs.npmjs.com/getting-started/publishing-npm-packages
-    - http://blog.npmjs.org/post/118810260230/
-
 - word lexicons
 - drive properties by configuration (on a property-by-property basis)
     - start with simple properties, like URI and collection lexicons
