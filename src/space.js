@@ -75,7 +75,7 @@
 	    // source dir (the subdir src/ in the dir containing xproject/),
 	    // @srcdir being just a way to override it (or sometimes to set it,
 	    // especially in tests.)
-	    extract(json, ['code', 'title', 'srcdir']);
+	    extract(json, ['code', 'title', 'desc', 'srcdir']);
 	    if ( json.connect ) {
 		extract(json.connect, ['host', 'user', 'password']);
 	    }
