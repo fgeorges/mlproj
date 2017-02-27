@@ -564,6 +564,10 @@
 	    };
 	    // start with root
 	    var root = impl(href, base);
+	    // if not set explicitly, set it to `./src/`
+	    if ( root.param('@srcdir') === undefined ) {
+		root._params['@srcdir'] = platform.resolve('src/', base);
+	    }
 	    // resolve the param references
 	    root.resolve(root);
 	    // resolve import priority and cache databses and servers
