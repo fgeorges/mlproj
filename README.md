@@ -306,7 +306,13 @@ Markdown notation.
 
 **Sources dir**
 
-To do...
+`srcdir` contains the path to the directory with the sources of the project.
+This property is generally set automatically, when used in a standard `XProject`
+structure, as the directory `src/`.
+
+It is sometimes useful to set it explicitly for either 1) represent a more
+complex setup, or 2) still be able to use those files with a project with
+another structure than the standard `XProject` structure.
 
 **Connection info**
 
