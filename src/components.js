@@ -519,7 +519,10 @@
             this.type      = json.type;
             this.positions = json.positions;
             this.invalid   = json.invalid;
-            this.collation = json.collation || '' ;
+            this.collation = json.collation;
+	    if ( this.type !== 'string' && this.collation ) {
+		throw new Error('Range index with collation not of type string');
+	    }
         }
 
         create()
@@ -527,9 +530,16 @@
             var obj = {
                 "scalar-type":           this.type,
                 "range-value-positions": this.positions,
-                "invalid-values":        this.invalid,
-                "collation":             this.collation
+                "invalid-values":        this.invalid
             };
+	    if ( this.type === 'string' ) {
+		if ( this.collation ) {
+		    obj.collation = this.collation;
+		}
+		else {
+		    obj.collation = 'http://marklogic.com/collation/';
+		}
+	    }
             return obj;
         }
 
@@ -568,7 +578,7 @@
             if ( this.invalid !== actual['invalid-values'] ) {
 		diffs.push('invalid');
 	    }
-            if ( this.collation !== actual['collation'] ) {
+            if ( this.type === 'string' && this.collation !== actual['collation'] ) {
 		diffs.push('collation');
 	    }
 	}
