@@ -72,7 +72,7 @@ class Node extends s.Platform
 	if ( ! host ) {
 	    throw new Error('No host in space');
 	}
-	return 'http://' + host + ':8002/manage/v2' + endpoint;
+	return 'http://' + host + ':' + endpoint.port + '/' + endpoint.api + endpoint.url;
     }
 
     credentials() {

@@ -99,7 +99,7 @@
 	    var _ = this.platform;
 	    _.log('\n--- ' + _.bold('Progress') + ' ---'
 		  + (_.dry ? ' (' + _.red('dry run, not for real') + ')' : ''));
-            this.actions.execute(this.space, callback);
+            this.actions.execute(callback);
         }
 
         summary() {

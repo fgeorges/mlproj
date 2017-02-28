@@ -2,17 +2,20 @@
 
 (function() {
 
+    /*~~~~~ A HTTP action. */
+
     /*~
      * A single one action.
      */
     class Action
     {
-        constructor(url, verb, msg, data)
+        constructor(endpoint, msg, data)
         {
-            this.url  = url;
-            this.verb = verb;
-            this.msg  = msg;
-            this.data = data;
+	    // must have props: url, verb, api, port
+	    // e.g.: { url: '/databases', verb: 'GET', api: 'manage/v2', port: 8002 }
+            this.endpoint = endpoint;
+            this.msg      = msg;
+            this.data     = data;
         }
 
         display(platform, indent)
@@ -20,39 +23,43 @@
             platform.log(indent + ' ' + this.msg);
         }
 
-        execute(platform, space, verbose, error, success)
+        execute(platform, verbose, error, success, dry)
 	{
-            platform.warn(platform.yellow('→') + ' ' + this.msg);
             if ( verbose ) {
-                platform.warn('[' + platform.bold('verbose') + '] ' + this.verb + ' to ' + this.url);
+                platform.warn('[' + platform.bold('verbose') + '] '
+			      + this.endpoint.verb + ' to ' + this.endpoint.url);
 		if ( this.data ) {
                     platform.warn('[' + platform.bold('verbose') + '] Body:');
                     platform.warn(this.data);
 		}
             }
-	    if ( platform.dry ) {
+	    if ( dry ) {
+		platform.warn(platform.yellow('→') + ' ' + this.msg);
 		success();
 	    }
 	    else {
-		this.send(platform, this.url, this.data, error, success);
+		this.send(platform, this.endpoint, this.data, error, success);
 	    }
         }
     }
+
+    /*~~~~~ HTTP verb actions. */
 
     /*~
      * A GET action.
      */
     class Get extends Action
     {
-        constructor(url, msg) {
-	    super(url, 'GET', msg);
+        constructor(url, msg, api, port) {
+	    super({ url: url, verb: 'GET', api: api, port: port }, msg);
         }
 
-        send(platform, url, data, error, success) {
+        send(platform, endpoint, data, error, success) {
+            platform.warn(platform.yellow('→') + ' ' + this.msg);
 	    if ( data ) {
 		throw new Error('Data in a GET: ' + url + ', ' + data);
 	    }
-	    platform.get(url, error, success);
+	    platform.get(endpoint, error, success);
         }
     }
 
@@ -61,12 +68,13 @@
      */
     class Post extends Action
     {
-        constructor(url, data, msg) {
-	    super(url, 'POST', msg, data);
+        constructor(url, data, msg, api, port) {
+	    super({ url: url, verb: 'POST', api: api, port: port }, msg, data);
         }
 
-        send(platform, url, data, error, success) {
-	    platform.post(url, data, error, success);
+        send(platform, endpoint, data, error, success) {
+            platform.warn(platform.yellow('→') + ' ' + this.msg);
+	    platform.post(endpoint, data, error, success);
         }
     }
 
@@ -75,12 +83,173 @@
      */
     class Put extends Action
     {
-        constructor(url, data, msg) {
-	    super(url, 'PUT', msg, data);
+        constructor(url, data, msg, api, port) {
+	    super({ url: url, verb: 'PUT', api: api, port: port }, msg, data);
         }
 
-        send(platform, url, data, error, success) {
-	    platform.put(url, data, error, success);
+        send(platform, endpoint, data, error, success) {
+            platform.warn(platform.yellow('→') + ' ' + this.msg);
+	    platform.put(endpoint, data, error, success);
+        }
+    }
+
+    /*~~~~~ Management API actions. */
+
+    /*~
+     * A Management API GET action.
+     */
+    class ManageGet extends Get
+    {
+        constructor(url, msg) {
+	    super(url, msg, 'manage/v2', 8002);
+        }
+    }
+
+    /*~
+     * A Management API POST action.
+     */
+    class ManagePost extends Post
+    {
+        constructor(url, data, msg) {
+	    super(url, data, msg, 'manage/v2', 8002);
+        }
+    }
+
+    /*~
+     * A Management API PUT action.
+     */
+    class ManagePut extends Put
+    {
+        constructor(url, data, msg) {
+	    super(url, data, msg, 'manage/v2', 8002);
+        }
+    }
+
+    /*~
+     * Management API: list all forests.
+     */
+    class ForestList extends ManageGet
+    {
+        constructor() {
+	    super('/forests', 'Retrieve forests');
+        }
+
+        send(platform, endpoint, data, error, success) {
+	    if ( ForestList.cache ) {
+		success(ForestList.cache);
+	    }
+	    else {
+		super.send(platform, endpoint, data, error, body => {
+		    ForestList.cache = body;
+		    success(body);
+		});
+	    }
+        }
+    }
+
+    /*~
+     * Management API: create a forest.
+     */
+    class ForestCreate extends ManagePost
+    {
+        constructor(forest) {
+	    super('/forests',
+                  { "forest-name": forest.name, "database": forest.db.name },
+		  'Create forest:  \t\t' + forest.name);
+        }
+    }
+
+    /*~
+     * Management API: attach a forest.
+     */
+    class ForestAttach extends ManagePost
+    {
+        constructor(forest) {
+	    super('/forests/' + forest.name + '?state=attach&database=' + forest.db.name,
+		  null,
+		  'Attach forest:  \t\t' + forest.name);
+        }
+    }
+
+    /*~
+     * Management API: detach a forest.
+     */
+    class ForestDetach extends ManagePost
+    {
+        constructor(forest) {
+	    super('/forests/' + forest.name + '?state=detach',
+		  null,
+		  'Detach forest:  \t\t' + forest.name);
+        }
+    }
+
+    /*~
+     * Management API: retrieve properties of a database.
+     */
+    class DatabaseProps extends ManageGet
+    {
+        constructor(db) {
+	    super('/databases/' + db.name + '/properties',
+		  'Retrieve database props: \t' + db.name);
+        }
+    }
+
+    /*~
+     * Management API: create a database.
+     */
+    class DatabaseCreate extends ManagePost
+    {
+        constructor(db, body) {
+	    super('/databases',
+		  body,
+		  'Create database: \t\t' + db.name);
+        }
+    }
+
+    /*~
+     * Management API: update a database property.
+     */
+    class DatabaseUpdate extends ManagePut
+    {
+        constructor(db, name, value) {
+	    super('/databases/' + db.name + '/properties',
+		  { [name]: value },
+		  'Update ' + name + ':  \t' + db.name);
+        }
+    }
+
+    /*~
+     * Management API: retrieve properties of a server.
+     */
+    class ServerProps extends ManageGet
+    {
+        constructor(srv) {
+	    super('/servers/' + srv.name + '/properties?group-id=' + srv.group,
+		  'Retrieve server props: \t' + srv.name);
+        }
+    }
+
+    /*~
+     * Management API: create a server.
+     */
+    class ServerCreate extends ManagePost
+    {
+        constructor(srv, body) {
+	    super('/servers?group-id=' + srv.group,
+		  body,
+		  'Create server: \t\t' + srv.name);
+        }
+    }
+
+    /*~
+     * Management API: update a server property.
+     */
+    class ServerUpdate extends ManagePut
+    {
+        constructor(srv, name, value) {
+	    super('/servers/' + srv.name + '/properties?group-id=' + srv.group,
+		  { [name]: value },
+		  'Update ' + name + ':  \t' + srv.name);
         }
     }
 
@@ -103,11 +272,11 @@
             this.todo.push(a);
         }
 
-        execute(space, callback)
+        execute(callback)
         {
             if ( this.todo.length ) {
                 var action = this.todo.shift();
-                action.execute(this.platform, space, this.verbose, msg => {
+                action.execute(this.platform, this.verbose, msg => {
                     this.error = { action: action, message: msg };
                     // stop processing
 		    callback();
@@ -115,8 +284,9 @@
                     this.done.push(action);
                     // TODO: Keep the idea of an event log?
                     // events.push('Database created: ' + db.name);
-                    this.execute(space, callback);
-                });
+                    this.execute(callback);
+                },
+		this.platform);
             }
 	    else {
 		callback();
@@ -146,10 +316,17 @@
     }
 
     module.exports = {
-        Get        : Get,
-        Post       : Post,
-        Put        : Put,
-        ActionList : ActionList
+        ForestList     : ForestList,
+        ForestCreate   : ForestCreate,
+        ForestAttach   : ForestAttach,
+        ForestDetach   : ForestDetach,
+        DatabaseProps  : DatabaseProps,
+        DatabaseCreate : DatabaseCreate,
+        DatabaseUpdate : DatabaseUpdate,
+        ServerProps    : ServerProps,
+        ServerCreate   : ServerCreate,
+        ServerUpdate   : ServerUpdate,
+        ActionList     : ActionList
     }
 }
 )();

@@ -101,26 +101,34 @@
         setup(actions, callback)
         {
 	    logCheck(actions, 0, 'the database', this.name);
-	    actions.platform.get('/databases/' + this.name + '/properties', msg => {
-		// TODO: Integrate more nicely in the reporting...
-		throw new Error('Error during GET DB ' + this.name + ': ' + msg);
-            }, (body) => {
-		actions.platform.get('/forests', msg => {
+	    new act.DatabaseProps(this).execute(
+		actions.platform,
+		actions.verbose,
+		msg => {
 		    // TODO: Integrate more nicely in the reporting...
-		    throw new Error('Error during GET forests: ' + msg);
-		}, (forests) => {
-		    var items = forests['forest-default-list']['list-items']['list-item'];
-		    var names = items.map(o => o.nameref);
-		    // if DB does not exist yet
-		    if ( ! body ) {
-			this.create(actions, callback, names);
-		    }
-		    // if DB already exists
-		    else {
-			this.update(actions, callback, body, names);
-		    }
+		    throw new Error('Error during GET DB ' + this.name + ': ' + msg);
+		},
+		body => {
+		    new act.ForestList().execute(
+			actions.platform,
+			actions.verbose,
+			msg => {
+			    // TODO: Integrate more nicely in the reporting...
+			    throw new Error('Error during GET forests: ' + msg);
+			},
+			forests => {
+			    var items = forests['forest-default-list']['list-items']['list-item'];
+			    var names = items.map(o => o.nameref);
+			    // if DB does not exist yet
+			    if ( ! body ) {
+				this.create(actions, callback, names);
+			    }
+			    // if DB already exists
+			    else {
+				this.update(actions, callback, body, names);
+			    }
+			});
 		});
-            });
         }
 
         create(actions, callback, forests)
@@ -138,10 +146,7 @@
 	    this.indexes.create(obj);
 	    this.lexicons.create(obj);
 	    // enqueue the "create db" action
-	    actions.add(new act.Post(
-		'/databases',
-		obj,
-		'Create database: \t\t' + this.name));
+	    actions.add(new act.DatabaseCreate(this, obj));
 	    logCheck(actions, 1, 'forests');
 	    // check the forests
 	    values(this.forests).forEach(f => f.create(actions, forests));
@@ -208,12 +213,7 @@
 	    // enqueue the action if necessary
 	    if ( newName !== undefined ) {
 		logAdd(actions, 0, 'update', prop);
-		var body = {};
-		body[prop] = newName;
-		actions.add(new act.Put(
-                    '/databases/' + this.name + '/properties',
-                    body,
-                    'Update ' + prop + ':  \t' + this.name));
+		actions.add(new act.DatabaseUpdate(this, prop, newName));
 	    }
 	}
     }
@@ -235,17 +235,11 @@
 	    // if already exists, attach it instead of creating it
 	    if ( forests.includes(this.name) ) {
 		logAdd(actions, 1, 'attach', 'forest', this.name);
-		actions.add(new act.Post(
-                    '/forests/' + this.name + '?state=attach&database=' + this.db.name,
-                    null,
-                    'Attach forest:  \t\t' + this.name));
+		actions.add(new act.ForestAttach(this));
 	    }
 	    else {
 		logAdd(actions, 1, 'create', 'forest', this.name);
-		actions.add(new act.Post(
-                    '/forests',
-                    { "forest-name": this.name, "database": this.db.name },
-                    'Create forest:  \t\t' + this.name));
+		actions.add(new act.ForestCreate(this));
 	    }
         }
 
@@ -253,10 +247,7 @@
         {
 	    logRemove(actions, 1, 'detach', 'forest', this.name);
 	    // just detach it, not delete it for real
-            actions.add(new act.Post(
-                '/forests/' + this.name + '?state=detach',
-                null,
-                'Detach forest:  \t\t' + this.name));
+	    actions.add(new act.ForestDetach(this));
         }
     }
 
@@ -290,20 +281,23 @@
         setup(actions, callback)
 	{
 	    logCheck(actions, 0, 'the ' + this.type + ' server', this.name);
-	    var url = '/servers/' + this.name + '/properties?group-id=' + this.group;
-	    actions.platform.get(url, msg => {
-		// TODO: Integrate more nicely in the reporting...
-		throw new Error('Error during GET DB ' + this.name + ': ' + msg);
-            }, (body) => {
-		// if AS does not exist yet
-		if ( ! body ) {
-		    this.create(actions, callback);
-		}
-		// if AS already exists
-		else {
-		    this.update(actions, callback, body);
-		}
-	    });
+	    new act.ServerProps(this).execute(
+		actions.platform,
+		actions.verbose,
+		msg => {
+		    // TODO: Integrate more nicely in the reporting...
+		    throw new Error('Error during GET AS ' + this.name + ': ' + msg);
+		},
+		body => {
+		    // if AS does not exist yet
+		    if ( ! body ) {
+			this.create(actions, callback);
+		    }
+		    // if AS already exists
+		    else {
+			this.update(actions, callback, body);
+		    }
+		});
 	}
 
         create(actions, callback)
@@ -319,10 +313,7 @@
             this.modules  && ( obj['modules-database'] = this.modules.name );
             this.rewriter && ( obj['url-rewriter']     = this.rewriter     );
             this.handler  && ( obj['error-handler']    = this.handler      );
-            actions.add(new act.Post(
-                '/servers?group-id=' + this.group,
-                obj,
-                'Create server:  \t\t' + this.name));
+	    actions.add(new act.ServerCreate(this, obj));
 	    callback();
 	}
 
@@ -374,12 +365,7 @@
 	    }
 	    diffs.forEach(diff => {
 		logAdd(actions, 0, 'update', diff.name);
-		var body = {};
-		body[diff.name] = diff.value;
-		actions.add(new act.Put(
-                    '/servers/' + this.name + '/properties?group-id=' + this.group,
-                    body,
-                    'Update ' + diff.name + ':  \t' + this.name));
+		actions.add(new act.ServerUpdate(this, diff.name, diff.value));
 	    });
 	    callback();
 	}
@@ -491,7 +477,7 @@
 	    }
 	}
 
-	static update(actions, objects, json, db, enricher, type)
+	static update(actions, objects, json, db, prop, value, type)
 	{
 	    var actual  = Object.keys(json);
 	    var desired = Object.keys(objects);
@@ -504,13 +490,7 @@
 	    // if there is any change...
 	    if ( keep.length !== actual.length || keep.length !== desired.length ) {
 		logAdd(actions, 1, 'update', type + ' range indexes');
-		// reconstruct the whole `range-element-index` property array
-		var body = {};
-		enricher(body, objects);
-		actions.add(new act.Put(
-                    '/databases/' + db.name + '/properties',
-                    body,
-                    'Update ' + type + ' range indexes:  \t' + db.name));
+		actions.add(new act.DatabaseUpdate(db, prop, value(objects)));
 	    }
 	}
 
@@ -596,16 +576,21 @@
 
 	static update(actions, objects, json, db)
 	{
-	    RangeIndex.update(actions, objects, json, db, ElementRangeIndex.create, 'element');
+	    RangeIndex.update(actions, objects, json, db, ElementRangeIndex.prop,
+			      ElementRangeIndex.value, 'element');
+	}
+
+	static value(ranges)
+	{
+	    // if there is no index, that will be an empty array, preventing the
+	    // default DLS range indexes to be created
+            return values(ranges)
+		.map(idx => idx.create());
 	}
 
         static create(db, ranges)
         {
-	    // if there is no index, that will be an empty array, preventing the
-	    // default DLS range indexes to be created
-            db['range-element-index'] =
-		values(ranges)
-		.map(idx => idx.create());
+            db[ElementRangeIndex.prop] = ElementRangeIndex.value(ranges);
         }
 
         constructor(json)
@@ -633,6 +618,7 @@
 	    }
 	}
     }
+    ElementRangeIndex.prop = 'range-element-index';
 
     /*~
      * One attribute range index.
@@ -646,14 +632,19 @@
 
 	static update(actions, objects, json, db)
 	{
-	    RangeIndex.update(actions, objects, json, db, AttributeRangeIndex.create, 'attribute');
+	    RangeIndex.update(actions, objects, json, db, AttributeRangeIndex.prop,
+			      AttributeRangeIndex.value, 'attribute');
+	}
+
+	static value(ranges)
+	{
+            return values(ranges)
+		.map(idx => idx.create());
 	}
 
         static create(db, ranges)
         {
-            db['range-element-attribute-index'] =
-		values(ranges)
-		.map(idx => idx.create());
+            db[AttributeRangeIndex.prop] = AttributeRangeIndex.value(ranges);
         }
 
         constructor(json)
@@ -682,6 +673,7 @@
 	    }
 	}
     }
+    AttributeRangeIndex.prop = 'range-element-attribute-index';
 
     /*~
      * One path range index.
@@ -695,14 +687,19 @@
 
 	static update(actions, objects, json, db)
 	{
-	    RangeIndex.update(actions, objects, json, db, PathRangeIndex.create, 'path');
+	    RangeIndex.update(actions, objects, json, db, PathRangeIndex.prop,
+			      PathRangeIndex.value, 'path');
+	}
+
+	static value(ranges)
+	{
+            return values(ranges)
+		.map(idx => idx.create());
 	}
 
         static create(db, ranges)
         {
-            db['range-path-index'] =
-		values(ranges)
-		.map(idx => idx.create());
+            db[PathRangeIndex.prop] = PathRangeIndex.value(ranges);
         }
 
         constructor(json)
@@ -726,6 +723,7 @@
 	    }
 	}
     }
+    PathRangeIndex.prop = 'range-path-index';
 
     /*~
      * All the lexicons of a database.
@@ -743,17 +741,11 @@
 	{
 	    if ( ( this.uri !== undefined ) && ( this.uri !== body['uri-lexicon'] ) ) {
 		logAdd(actions, 1, 'update', 'uri lexicon');
-		actions.add(new act.Put(
-                    '/databases/' + this.db.name + '/properties',
-                    { "uri-lexicon": this.uri },
-                    'Update URI lexicon: \t\t' + this.db.name));
+		actions.add(new act.DatabaseUpdate(this.db, 'uri-lexicon', this.uri));
 	    }
 	    if ( ( this.coll !== undefined ) && ( this.coll !== body['collection-lexicon'] ) ) {
 		logAdd(actions, 1, 'update', 'collection lexicon');
-		actions.add(new act.Put(
-                    '/databases/' + this.db.name + '/properties',
-                    { "collection-lexicon": this.coll },
-                    'Update collection lexicon: \t' + this.db.name));
+		actions.add(new act.DatabaseUpdate(this.db, 'collection-lexicon', this.coll));
 	    }
 	}
 
