@@ -55,7 +55,7 @@
      */
     class Space
     {
-        constructor(json)
+        constructor(json, base, platform)
         {
 	    var that = this;
 	    this._params    = json.params    || {};
@@ -64,20 +64,23 @@
 	    this._imports   = [];
 	    // extract defined values from `obj` and put them in `this.param`
 	    var extract = function(obj, props) {
-		props.forEach((p) => {
+		props.forEach(p => {
 		    var v = obj[p];
 		    if ( v !== undefined ) {
 			that._params['@' + p] = v;
 		    }
 		});
 	    };
+	    extract(json, ['code', 'title', 'desc']);
+	    if ( json.connect ) {
+		extract(json.connect, ['host', 'user', 'password']);
+	    }
 	    // TODO: @srcdir should be initialized automatically to the project
 	    // source dir (the subdir src/ in the dir containing xproject/),
 	    // @srcdir being just a way to override it (or sometimes to set it,
 	    // especially in tests.)
-	    extract(json, ['code', 'title', 'desc', 'srcdir']);
-	    if ( json.connect ) {
-		extract(json.connect, ['host', 'user', 'password']);
+	    if ( json.srcdir ) {
+		this._params['@srcdir'] = platform.resolve(json.srcdir, base) + '/';
 	    }
 	}
 
@@ -543,17 +546,17 @@
 		var path    = platform.resolve(href, base);
 		var json    = platform.read(path);
 		var proj    = validate(json);
-		var space   = new Space(proj);
+		var idx     = path.lastIndexOf('/');
+		if ( idx < 0 ) {
+		    throw new Error('File path does not have any slash: ' + path);
+		}
+		var newBase = path.slice(0, idx);
+		var space   = new Space(proj, newBase, platform);
 		var imports = proj['import'];
 		if ( typeof imports === 'string' ) {
 		    imports = [ imports ];
 		}
 		if ( imports ) {
-		    var idx = path.lastIndexOf('/');
-		    if ( idx < 0 ) {
-			throw new Error('File path does not have any slash: ' + path);
-		    }
-		    var newBase = path.slice(0, idx);
 		    imports.forEach((i) => {
 			// TODO: Should resolve properly against resolved `href`...
 			var s = impl(i, newBase);
