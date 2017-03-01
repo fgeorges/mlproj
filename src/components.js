@@ -46,6 +46,9 @@
      */
     class Component
     {
+        show(platform) {
+	    throw new Error('Component.show is abstract');
+	}
         setup(actions, callback) {
 	    throw new Error('Component.setup is abstract');
 	}
@@ -97,6 +100,22 @@
 		this.forests[f] = new Forest(this, f);
 	    });
         }
+
+        show(pf)
+	{
+	    pf.log('Database: ' + pf.bold(this.name));
+	    this.id       && pf.line(1, 'id',          this.id);
+	    this.schema   && pf.line(1, 'schema DB',   this.schema.name);
+	    this.security && pf.line(1, 'security DB', this.security.name);
+	    this.triggers && pf.line(1, 'triggers DB', this.triggers.name);
+	    var forests = Object.keys(this.forests);
+	    if ( forests.length ) {
+		pf.line(1, 'forests:');
+		forests.sort().forEach(f => pf.line(2, f));
+	    }
+	    this.indexes.show(pf);
+	    this.lexicons.show(pf);
+	}
 
         setup(actions, callback)
         {
@@ -278,6 +297,20 @@
 	    }
         }
 
+        show(pf)
+	{
+	    pf.log('Server: ' + pf.bold(this.name));
+	    pf.line(1, 'group', this.group);
+	    this.id       && pf.line(1, 'id',            this.id);
+	    this.type     && pf.line(1, 'type',          this.type);
+	    this.port     && pf.line(1, 'port',          this.port);
+	    this.content  && pf.line(1, 'content DB',    this.content.name);
+	    this.modules  && pf.line(1, 'modules DB',    this.modules.name);
+	    this.root     && pf.line(1, 'root',          this.root);
+	    this.rewriter && pf.line(1, 'url rewriter',  this.rewriter);
+	    this.handler  && pf.line(1, 'error handler', this.handler);
+	}
+
         setup(actions, callback)
 	{
 	    logCheck(actions, 0, 'the ' + this.type + ' server', this.name);
@@ -403,6 +436,13 @@
 		}
             }
         }
+
+        show(pf)
+	{
+	    values(this.rangeElem).forEach(r => r.show(pf));
+	    values(this.rangeAttr).forEach(r => r.show(pf));
+	    values(this.rangePath).forEach(r => r.show(pf));
+	}
 
 	update(actions, body)
 	{
@@ -600,6 +640,16 @@
             this.namespace = json.namespace || '';
         }
 
+        show(pf)
+	{
+	    pf.line(1, 'element range index:');
+	    pf.line(2, 'name', (this.namespace ? '{' + this.namespace + '}' : '') + this.name);
+	    pf.line(2, 'type', this.type);
+	    this.positions  && pf.line(2, 'positions', this.positions);
+	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
+	    this.collaction && pf.line(2, 'invalid',   this.collaction);
+	}
+
         create()
         {
             var obj = super.create();
@@ -653,6 +703,17 @@
             this.parentName = json.parent.name;
             this.parentNs   = json.parent.namespace || '';
         }
+
+        show(pf)
+	{
+	    pf.line(1, 'attribute range index:');
+	    pf.line(2, 'name',   (this.namespace ? '{' + this.namespace + '}' : '') + this.name);
+	    pf.line(2, 'parent', (this.parentNs  ? '{' + this.parentNs  + '}' : '') + this.parentName);
+	    pf.line(2, 'type',   this.type);
+	    this.positions  && pf.line(2, 'positions', this.positions);
+	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
+	    this.collaction && pf.line(2, 'invalid',   this.collaction);
+	}
 
         create()
         {
@@ -708,6 +769,16 @@
             this.path = json.path;
         }
 
+        show(pf)
+	{
+	    pf.line(1, 'path range index:');
+	    pf.line(2, 'path', this.path);
+	    pf.line(2, 'type', this.type);
+	    this.positions  && pf.line(2, 'positions', this.positions);
+	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
+	    this.collaction && pf.line(2, 'invalid',   this.collaction);
+	}
+
         create()
         {
             var obj = super.create();
@@ -747,6 +818,12 @@
 		logAdd(actions, 1, 'update', 'collection lexicon');
 		actions.add(new act.DatabaseUpdate(this.db, 'collection-lexicon', this.coll));
 	    }
+	}
+
+        show(pf)
+	{
+	    (this.uri  !== undefined) && pf.line(1, 'uri lexicon',        this.uri);
+	    (this.coll !== undefined) && pf.line(1, 'collection lexicon', this.coll);
 	}
 
         create(db)

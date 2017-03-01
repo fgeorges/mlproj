@@ -39,6 +39,21 @@ class Node extends s.Platform
 	console.warn(msg);
     }
 
+    line(indent, name, value) {
+	var s = '';
+	while ( indent-- ) {
+	    s += '   ';
+	}
+	s += name;
+	if ( value !== undefined ) {
+	    const PAD = '                        '; // 24 spaces
+	    s += ': ';
+	    s += PAD.slice(s.length);
+	    s += value;
+	}
+	console.log(s);
+    }
+
     resolve(href, base) {
 	return path.resolve(base, href);
     }

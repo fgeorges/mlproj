@@ -59,12 +59,62 @@
 	}
 
 	execute(callback) {
-	    var _ = this.platform;
-	    _.log(_.green('Databases') + ':');
-	    _.log(this.space.databases());
-	    _.log(_.green('Servers') + ':');
-	    _.log(this.space.servers());
+	    var pf = this.platform;
+	    var components = comps => {
+		comps.forEach(c => {
+		    c.show(pf);
+		    pf.log('');
+		});
+	    };
+	    pf.log('');
+	    this.showProject(pf);
+	    components(this.space.databases());
+	    components(this.space.servers());
 	    callback();
+	}
+
+	showProject(pf) {
+	    const imports = (space, level) => {
+		space._imports.forEach(i => {
+		    pf.line(level, '-> ' + i.href);
+		    imports(i.space, level + 1);
+		});
+	    };
+	    var mods;
+	    try {
+		mods = this.space.modulesDb().name;
+	    }
+	    catch (e) {
+		if ( /no server/i.test(e.message) ) {
+		    // nothing
+		}
+		else if ( /more than 1/i.test(e.message) ) {
+		    mods = '(more than 1 server)';
+		}
+		else if ( /no modules/i.test(e.message) ) {
+		    mods = '(filesystem)';
+		}
+		else {
+		    throw e;
+		}
+	    }
+	    pf.log('Project: ' + pf.bold(this.space.param('@code')));
+	    [ 'title', 'desc', 'host', 'user', 'password' ].forEach(p => {
+		var v = this.space.param('@' + p);
+		v && pf.line(1, p, v);
+	    });
+	    pf.line(1, 'sources dir', this.space.param('@srcdir'));
+	    mods && pf.line(1, 'modules DB', mods);
+	    var params = this.space.params();
+	    if ( params.length ) {
+		pf.line(1, 'parameters:');
+		params.forEach(p => pf.line(2, p, this.space.param(p)));
+	    }
+	    if ( this.space._imports.length ) {
+		pf.line(1, 'import graph:');
+		imports(this.space, 2);
+	    }
+	    pf.log('');
 	}
 
 	summary() {
