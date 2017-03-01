@@ -67,9 +67,9 @@
 	    super();
             this.id       = json.id;
             this.name     = json.name;
-            this.schema   = schema;
-            this.security = security;
-            this.triggers = triggers;
+            this.schema   = schema   === 'self' ? this : schema;
+            this.security = security === 'self' ? this : security;
+            this.triggers = triggers === 'self' ? this : triggers;
             this.forests  = {};
             this.indexes  = new Indexes(this, json.indexes);
             this.lexicons = new Lexicons(this, json.lexicons);
