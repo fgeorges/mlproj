@@ -180,7 +180,7 @@ class Node extends s.Platform
 	if ( data ) {
 	    if ( type ) {
 		options.headers = { "Content-Type": type };
-		options.data    = data;
+		options.body    = data;
 	    }
 	    else {
 		options.json = data;
