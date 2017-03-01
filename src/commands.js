@@ -51,7 +51,7 @@
     /*~
      * Display the resolved space.
      */
-    class DebugCommand extends Command
+    class ShowCommand extends Command
     {
 	prepare(env, path, base, callback) {
 	    super.prepare(env, path, base, callback);
@@ -196,7 +196,7 @@
     }
 
     module.exports = {
-        DebugCommand  : DebugCommand,
+        ShowCommand   : ShowCommand,
         SetupCommand  : SetupCommand,
         DeployCommand : DeployCommand
     }

@@ -310,13 +310,13 @@ class Node extends s.Platform
 
 var resolved = false;
 var commands = [{
-    clazz       : cmd.DebugCommand,
-    command     : 'debug',
-    description : 'log the given environment'
+    clazz       : cmd.ShowCommand,
+    command     : 'show',
+    description : 'display the environment'
 }, {
     clazz       : cmd.SetupCommand,
     command     : 'setup',
-    description : 'setup the given environment',
+    description : 'setup the environment on MarkLogic',
     options     : [
 	// { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
     ]
