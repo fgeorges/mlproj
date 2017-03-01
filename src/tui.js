@@ -43,9 +43,12 @@ class Node extends s.Platform
 	return path.resolve(base, href);
     }
 
+    text(path) {
+	return fs.readFileSync(path, 'utf8');
+    }
+
     read(path) {
-	var content = fs.readFileSync(path, 'utf8');
-	return JSON.parse(content);
+	return JSON.parse(this.text(path));
     }
 
     green(s) {
@@ -163,7 +166,7 @@ class Node extends s.Platform
 	});
     }
 
-    put(endpoint, data, error, success) {
+    put(endpoint, data, error, success, type) {
 	var url   = this.url(endpoint);
 	var creds = this.credentials();
 	var options = {
@@ -175,7 +178,13 @@ class Node extends s.Platform
             }
 	};
 	if ( data ) {
-            options.json = data;
+	    if ( type ) {
+		options.headers = { "Content-Type": type };
+		options.data    = data;
+	    }
+	    else {
+		options.json = data;
+	    }
 	}
 	else {
 	    options.headers = {
@@ -186,14 +195,97 @@ class Node extends s.Platform
             if ( err ) {
 		error(err);
             }
-            else if ( http.statusCode !== 204 ) {
+            else if ( http.statusCode !== 201 && http.statusCode !== 204 ) {
 		this.verboseHttp(http, body);
-		error('Entity not updated: ' + body.errorResponse.message);
+		error('Entity not updated: ' + ( body.errorResponse
+						 ? body.errorResponse.message
+						 : body ));
             }
             else {
 		success();
             }
 	});
+    }
+
+    allFiles(dir, filter, ignored)
+    {
+	// extract the basename of the dir path in `p`
+	const basename = p => {
+	    var idx = p.lastIndexOf('/');
+	    // no slash
+	    if ( idx < 0 ) {
+		return p;
+	    }
+	    // slash at the end
+	    else if ( idx + 1 === p.length ) {
+		var pen = p.lastIndexOf('/', idx - 1);
+		// no other slash
+		if ( pen < 0 ) {
+		    return p.slice(0, idx);
+		}
+		// take name between both slashes
+		else {
+		    return p.slice(pen + 1, idx);
+		}
+	    }
+	    // slash somewhere else
+	    else {
+		return p.slice(idx + 1);
+	    }
+	};
+
+	// recursive implementation
+	const impl = (dir, list) => {
+	    fs.readdirSync(dir).forEach(file => {
+		const p = path.join(dir, file);
+		const s = fs.statSync(p);
+		// TODO: Do something with `s.isSymbolicLink()`?
+		if ( ! (s.isBlockDevice() || s.isCharacterDevice() || s.isFIFO() || s.isSocket()) ) {
+		    const f = { name: file, path: p };
+		    if ( s.isDirectory() ) {
+			f.files = [];
+		    }
+		    if ( ! filter || filter(f, dir) ) {
+			list.push(f);
+			if ( s.isDirectory() ) {
+			    impl(p, f.files);
+			}
+		    }
+		    else if ( ignored ) {
+			ignored(f, dir);
+		    }
+		}
+	    });
+	};
+
+	// only for a directory
+	if ( ! fs.statSync(dir).isDirectory() ) {
+	    throw new Error('Can only list files of a directory: ' + dir);
+	}
+
+	// set the top-level infos, and call recursive implementation
+	var files = {
+	    files: [],
+	    path : dir,
+	    name : basename(dir)
+	};
+	impl(dir, files.files);
+
+	// flaten the list
+	const flaten = (dir, list) => {
+	    dir.files.forEach(f => {
+		if ( f.files ) {
+		    flaten(f, res);
+		}
+		else {
+		    res.push(f.path);
+		}
+	    });
+	};
+	var res = [];
+	flaten(files, res);
+
+	return res;
     }
 }
 
@@ -213,6 +305,10 @@ var commands = [{
     options     : [
 	// { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
     ]
+}, {
+    clazz       : cmd.DeployCommand,
+    command     : 'deploy',
+    description : 'deploy modules to the modules database'
 }];
 
 program

@@ -28,7 +28,7 @@
             if ( verbose ) {
                 platform.warn('[' + platform.bold('verbose') + '] '
 			      + this.endpoint.verb + ' to ' + this.endpoint.url);
-		if ( this.data ) {
+		if ( this.data && ! this.type) {
                     platform.warn('[' + platform.bold('verbose') + '] Body:');
                     platform.warn(this.data);
 		}
@@ -74,7 +74,7 @@
 
         send(platform, endpoint, data, error, success) {
             platform.warn(platform.yellow('→') + ' ' + this.msg);
-	    platform.post(endpoint, data, error, success);
+	    platform.post(endpoint, data, error, success, this.type);
         }
     }
 
@@ -89,7 +89,7 @@
 
         send(platform, endpoint, data, error, success) {
             platform.warn(platform.yellow('→') + ' ' + this.msg);
-	    platform.put(endpoint, data, error, success);
+	    platform.put(endpoint, data, error, success, this.type);
         }
     }
 
@@ -253,6 +253,51 @@
         }
     }
 
+    /*~~~~~ Client API actions. */
+
+    /*~
+     * A Client API GET action.
+     */
+    class ClientGet extends Get
+    {
+        constructor(url, msg) {
+	    super(url, msg, 'v1', 8000);
+        }
+    }
+
+    /*~
+     * A Client API POST action.
+     */
+    class ClientPost extends Post
+    {
+        constructor(url, data, msg) {
+	    super(url, data, msg, 'v1', 8000);
+        }
+    }
+
+    /*~
+     * A Client API PUT action.
+     */
+    class ClientPut extends Put
+    {
+        constructor(url, data, msg) {
+	    super(url, data, msg, 'v1', 8000);
+        }
+    }
+
+    /*~
+     * Client API: insert a document.
+     */
+    class DocInsert extends ClientPut
+    {
+        constructor(db, uri, doc) {
+	    super('/documents?uri=' + uri + '&database=' + db.name,
+		  doc,
+		  'Insert document: \t' + uri);
+	    this.type = 'text/plain';
+        }
+    }
+
     /*~
      * A list of actions.
      */
@@ -326,6 +371,7 @@
         ServerProps    : ServerProps,
         ServerCreate   : ServerCreate,
         ServerUpdate   : ServerUpdate,
+        DocInsert      : DocInsert,
         ActionList     : ActionList
     }
 }

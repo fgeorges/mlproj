@@ -24,6 +24,9 @@
 	resolve(href, base) {
 	    throw new Error('Platform.resolve is abstract');
 	}
+	text(path) {
+	    throw new Error('Platform.text is abstract');
+	}
 	read(path) {
 	    throw new Error('Platform.read is abstract');
 	}
@@ -47,6 +50,10 @@
 	}
 	put(url, data, error, success) {
 	    throw new Error('Platform.put is abstract');
+	}
+	// return an array of strings, with the path of all files in the dir
+	allFiles(dir) {
+	    throw new Error('Platform.allFiles is abstract');
 	}
     }
 

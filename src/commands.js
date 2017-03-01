@@ -110,9 +110,59 @@
         }
     }
 
+    /*~
+     * Deploy sources in a modules database.
+     */
+    class DeployCommand extends Command
+    {
+	prepare(env, path, base, callback) {
+	    super.prepare(env, path, base, callback);
+	    var db    = this.modulesDb();
+	    var dir   = this.space.param('@srcdir');
+	    var files = this.platform.allFiles(dir, f => {
+		return f.name[f.name.length - 1] !== '~';
+	    }, f => {
+		// DEBUG: ...
+		this.platform.log('Ignored file: ' + f.path);
+	    });
+
+            this.actions = new act.ActionList(this.platform, this.verbose());
+	    files.forEach(f => {
+		var uri = f.slice(dir.length - 1);
+		var doc = this.platform.text(f);
+		this.actions.add(new act.DocInsert(db, uri, doc));
+	    });
+	    callback();
+	}
+
+	modulesDb() {
+	    var srvs = this.space.servers();
+	    if ( ! srvs.length ) {
+		throw new Error('No server in the environment');
+	    }
+	    else if ( srvs.length > 1 ) {
+		throw new Error('More than 1 server in the environment');
+	    }
+	    var srv = srvs[0];
+	    if ( ! srv.modules ) {
+		throw new Error('Server has no modules database: ' + srv.name);
+	    }
+	    return srv.modules;
+	}
+
+	execute(callback) {
+            this.actions.execute(callback);
+	}
+
+	summary() {
+	    // nothing
+	}
+    }
+
     module.exports = {
-        DebugCommand : DebugCommand,
-        SetupCommand : SetupCommand
+        DebugCommand  : DebugCommand,
+        SetupCommand  : SetupCommand,
+        DeployCommand : DeployCommand
     }
 }
 )();
