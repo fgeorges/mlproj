@@ -476,6 +476,10 @@ top of the list.
 
 ## TODO
 
+- new command `info` (replace `debug`) to display componenets of an environment
+- new command `new` to create a new project in the CWD
+- adapt the Console to mlproj
+- edit environment files from the Console
 - word lexicons
 - drive properties by configuration (on a property-by-property basis)
     - start with simple properties, like URI and collection lexicons
