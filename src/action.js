@@ -286,7 +286,7 @@
                     // events.push('Database created: ' + db.name);
                     this.execute(callback);
                 },
-		this.platform);
+		this.platform.dry);
             }
 	    else {
 		callback();
