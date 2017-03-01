@@ -109,6 +109,16 @@
 	    return v;
 	}
 
+	params()
+	{
+	    var names = Object.keys(this._params).filter(n => n.slice(0, 1) !== '@');
+	    for ( var i = this._imports.length - 1; i >= 0; --i ) {
+		var imported = this._imports[i].space.params();
+		names = names.concat(imported.filter(n => ! names.includes(n)));
+	    }
+	    return names;
+	}
+
 	databases()
 	{
 	    return this._allDbs;
