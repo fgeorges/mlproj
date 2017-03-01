@@ -119,6 +119,22 @@
 	    return this._allSrvs;
 	}
 
+	modulesDb()
+	{
+	    var srvs = this.servers();
+	    if ( ! srvs.length ) {
+		throw new Error('No server in the environment');
+	    }
+	    else if ( srvs.length > 1 ) {
+		throw new Error('More than 1 server in the environment');
+	    }
+	    var srv = srvs[0];
+	    if ( ! srv.modules ) {
+		throw new Error('Server has no modules database: ' + srv.name);
+	    }
+	    return srv.modules;
+	}
+
 	// cache databases and servers (resolving import priority)
 	cache(platform)
 	{

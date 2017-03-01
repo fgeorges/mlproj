@@ -117,7 +117,7 @@
     {
 	prepare(env, path, base, callback) {
 	    super.prepare(env, path, base, callback);
-	    var db    = this.modulesDb();
+	    var db    = this.space.modulesDb();
 	    var dir   = this.space.param('@srcdir');
 	    var files = this.platform.allFiles(dir, f => {
 		return f.name[f.name.length - 1] !== '~';
@@ -133,21 +133,6 @@
 		this.actions.add(new act.DocInsert(db, uri, doc));
 	    });
 	    callback();
-	}
-
-	modulesDb() {
-	    var srvs = this.space.servers();
-	    if ( ! srvs.length ) {
-		throw new Error('No server in the environment');
-	    }
-	    else if ( srvs.length > 1 ) {
-		throw new Error('More than 1 server in the environment');
-	    }
-	    var srv = srvs[0];
-	    if ( ! srv.modules ) {
-		throw new Error('Server has no modules database: ' + srv.name);
-	    }
-	    return srv.modules;
 	}
 
 	execute(callback) {
