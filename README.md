@@ -476,7 +476,6 @@ top of the list.
 
 ## TODO
 
-- new command `info` (replace `debug`) to display componenets of an environment
 - new command `new` to create a new project in the CWD
 - new command `help` to display help about other commands
 - adapt the Console to mlproj
