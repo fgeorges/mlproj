@@ -33,8 +33,9 @@ type:
 
   Commands:
 
-    debug   log the given environment
-    setup   setup the given environment
+    debug    log the given environment
+    setup    setup the given environment
+    deploy   deploy modules to the modules database
 
   Options:
 
@@ -46,9 +47,10 @@ type:
     -v, --verbose         verbose mode
 ```
 
-As for now, the only command is `setup`.  It creates databases, forests and
-servers as described in environment files (or adapt them if they already exist
-and  changes have been made to the environment files).
+As for now, the only commands are `setup` and `deploy`.  The former creates
+databases, forests and servers as described in environment files (or adapt them
+if they already exist and changes have been made to the environment files).  The
+latter deploy modules from the source directory to the modules database.
 
 ## Environments
 
