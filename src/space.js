@@ -9,12 +9,13 @@
      */
     class Project
     {
-	constructor(platform, path, srcdir, code) {
+	constructor(platform, path) {
 	    this.platform = platform;
 	    this.path     = path;
-	    this.srcdir   = srcdir;
-	    this.code     = code;
-	    this.space    = Space.load(platform, path, srcdir, code);
+	}
+
+	load(srcdir, code) {
+	    this.space = Space.load(this.platform, this.path, srcdir, code);
 	}
 
 	execute(command) {
@@ -30,11 +31,17 @@
     {
 	constructor(platform, env, base) {
 	    var path   = platform.resolve('xproject/ml/' + env + '.json', base);
-	    var srcdir = platform.resolve('src/', base) + '/';
+	    super(platform, path);
+	    this.environ = env;
+	    this.base    = base;
+	}
+
+	load(callback) {
+	    var srcdir = this.platform.resolve('src/', this.base) + '/';
 	    // TODO: Parse `xproject/project.xml`...
 	    var code /* = ... */ ;
-	    super(platform, path, srcdir, code);
-	    this.environ = env;
+	    super.load(srcdir, code);
+	    callback();
 	}
     }
 
@@ -45,6 +52,11 @@
     {
 	constructor(platform, path, base) {
 	    super(platform, platform.resolve(path, base));
+	}
+
+	load(callback) {
+	    super.load();
+	    callback();
 	}
     }
 
@@ -57,20 +69,20 @@
 	    this.dry     = dry;
 	    this.verbose = verbose;
 	}
-	project(env, path) {
+	project(env, path, callback) {
 	    var base = this.cwd();
 	    if ( env && path ) {
 		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
 	    }
-	    else if ( ! env && ! path ) {
+	    if ( ! env && ! path ) {
 		throw new Error('None of `environ` and `path` set');
 	    }
-	    else if ( env ) {
-		return new XProject(this, env, base);
-	    }
-	    else {
-		return new DummyProject(this, path, base);
-	    }
+	    var prj = env
+		? new XProject(this, env, base)
+		: new DummyProject(this, path, base);
+	    prj.load(() => {
+		callback(prj);
+	    });
 	}
 	cwd() {
 	    throw new Error('Platform.cwd is abstract');

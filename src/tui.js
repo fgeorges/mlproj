@@ -52,9 +52,10 @@ commands.forEach(cmd => {
 	// the project
 	var env      = program.environ;
 	var path     = program.file;
-	var project  = platform.project(env, path);
-	// execute the command
-	project.execute(cmd.clazz);
+	platform.project(env, path, project => {
+	    // execute the command
+	    project.execute(cmd.clazz);
+	});
     });
 });
 
