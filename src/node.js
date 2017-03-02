@@ -4,6 +4,7 @@
 
     const fs      = require('fs');
     const path    = require('path');
+    const chalk   = require('chalk');
     const request = require('request');
     const s       = require('./space');
 
@@ -65,19 +66,19 @@
 	}
 
 	green(s) {
-	    return '\u001b[32m' + s + '\u001b[39m'
+	    return chalk.green(s);
 	}
 
 	yellow(s) {
-	    return '\u001b[33m' + s + '\u001b[39m'
+	    return chalk.yellow(s);
 	}
 
 	red(s) {
-	    return '\u001b[31m' + s + '\u001b[39m'
+	    return chalk.red(s);
 	}
 
 	bold(s) {
-            return '\u001b[1m' + s + '\u001b[22m'
+	    return chalk.bold(s);
 	}
 
 	url(endpoint) {
