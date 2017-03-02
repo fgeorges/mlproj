@@ -2,6 +2,7 @@
   "name": "mlproj",
   "version": "0.10.0",
   "description": "Project management for MarkLogic",
+  "repository": "https://github.com/fgeorges/mlproj",
   "main": "src/tui.js",
   "bin": {
     "mlproj": "src/tui.js"
