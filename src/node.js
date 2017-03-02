@@ -6,6 +6,7 @@
     const path    = require('path');
     const chalk   = require('chalk');
     const request = require('request');
+    const xml     = require('xml2js');
     const s       = require('./space');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,6 +66,17 @@
 
 	json(path) {
 	    return JSON.parse(this.read(path));
+	}
+
+	xml(path, callback) {
+	    var parser  = new xml.Parser();
+	    var content = this.read(path);
+	    parser.parseString(content, (err, result) => {
+		if ( err ) {
+		    throw new Error('Error parsing XML: ' + err + ', at ' + path);
+		}
+		callback(result);
+	    });
 	}
 
 	green(s) {

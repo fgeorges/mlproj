@@ -16,6 +16,7 @@
 
 	load(srcdir, code) {
 	    this.space = Space.load(this.platform, this.path, srcdir, code);
+	    this.platform.space = this.space;
 	}
 
 	execute(command) {
@@ -30,18 +31,27 @@
     class XProject extends Project
     {
 	constructor(platform, env, base) {
-	    var path   = platform.resolve('xproject/ml/' + env + '.json', base);
+	    var path = platform.resolve('xproject/ml/' + env + '.json', base);
 	    super(platform, path);
 	    this.environ = env;
 	    this.base    = base;
 	}
 
 	load(callback) {
-	    var srcdir = this.platform.resolve('src/', this.base) + '/';
-	    // TODO: Parse `xproject/project.xml`...
-	    var code /* = ... */ ;
-	    super.load(srcdir, code);
-	    callback();
+	    var path = this.platform.resolve('xproject/project.xml', this.base);
+	    this.platform.xml(path, (xml) => {
+		var p = xml.project;
+		if ( ! p || ! p['$'] || ! p['$'].abbrev ) {
+		    throw new Error('Bad project.xml, no abbrev: ' + path);
+		}
+		this.name    = p['$'].name;
+		this.abbrev  = p['$'].abbrev;
+		this.version = p['$'].version;
+		this.title   = p.title && p.title[0];
+		this.srcdir  = this.platform.resolve('src/', this.base) + '/';
+		super.load(this.srcdir, this.abbrev);
+		callback();
+	    });
 	}
     }
 
@@ -107,6 +117,9 @@
 	}
 	json(path) {
 	    throw new Error('Platform.json is abstract');
+	}
+	xml(path, callback) {
+	    throw new Error('Platform.xml is abstract');
 	}
 	green(s) {
 	    throw new Error('Platform.green is abstract');
