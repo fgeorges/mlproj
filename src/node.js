@@ -59,12 +59,12 @@
 	    return path.resolve(base, href);
 	}
 
-	text(path) {
+	read(path) {
 	    return fs.readFileSync(path, 'utf8');
 	}
 
-	read(path) {
-	    return JSON.parse(this.text(path));
+	json(path) {
+	    return JSON.parse(this.read(path));
 	}
 
 	green(s) {

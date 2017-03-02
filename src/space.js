@@ -102,11 +102,11 @@
 	resolve(href, base) {
 	    throw new Error('Platform.resolve is abstract');
 	}
-	text(path) {
-	    throw new Error('Platform.text is abstract');
-	}
 	read(path) {
 	    throw new Error('Platform.read is abstract');
+	}
+	json(path) {
+	    throw new Error('Platform.json is abstract');
 	}
 	green(s) {
 	    throw new Error('Platform.green is abstract');
@@ -655,7 +655,7 @@
 	    // recursive implementation
 	    var impl = (href, base) => {
 		var path    = base ? platform.resolve(href, base) : href;
-		var json    = platform.read(path);
+		var json    = platform.json(path);
 		var proj    = validate(json);
 		var idx     = path.lastIndexOf('/');
 		if ( idx < 0 ) {

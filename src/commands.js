@@ -139,7 +139,7 @@
             this.actions = new act.ActionList(pf);
 	    files.forEach(f => {
 		var uri = f.slice(dir.length - 1);
-		var doc = pf.text(f);
+		var doc = pf.read(f);
 		this.actions.add(new act.DocInsert(db, uri, doc));
 	    });
             this.actions.execute(() => {
