@@ -9,11 +9,12 @@
      */
     class Project
     {
-	constructor(platform, path, base) {
+	constructor(platform, path, srcdir, code) {
 	    this.platform = platform;
 	    this.path     = path;
-	    this.base     = base;
-	    this.space    = Space.load(platform, path, base);
+	    this.srcdir   = srcdir;
+	    this.code     = code;
+	    this.space    = Space.load(platform, path, srcdir, code);
 	}
 
 	execute(command) {
@@ -28,10 +29,12 @@
     class XProject extends Project
     {
 	constructor(platform, env, base) {
-	    var path = 'xproject/ml/' + env + '.json';
-	    super(platform, path, base);
-	    this.environ = env;
+	    var path   = platform.resolve('xproject/ml/' + env + '.json', base);
+	    var srcdir = platform.resolve('src/', base) + '/';
 	    // TODO: Parse `xproject/project.xml`...
+	    var code /* = ... */ ;
+	    super(platform, path, srcdir, code);
+	    this.environ = env;
 	}
     }
 
@@ -41,7 +44,7 @@
     class DummyProject extends Project
     {
 	constructor(platform, path, base) {
-	    super(platform, path, base);
+	    super(platform, platform.resolve(path, base));
 	}
     }
 
@@ -618,7 +621,7 @@
 	    return this.resolveVars(resolved, forbiden);
 	}
 
-	static load(platform, href, base)
+	static load(platform, href, srcdir, code)
 	{
 	    // validate a few rules for one JSON file, return the mlproj sub-object
 	    var validate = (json) => {
@@ -639,7 +642,7 @@
 	    }
 	    // recursive implementation
 	    var impl = (href, base) => {
-		var path    = platform.resolve(href, base);
+		var path    = base ? platform.resolve(href, base) : href;
 		var json    = platform.read(path);
 		var proj    = validate(json);
 		var idx     = path.lastIndexOf('/');
@@ -662,10 +665,13 @@
 		return space;
 	    };
 	    // start with root
-	    var root = impl(href, base);
-	    // if not set explicitly, set it to `./src/`
-	    if ( root.param('@srcdir') === undefined ) {
-		root._params['@srcdir'] = platform.resolve('src/', base) + '/';
+	    var root = impl(href);
+	    // if not set explicitly, inherit them from the project...
+	    if ( root.param('@srcdir') === undefined && srcdir ) {
+		root._params['@srcdir'] = srcdir;
+	    }
+	    if ( root.param('@code') === undefined && code ) {
+		root._params['@code'] = code;
 	    }
 	    // resolve the param references
 	    root.resolve(root);
