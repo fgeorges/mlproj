@@ -45,21 +45,16 @@ commands.forEach(cmd => {
     }
     prg.action(function() {
         resolved = true;
+	// the platform
 	var dry      = program.dry     ? true : false;
 	var verbose  = program.verbose ? true : false;
 	var platform = new node.Node(dry, verbose);
-	var command  = new cmd.clazz(platform);
-	if ( program.verbose ) {
-	    command.verbose(true);
-	}
-	var env  = program.environ;
-	var path = program.file;
-	var base = process.cwd();
-        command.prepare(env, path, base, () => {
-	    command.execute(() => {
-		command.summary();
-	    });
-	});
+	// the project
+	var env      = program.environ;
+	var path     = program.file;
+	var project  = platform.project(env, path);
+	// execute the command
+	project.execute(cmd.clazz);
     });
 });
 

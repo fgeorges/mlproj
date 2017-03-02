@@ -5,10 +5,73 @@
     const cmp = require('./components');
 
     /*~
+     * A base, abstract project.
+     */
+    class Project
+    {
+	constructor(platform, path, base) {
+	    this.platform = platform;
+	    this.path     = path;
+	    this.base     = base;
+	    this.space    = Space.load(platform, path, base);
+	}
+
+	execute(command) {
+	    var cmd = new command(this);
+	    cmd.execute();
+	}
+    }
+
+    /*~
+     * A project based on XProject, with the root dir being `base`.
+     */
+    class XProject extends Project
+    {
+	constructor(platform, env, base) {
+	    var path = 'xproject/ml/' + env + '.json';
+	    super(platform, path, base);
+	    this.environ = env;
+	    // TODO: Parse `xproject/project.xml`...
+	}
+    }
+
+    /*~
+     * Not a real project, just a placeholder for the environment.
+     */
+    class DummyProject extends Project
+    {
+	constructor(platform, path, base) {
+	    super(platform, path, base);
+	}
+    }
+
+    /*~
      * Utility interface to abstract platform-dependent functionalities.
      */
     class Platform
     {
+	constructor(dry, verbose) {
+	    this.dry     = dry;
+	    this.verbose = verbose;
+	}
+	project(env, path) {
+	    var base = this.cwd();
+	    if ( env && path ) {
+		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
+	    }
+	    else if ( ! env && ! path ) {
+		throw new Error('None of `environ` and `path` set');
+	    }
+	    else if ( env ) {
+		return new XProject(this, env, base);
+	    }
+	    else {
+		return new DummyProject(this, path, base);
+	    }
+	}
+	cwd() {
+	    throw new Error('Platform.cwd is abstract');
+	}
 	debug(msg) {
 	    throw new Error('Platform.debug is abstract');
 	}

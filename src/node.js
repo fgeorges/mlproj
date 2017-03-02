@@ -15,9 +15,11 @@
     class Node extends s.Platform
     {
 	constructor(dry, verbose) {
-	    super();
-	    this.dry     = dry;
-	    this.verbose = verbose;
+	    super(dry, verbose);
+	}
+
+	cwd() {
+	    return process.cwd();
 	}
 
 	debug(msg) {

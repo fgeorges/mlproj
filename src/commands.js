@@ -10,41 +10,11 @@
      */
     class Command
     {
-	constructor(platform) {
-	    this.platform = platform;
-            this._verbose = false;
+	constructor(project) {
+	    this.project = project;
 	}
-
-
-	verbose(v) {
-	    if ( v === undefined ) {
-		return this._verbose;
-	    }
-	    else {
-		this._verbose = v;
-	    }
-	}
-
-	prepare(env, path, base, callback) {
-	    if ( env && path ) {
-		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
-	    }
-	    if ( ! env && ! path ) {
-		throw new Error('None of `environ` and `path` set');
-	    }
-	    var actual = path ? path : 'xproject/ml/' + env + '.json';
-            this.environ = env;
-            this.path    = path;
-	    this.space   = s.Space.load(this.platform, actual, base);
-	    this.platform.space = this.space;
-	}
-
-	execute(callback) {
+	execute() {
 	    throw new Error('Command.execute is abstract');
-	}
-
-	summary() {
-	    throw new Error('Command.summary is abstract');
 	}
     }
 
@@ -53,13 +23,9 @@
      */
     class ShowCommand extends Command
     {
-	prepare(env, path, base, callback) {
-	    super.prepare(env, path, base, callback);
-	    callback();
-	}
-
-	execute(callback) {
-	    var pf = this.platform;
+	execute() {
+	    var pf    = this.project.platform;
+	    var space = this.project.space;
 	    var components = comps => {
 		comps.forEach(c => {
 		    c.show(pf);
@@ -68,12 +34,12 @@
 	    };
 	    pf.log('');
 	    this.showProject(pf);
-	    components(this.space.databases());
-	    components(this.space.servers());
-	    callback();
+	    components(space.databases());
+	    components(space.servers());
 	}
 
 	showProject(pf) {
+	    var space = this.project.space;
 	    const imports = (space, level) => {
 		space._imports.forEach(i => {
 		    pf.line(level, '-> ' + i.href);
@@ -82,7 +48,7 @@
 	    };
 	    var mods;
 	    try {
-		mods = this.space.modulesDb().name;
+		mods = space.modulesDb().name;
 	    }
 	    catch (e) {
 		if ( /no server/i.test(e.message) ) {
@@ -98,26 +64,23 @@
 		    throw e;
 		}
 	    }
-	    pf.log('Project: ' + pf.bold(this.space.param('@code')));
+	    pf.log('Project: ' + pf.bold(space.param('@code')));
 	    [ 'title', 'desc', 'host', 'user', 'password' ].forEach(p => {
-		var v = this.space.param('@' + p);
+		var v = space.param('@' + p);
 		v && pf.line(1, p, v);
 	    });
-	    pf.line(1, 'sources dir', this.space.param('@srcdir'));
+	    pf.line(1, 'sources dir', space.param('@srcdir'));
 	    mods && pf.line(1, 'modules DB', mods);
-	    var params = this.space.params();
+	    var params = space.params();
 	    if ( params.length ) {
 		pf.line(1, 'parameters:');
-		params.forEach(p => pf.line(2, p, this.space.param(p)));
+		params.forEach(p => pf.line(2, p, space.param(p)));
 	    }
-	    if ( this.space._imports.length ) {
+	    if ( space._imports.length ) {
 		pf.line(1, 'import graph:');
-		imports(this.space, 2);
+		imports(space, 2);
 	    }
 	    pf.log('');
-	}
-
-	summary() {
 	}
     }
 
@@ -126,37 +89,34 @@
      */
     class SetupCommand extends Command
     {
-	prepare(env, path, base, callback)
+	execute()
 	{
-	    super.prepare(env, path, base, callback);
-	    this.platform.log('--- ' + this.platform.bold('Prepare') + ' ---');
+	    var pf    = this.project.platform;
+	    var space = this.project.space;
+	    pf.log('--- ' + pf.bold('Prepare') + ' ---');
 	    // the action list
-            this.actions = new act.ActionList(this.platform, this.verbose());
+            this.actions = new act.ActionList(pf);
 	    var impl = comps => {
 		if ( comps.length ) {
 		    comps[0].setup(this.actions, () => impl(comps.slice(1)));
 		}
 		else {
-		    callback();
+		    doit();
 		}
 	    };
-	    var dbs  = this.space.databases();
-	    var srvs = this.space.servers();
+	    var doit = () => {
+		pf.log('\n--- ' + pf.bold('Progress') + ' ---'
+		       + (pf.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
+		this.actions.execute(summary);
+	    };
+            var summary = () => {
+		pf.log('\n--- ' + pf.bold('Summary') + ' ---'
+		       + (pf.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
+		this.actions.summary();
+            };
+	    var dbs  = space.databases();
+	    var srvs = space.servers();
 	    impl(dbs.concat(srvs));
-        }
-
-        execute(callback) {
-	    var _ = this.platform;
-	    _.log('\n--- ' + _.bold('Progress') + ' ---'
-		  + (_.dry ? ' (' + _.red('dry run, not for real') + ')' : ''));
-            this.actions.execute(callback);
-        }
-
-        summary() {
-	    var _ = this.platform;
-	    _.log('\n--- ' + _.bold('Summary') + ' ---'
-		  + (_.dry ? ' (' + _.red('dry run, not for real') + ')' : ''));
-            this.actions.summary();
         }
     }
 
@@ -165,33 +125,27 @@
      */
     class DeployCommand extends Command
     {
-	prepare(env, path, base, callback) {
-	    super.prepare(env, path, base, callback);
-	    var db    = this.space.modulesDb();
-	    var dir   = this.space.param('@srcdir');
-	    var files = this.platform.allFiles(dir, f => {
+	execute() {
+	    var pf    = this.project.platform;
+	    var space = this.project.space;
+	    var db    = space.modulesDb();
+	    var dir   = space.param('@srcdir');
+	    var files = pf.allFiles(dir, f => {
 		return f.name[f.name.length - 1] !== '~';
 	    }, f => {
 		// DEBUG: ...
-		this.platform.log('Ignored file: ' + f.path);
+		pf.log('Ignored file: ' + f.path);
 	    });
-
-            this.actions = new act.ActionList(this.platform, this.verbose());
+            this.actions = new act.ActionList(pf);
 	    files.forEach(f => {
 		var uri = f.slice(dir.length - 1);
-		var doc = this.platform.text(f);
+		var doc = pf.text(f);
 		this.actions.add(new act.DocInsert(db, uri, doc));
 	    });
-	    callback();
-	}
-
-	execute(callback) {
-            this.actions.execute(callback);
-	}
-
-	summary() {
-	    // TODO: Display errors if any...
-	    // And actions not done...
+            this.actions.execute(() => {
+		// TODO: Display errors if any...
+		// And actions not done...
+	    });
 	}
     }
 
