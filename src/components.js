@@ -390,11 +390,13 @@
 		    value: this.modules ? this.modules.name : null
 		});
 	    }
-            if ( this.rewriter !== actual['url-rewriter'] ) {
-		diffs.push({ name: 'url-rewriter', value: this.rewriter });
+            if ( ( this.rewriter || actual['url-rewriter'] )
+		 && this.rewriter !== actual['url-rewriter'] ) {
+		diffs.push({ name: 'url-rewriter', value: this.rewriter ? this.rewriter : '' });
 	    }
-            if ( this.handler !== actual['error-handler'] ) {
-		diffs.push({ name: 'error-handler', value: this.handler });
+            if ( ( this.handler || actual['error-handler'] )
+		 && this.handler !== actual['error-handler'] ) {
+		diffs.push({ name: 'error-handler', value: this.handler ? this.handler : '' });
 	    }
 	    diffs.forEach(diff => {
 		logAdd(actions, 0, 'update', diff.name);
