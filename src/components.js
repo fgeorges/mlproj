@@ -103,7 +103,7 @@
 
         show(pf)
 	{
-	    pf.log('Database: ' + pf.bold(this.name));
+	    pf.log(pf.bold('Database') + ': ' + pf.bold(pf.yellow(this.name)));
 	    this.id       && pf.line(1, 'id',          this.id);
 	    this.schema   && pf.line(1, 'schema DB',   this.schema.name);
 	    this.security && pf.line(1, 'security DB', this.security.name);
@@ -299,7 +299,7 @@
 
         show(pf)
 	{
-	    pf.log('Server: ' + pf.bold(this.name));
+	    pf.log(pf.bold('Server') + ': ' + pf.bold(pf.yellow(this.name)));
 	    pf.line(1, 'group', this.group);
 	    this.id       && pf.line(1, 'id',            this.id);
 	    this.type     && pf.line(1, 'type',          this.type);

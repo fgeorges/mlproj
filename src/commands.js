@@ -34,11 +34,21 @@
 	    };
 	    pf.log('');
 	    this.showProject(pf);
+	    this.showEnviron(pf);
 	    components(space.databases());
 	    components(space.servers());
 	}
 
 	showProject(pf) {
+	    var p = this.project;
+	    pf.log(pf.bold('Project') + ': ' + pf.bold(pf.yellow(p.space.param('@code'))));
+	    p.title   && pf.line(1, 'title',   p.title);
+	    p.name    && pf.line(1, 'name',    p.name);
+	    p.version && pf.line(1, 'version', p.version);
+	    pf.log('');
+	}
+
+	showEnviron(pf) {
 	    var space = this.project.space;
 	    const imports = (space, level) => {
 		space._imports.forEach(i => {
@@ -64,11 +74,13 @@
 		    throw e;
 		}
 	    }
-	    pf.log('Project: ' + pf.bold(space.param('@code')));
-	    [ 'title', 'desc', 'host', 'user', 'password' ].forEach(p => {
+	    pf.log(pf.bold('Environment') + ': '
+		   + pf.bold(pf.yellow(this.project.environ || this.project.path)));
+	    [ 'title', 'desc', 'host', 'user' ].forEach(p => {
 		var v = space.param('@' + p);
 		v && pf.line(1, p, v);
 	    });
+	    space.param('@password') && pf.line(1, 'password', '*****');
 	    pf.line(1, 'sources dir', space.param('@srcdir'));
 	    mods && pf.line(1, 'modules DB', mods);
 	    var params = space.params();
