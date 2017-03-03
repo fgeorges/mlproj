@@ -2,6 +2,7 @@
 
 "use strict";
 
+const fs      = require('fs');
 const program = require('commander');
 const read    = require('readline-sync');
 const cmd     = require('./commands');
@@ -79,21 +80,32 @@ program
 	if ( program.file ) {
 	    throw new Error('Environment file not supported for `new`');
 	}
-	// TODO: Check the directory is empty...!
-	// ...
+	var verbose  = program.verbose ? true : false;
+	var platform = new node.Node(false, verbose);
+	var dir      = platform.cwd();
+
+	// Check the directory is empty...!
+	if ( fs.readdirSync(dir).length ) {
+	    throw new Error('Directory is not empty: ' + dir);
+	}
+
 	// gather info by asking the user...
+	platform.log('--- ' + platform.bold('Questions') + ' ---');
 	var abbrev   = read.question('Project code    : ');
 	var title    = read.question('Title           : ');
 	var dfltName = 'http://mlproj.org/example/' + abbrev;
 	var name     = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
 	var version  = read.question('Version  (0.1.0): ', { defaultInput: '0.1.0' });
 	var port     = read.question('Port     (8080) : ', { defaultInput: '8080' });
+
 	// execute the command
-	var verbose  = program.verbose ? true : false;
-	var platform = new node.Node(false, verbose);
-	var dir      = platform.cwd();
 	var command  = new cmd.NewCommand(platform, dir, abbrev, title, name, version, port);
-	command.execute();
+	var xpdir    = command.execute();
+
+	// summary
+	platform.log('\n--- ' + platform.bold('Summary') + ' ---');
+	platform.log(platform.green('✓') + ' Project created: \t' + abbrev);
+	platform.log(platform.green('→') + ' Check/edit files in: \t' + xpdir);
     });
 
 program.parse(process.argv);

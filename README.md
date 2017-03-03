@@ -477,7 +477,6 @@ top of the list.
 
 ## TODO
 
-- new command `new` to create a new project in the CWD
 - new command `help` to display help about other commands
 - adapt the Console to mlproj
 - edit environment files from the Console
