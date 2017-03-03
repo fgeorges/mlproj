@@ -5,72 +5,6 @@
     const cmp = require('./components');
 
     /*~
-     * A base, abstract project.
-     */
-    class Project
-    {
-	constructor(platform, path) {
-	    this.platform = platform;
-	    this.path     = path;
-	}
-
-	load(srcdir, code) {
-	    this.space = Space.load(this.platform, this.path, srcdir, code);
-	    this.platform.space = this.space;
-	}
-
-	execute(command) {
-	    var cmd = new command(this);
-	    cmd.execute();
-	}
-    }
-
-    /*~
-     * A project based on XProject, with the root dir being `base`.
-     */
-    class XProject extends Project
-    {
-	constructor(platform, env, base) {
-	    var path = platform.resolve('xproject/ml/' + env + '.json', base);
-	    super(platform, path);
-	    this.environ = env;
-	    this.base    = base;
-	}
-
-	load(callback) {
-	    var path = this.platform.resolve('xproject/project.xml', this.base);
-	    this.platform.xml(path, (xml) => {
-		var p = xml.project;
-		if ( ! p || ! p['$'] || ! p['$'].abbrev ) {
-		    throw new Error('Bad project.xml, no abbrev: ' + path);
-		}
-		this.name    = p['$'].name;
-		this.abbrev  = p['$'].abbrev;
-		this.version = p['$'].version;
-		this.title   = p.title && p.title[0];
-		this.srcdir  = this.platform.resolve('src/', this.base) + '/';
-		super.load(this.srcdir, this.abbrev);
-		callback();
-	    });
-	}
-    }
-
-    /*~
-     * Not a real project, just a placeholder for the environment.
-     */
-    class DummyProject extends Project
-    {
-	constructor(platform, path, base) {
-	    super(platform, platform.resolve(path, base));
-	}
-
-	load(callback) {
-	    super.load();
-	    callback();
-	}
-    }
-
-    /*~
      * Utility interface to abstract platform-dependent functionalities.
      */
     class Platform
@@ -145,6 +79,72 @@
 	// return an array of strings, with the path of all files in the dir
 	allFiles(dir) {
 	    throw new Error('Platform.allFiles is abstract');
+	}
+    }
+
+    /*~
+     * A base, abstract project.
+     */
+    class Project
+    {
+	constructor(platform, path) {
+	    this.platform = platform;
+	    this.path     = path;
+	}
+
+	load(srcdir, code) {
+	    this.space = Space.load(this.platform, this.path, srcdir, code);
+	    this.platform.space = this.space;
+	}
+
+	execute(command) {
+	    var cmd = new command(this);
+	    cmd.execute();
+	}
+    }
+
+    /*~
+     * A project based on XProject, with the root dir being `base`.
+     */
+    class XProject extends Project
+    {
+	constructor(platform, env, base) {
+	    var path = platform.resolve('xproject/ml/' + env + '.json', base);
+	    super(platform, path);
+	    this.environ = env;
+	    this.base    = base;
+	}
+
+	load(callback) {
+	    var path = this.platform.resolve('xproject/project.xml', this.base);
+	    this.platform.xml(path, (xml) => {
+		var p = xml.project;
+		if ( ! p || ! p['$'] || ! p['$'].abbrev ) {
+		    throw new Error('Bad project.xml, no abbrev: ' + path);
+		}
+		this.name    = p['$'].name;
+		this.abbrev  = p['$'].abbrev;
+		this.version = p['$'].version;
+		this.title   = p.title && p.title[0];
+		this.srcdir  = this.platform.resolve('src/', this.base) + '/';
+		super.load(this.srcdir, this.abbrev);
+		callback();
+	    });
+	}
+    }
+
+    /*~
+     * Not a real project, just a placeholder for the environment.
+     */
+    class DummyProject extends Project
+    {
+	constructor(platform, path, base) {
+	    super(platform, platform.resolve(path, base));
+	}
+
+	load(callback) {
+	    super.load();
+	    callback();
 	}
     }
 
