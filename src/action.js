@@ -340,22 +340,22 @@
 
         summary()
         {
-	    var _ = this.platform;
+	    var pf = this.platform;
             if ( this.done.length ) {
-                _.log(_.green('Done') + ':');
-                this.done.forEach(a => a.display(_, _.green('✓')));
+                pf.log(pf.green('Done') + ':');
+                this.done.forEach(a => a.display(pf, pf.green('✓')));
             }
             if ( this.error ) {
-                _.log(_.red('Error') + ':');
-                this.error.action.display(_, _.red('✗'));
-                _.log(this.error.message);
+                pf.log(pf.red('Error') + ':');
+                this.error.action.display(pf, pf.red('✗'));
+                pf.log(this.error.message);
             }
             if ( this.todo.length ) {
-                _.log(_.yellow('Not done') + ':');
-                this.todo.forEach(a => a.display(_, _.yellow('✗')));
+                pf.log(pf.yellow('Not done') + ':');
+                this.todo.forEach(a => a.display(pf, pf.yellow('✗')));
             }
             if ( ! this.done.length && ! this.error && ! this.todo.length ) {
-                _.log('Nothing to do.');
+                pf.log('Nothing to do.');
             }
         }
     }
