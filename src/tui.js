@@ -32,7 +32,7 @@ var commands = [{
 }];
 
 program
-    .version('0.11.0')
+    .version('0.12.0')
     .option('-d, --dry',            'dry run')
     .option('-e, --environ <name>', 'environment name')
     .option('-f, --file <file>',    'environment file')
