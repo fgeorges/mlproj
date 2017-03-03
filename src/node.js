@@ -23,6 +23,19 @@
 	    return process.cwd();
 	}
 
+	mkdir(path) {
+	    // For now, this function throws an error if the directory already
+	    // exists.  If this has to be changed, just catch errors with the
+	    // code `EEXISTS`:
+	    //
+	    // try { fs.mkdirSync(path); }
+	    // catch ( err ) {
+	    //     if ( err.code === 'EEXIST' ) { /* ignore */ }
+	    //     else { throw err; }
+	    // }
+	    fs.mkdirSync(path);
+	}
+
 	debug(msg) {
 	    console.log('DEBUG: ' + msg);
 	}
@@ -77,6 +90,10 @@
 		}
 		callback(result);
 	    });
+	}
+
+	write(path, content) {
+	    fs.writeFileSync(path, content, 'utf8');
 	}
 
 	green(s) {

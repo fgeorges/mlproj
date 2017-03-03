@@ -31,6 +31,9 @@
 	cwd() {
 	    throw new Error('Platform.cwd is abstract');
 	}
+	mkdir(path) {
+	    throw new Error('Platform.mkdir is abstract');
+	}
 	debug(msg) {
 	    throw new Error('Platform.debug is abstract');
 	}
@@ -54,6 +57,9 @@
 	}
 	xml(path, callback) {
 	    throw new Error('Platform.xml is abstract');
+	}
+	write(path, content) {
+	    throw new Error('Platform.write is abstract');
 	}
 	green(s) {
 	    throw new Error('Platform.green is abstract');
