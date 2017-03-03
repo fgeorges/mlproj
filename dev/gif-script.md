@@ -52,7 +52,7 @@ proeprly in EShell):
    (M-x camcorder-record)
    (pause 1)
    ;; (typewriter "mlproj new")
-   (typewriter "/home/fgeorges/projects/ml/mlproj/mlproj/src/tui.js new")
+   (typewriter "mlproj new")
    (kbd "RET")
    (pause 1)
    (typewriter "awesome")
@@ -69,10 +69,13 @@ proeprly in EShell):
    (pause 1)
    (kbd "RET")
    (pause 1)
-   (typewriter "/home/fgeorges/projects/ml/mlproj/mlproj/src/tui.js -e prod show")
+   (typewriter "mlproj -e prod show")
    (kbd "RET")
    (pause 2)
-   (typewriter "/home/fgeorges/projects/ml/mlproj/mlproj/src/tui.js -e prod setup")
+   (typewriter "mlproj -e prod setup")
    (kbd "RET")
    (pause 1)))
 ```
+
+We can then convert the video file to GIF using `M-x
+camcorder-convert-to-gif`, with the configured command for `ffmpeg`.

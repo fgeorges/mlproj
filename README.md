@@ -5,6 +5,8 @@ Project and environment manager for MarkLogic.
 This is work in progress.  Use at your own risks.  The website is in progress as
 well: http://mlproj.org/.
 
+![Animated intro](dev/mlproj-intro.gif)
+
 ## Install
 
 Use the following:
