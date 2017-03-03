@@ -2,15 +2,17 @@
 
 "use strict";
 
-const program  = require('commander');
-const cmd      = require('./commands');
-const node     = require('./node');
+const program = require('commander');
+const read    = require('readline-sync');
+const cmd     = require('./commands');
+const node    = require('./node');
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * The program itself, using `commander`
  */
 
 var resolved = false;
+// command `new` is handled differently
 var commands = [{
     clazz       : cmd.ShowCommand,
     command     : 'show',
@@ -43,7 +45,7 @@ commands.forEach(cmd => {
 	cmd.options.forEach(opt => {
             prg = prg.option(opt.option, opt.label) });
     }
-    prg.action(function() {
+    prg.action(() => {
         resolved = true;
 	// the platform
 	var dry      = program.dry     ? true : false;
@@ -58,6 +60,41 @@ commands.forEach(cmd => {
 	});
     });
 });
+
+// Command `new` is handled differently, as it does not rely on an environment.
+// Also, all the info gathering is dependent on the platform, web-based would
+// provide them straight to the command as the content of a form, so it is done
+// here also.
+program
+    .command('new')
+    .description('create a new project in an empty dir')
+    .action(() => {
+        resolved = true;
+	if ( program.dry ) {
+	    throw new Error('Dry run not supported for `new`');
+	}
+	if ( program.environ ) {
+	    throw new Error('Environment name not supported for `new`');
+	}
+	if ( program.file ) {
+	    throw new Error('Environment file not supported for `new`');
+	}
+	// TODO: Check the directory is empty...!
+	// ...
+	// gather info by asking the user...
+	var abbrev   = read.question('Project code    : ');
+	var title    = read.question('Title           : ');
+	var dfltName = 'http://mlproj.org/example/' + abbrev;
+	var name     = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
+	var version  = read.question('Version  (0.1.0): ', { defaultInput: '0.1.0' });
+	var port     = read.question('Port     (8080) : ', { defaultInput: '8080' });
+	// execute the command
+	var verbose  = program.verbose ? true : false;
+	var platform = new node.Node(false, verbose);
+	var dir      = platform.cwd();
+	var command  = new cmd.NewCommand(platform, dir, abbrev, title, name, version, port);
+	command.execute();
+    });
 
 program.parse(process.argv);
 

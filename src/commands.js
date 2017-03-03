@@ -19,6 +19,120 @@
     }
 
     /*~
+     * Create a new project.
+     */
+    class NewCommand extends Command
+    {
+	constructor(platform, dir, abbrev, title, name, version, port) {
+	    super();
+	    this.platform = platform;
+	    this.dir      = dir;
+	    this.abbrev   = abbrev;
+	    this.title    = title;
+	    this.name     = name;
+	    this.version  = version;
+	    this.port     = port;
+	}
+
+	execute() {
+	    var pf = this.platform;
+	    pf.log('<CREATE NEW PROJECT HERE...>');
+	    pf.log('xproject/project.xml with:');
+	    pf.line(1, 'abbrev',   this.abbrev);
+	    pf.line(1, 'title',    this.title);
+	    pf.line(1, 'name',     this.name);
+	    pf.line(1, 'version',  this.version);
+	    pf.line(1, 'port',     this.port);
+	    pf.line(1, 'dir',      this.dir);
+	    pf.line(1, 'xproject', pf.resolve('xproject',    this.dir));
+	    pf.line(1, 'ml dir',   pf.resolve('xproject/ml', this.dir));
+
+	    var xpdir = pf.resolve('xproject',    this.dir);
+	    var mldir = pf.resolve('ml',          xpdir);
+	    var proj  = pf.resolve('project.xml', xpdir);
+	    var base  = pf.resolve('base.json',   mldir);
+	    var dev   = pf.resolve('dev.json',    mldir);
+	    var prod  = pf.resolve('prod.json',   mldir);
+	    pf.mkdir(xpdir);
+	    pf.mkdir(mldir);
+
+	    pf.write(proj,
+`<project xmlns="http://expath.org/ns/project"
+         name="${ this.name }"
+         abbrev="${ this.abbrev }"
+         version="${ this.version }">
+
+   <title>${ this.title }</title>
+
+</project>
+`);
+
+	    pf.write(base,
+`{
+    "mlproj": {
+        "format": "0.1",
+        "params": {
+            "port": "${ this.port }"
+        },
+        "databases": [{
+	    "id": "content",
+	    "name": "@{code}-content"
+	}],
+        "servers": [{
+	    "id": "app",
+            "name": "@{code}",
+            "type": "http",
+            "port": "\${port}",
+            "content": {
+                "idref": "content"
+            }
+        }]
+    }
+}
+`);
+
+	    pf.write(dev,
+`{
+    "mlproj": {
+        "format": "0.1",
+        "import": "base.json",
+        "connect": {
+            "host": "localhost",
+            "user": "admin",
+            "password": "admin"
+        }
+    }
+}
+`);
+
+	    pf.write(prod,
+`{
+    "mlproj": {
+        "format": "0.1",
+        "import": "base.json",
+        "connect": {
+            "host": "prod.server",
+            "user": "admin",
+            "password": "admin"
+        },
+        "databases": [{
+	    "id": "modules",
+	    "name": "@{code}-modules"
+	}],
+        "servers": [{
+	    "id": "app",
+            "modules": {
+                "idref": "modules"
+            },
+	    "root": "/"
+        }]
+    }
+}
+`);
+	}
+    }
+
+    /*~
      * Display the resolved space.
      */
     class ShowCommand extends Command
@@ -162,6 +276,7 @@
     }
 
     module.exports = {
+        NewCommand    : NewCommand,
         ShowCommand   : ShowCommand,
         SetupCommand  : SetupCommand,
         DeployCommand : DeployCommand
