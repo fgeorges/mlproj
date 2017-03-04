@@ -36,7 +36,8 @@ program
     .option('-d, --dry',            'dry run')
     .option('-e, --environ <name>', 'environment name')
     .option('-f, --file <file>',    'environment file')
-    .option('-v, --verbose',        'verbose mode');
+    .option('-v, --verbose',        'verbose mode')
+    .option('-z, --password',       'ask for password interactively');
 
 commands.forEach(cmd => {
     var prg = program
@@ -56,6 +57,10 @@ commands.forEach(cmd => {
 	var env      = program.environ;
 	var path     = program.file;
 	platform.project(env, path, project => {
+	    if ( program.password ) {
+		var pwd = read.question('Password: ', { hideEchoBack: true });
+		project.space.param('@password', pwd);
+	    }
 	    // execute the command
 	    project.execute(cmd.clazz);
 	});

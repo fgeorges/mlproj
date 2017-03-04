@@ -196,14 +196,19 @@
 	    });
 	}
 
-	param(name)
+	param(name, value)
 	{
-	    var v = this._params[name];
-	    var i = this._imports.length;
-	    while ( v === undefined && i > 0 ) {
-		v = this._imports[--i].space.param(name);
+	    if ( value === undefined ) {
+		var v = this._params[name];
+		var i = this._imports.length;
+		while ( v === undefined && i > 0 ) {
+		    v = this._imports[--i].space.param(name);
+		}
+		return v;
 	    }
-	    return v;
+	    else {
+		this._params[name] = value;
+	    }
 	}
 
 	params()

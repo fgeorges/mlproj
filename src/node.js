@@ -5,6 +5,7 @@
     const fs      = require('fs');
     const path    = require('path');
     const chalk   = require('chalk');
+    const read    = require('readline-sync');
     const request = require('request');
     const xml     = require('xml2js');
     const s       = require('./space');
@@ -133,7 +134,9 @@
 		throw new Error('No user in space');
 	    }
 	    if ( ! pwd ) {
-		throw new Error('No password in space');
+		// ask for password interactively first time it is used
+		pwd = read.question('Password: ', { hideEchoBack: true });
+		this.space.param('@password', pwd);
 	    }
 	    return [ user, pwd ];
 	}
