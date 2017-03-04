@@ -29,25 +29,34 @@ The `mlproj` program provides several commands.  For an accurate list of them,
 type:
 
 ```
-> mlproj --help
+fgeorges@callisto:~$ mlproj help
 
   Usage: mlproj [options] [command]
 
-
   Commands:
 
-    debug    log the given environment
-    setup    setup the given environment
+    help     use `help <command>` for help on sub-commands
+    new      create a new project in an empty dir
+    show     display the environment
+    setup    setup the environment on MarkLogic
     deploy   deploy modules to the modules database
 
   Options:
 
-    -h, --help            output usage information
-    -V, --version         output the version number
-    -d, --dry             dry run
-    -e, --environ <name>  environment name
-    -f, --file <file>     environment file
-    -v, --verbose         verbose mode
+    -h, --help                output usage information
+    -V, --version             output the version number
+    -c, --code <code>         set/override the @code
+    -d, --dry                 dry run
+    -e, --environ <name>      environment name
+    -f, --file <file>         environment file
+    -h, --host <host>         set/override the @host
+    -p, --param <name:value>  set/override a parameter value (use : or =)
+    -s, --srcdir <dir>        set/override the @srcdir
+    -u, --user <user>         set/override the @user
+    -v, --verbose             verbose mode
+    -z, --password            ask for password interactively
+
+fgeorges@callisto:~$ 
 ```
 
 As for now, the only commands are `setup` and `deploy`.  The former creates
@@ -481,6 +490,7 @@ top of the list.
 
 - new command `help` to display help about other commands
 - new command `load` to load data on databases
+- new command `mlcp` to invoke MLCP with info from the environment files
 - new command `test` to run tests from command line
 - new command to install a XAR/XAW file
 - new command to install a XAR/XAW from CXAN
