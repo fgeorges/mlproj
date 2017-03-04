@@ -59,10 +59,16 @@ fgeorges@callisto:~$ mlproj help
 fgeorges@callisto:~$ 
 ```
 
-As for now, the only commands are `setup` and `deploy`.  The former creates
-databases, forests and servers as described in environment files (or adapt them
-if they already exist and changes have been made to the environment files).  The
-latter deploy modules from the source directory to the modules database.
+Here is an abstract of each command:
+
+- `help` - display help about other individual commands
+- `new` - create a new project, asking for a few questions
+- `show` - display a view of the given environment, with values resolved
+- `setup` - actually create databases, forests and servers (or adapt
+  them if they already exist and differ from what is in the
+  environment files)
+- `deploy` - deploy modules from the source directory to the modules
+  database
 
 ## Environments
 
