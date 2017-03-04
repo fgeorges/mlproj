@@ -45,7 +45,7 @@ var collect = (item, memo) => {
 };
 
 program
-    .version('0.13.0')
+    .version('0.14.0')
     .option('-c, --code <code>',        'set/override the @code')
     .option('-d, --dry',                'dry run')
     .option('-e, --environ <name>',     'environment name')
