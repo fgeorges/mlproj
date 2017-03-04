@@ -30,18 +30,32 @@ var commands = [{
     command     : 'deploy',
     description : 'deploy modules to the modules database'
 }];
+var collect = (item, memo) => {
+    var idx = item.indexOf(':');
+    if ( idx < 0 ) {
+	idx = item.indexOf('=');
+    }
+    if ( idx < 0 ) {
+	throw new Error('Invalid parameter, must use : or = between name and value');
+    }
+    var name  = item.slice(0, idx);
+    var value = item.slice(idx + 1);
+    memo[name] = value;
+    return memo;
+};
 
 program
     .version('0.12.0')
-    .option('-c, --code <code>',    'set/override the @code')
-    .option('-d, --dry',            'dry run')
-    .option('-e, --environ <name>', 'environment name')
-    .option('-f, --file <file>',    'environment file')
-    .option('-h, --host <host>',    'set/override the @host')
-    .option('-s, --srcdir <dir>',   'set/override the @srcdir')
-    .option('-u, --user <user>',    'set/override the @user')
-    .option('-v, --verbose',        'verbose mode')
-    .option('-z, --password',       'ask for password interactively');
+    .option('-c, --code <code>',        'set/override the @code')
+    .option('-d, --dry',                'dry run')
+    .option('-e, --environ <name>',     'environment name')
+    .option('-f, --file <file>',        'environment file')
+    .option('-h, --host <host>',        'set/override the @host')
+    .option('-p, --param <name:value>', 'set/override a parameter value (use : or =)', collect, {})
+    .option('-s, --srcdir <dir>',       'set/override the @srcdir')
+    .option('-u, --user <user>',        'set/override the @user')
+    .option('-v, --verbose',            'verbose mode')
+    .option('-z, --password',           'ask for password interactively');
 
 commands.forEach(cmd => {
     var prg = program
@@ -60,12 +74,13 @@ commands.forEach(cmd => {
 	// the project
 	var env      = program.environ;
 	var path     = program.file;
+	var params   = program.param;
 	var force    = {};
 	[ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
 	if ( program.password ) {
 	    force.password = read.question('Password: ', { hideEchoBack: true });
 	}
-	platform.project(env, path, force, project => {
+	platform.project(env, path, params, force, project => {
 	    // execute the command
 	    project.execute(cmd.clazz);
 	});

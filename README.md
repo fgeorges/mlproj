@@ -479,7 +479,6 @@ top of the list.
 
 ## TODO
 
-- add options to set/override $-params
 - new command `help` to display help about other commands
 - new command to install a XAR/XAW file
 - new command to install a XAR/XAW from CXAN

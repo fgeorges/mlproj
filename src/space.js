@@ -13,7 +13,7 @@
 	    this.dry     = dry;
 	    this.verbose = verbose;
 	}
-	project(env, path, force, callback) {
+	project(env, path, params, force, callback) {
 	    var base = this.cwd();
 	    if ( env && path ) {
 		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
@@ -24,7 +24,7 @@
 	    var prj = env
 		? new XProject(this, env, base)
 		: new DummyProject(this, path, base);
-	    prj.load(force, () => {
+	    prj.load(params, force, () => {
 		callback(prj);
 	    });
 	}
@@ -98,8 +98,8 @@
 	    this.path     = path;
 	}
 
-	load(force, defaults) {
-	    this.space = Space.load(this.platform, this.path, force, defaults);
+	load(params, force, defaults) {
+	    this.space = Space.load(this.platform, this.path, params, force, defaults);
 	    this.platform.space = this.space;
 	}
 
@@ -121,7 +121,7 @@
 	    this.base    = base;
 	}
 
-	load(force, callback) {
+	load(params, force, callback) {
 	    var path = this.platform.resolve('xproject/project.xml', this.base);
 	    this.platform.xml(path, (xml) => {
 		var p = xml.project;
@@ -133,7 +133,7 @@
 		this.version = p['$'].version;
 		this.title   = p.title && p.title[0];
 		this.srcdir  = this.platform.resolve('src/', this.base) + '/';
-		super.load(force, { srcdir: this.srcdir, code: this.abbrev });
+		super.load(params, force, { srcdir: this.srcdir, code: this.abbrev });
 		callback();
 	    });
 	}
@@ -148,8 +148,8 @@
 	    super(platform, platform.resolve(path, base));
 	}
 
-	load(force, callback) {
-	    super.load(force, {});
+	load(params, force, callback) {
+	    super.load(params, force, {});
 	    callback();
 	}
     }
@@ -171,7 +171,7 @@
 		props.forEach(p => {
 		    var v = obj[p];
 		    if ( v !== undefined ) {
-			that._params['@' + p] = v;
+			that.param('@' + p,  v);
 		    }
 		});
 	    };
@@ -184,7 +184,7 @@
 	    // @srcdir being just a way to override it (or sometimes to set it,
 	    // especially in tests.)
 	    if ( json.srcdir ) {
-		this._params['@srcdir'] = platform.resolve(json.srcdir, base) + '/';
+		this.param('@srcdir', platform.resolve(json.srcdir, base) + '/');
 	    }
 	}
 
@@ -657,7 +657,7 @@
 	    return this.resolveVars(resolved, forbiden);
 	}
 
-	static load(platform, href, force, defaults)
+	static load(platform, href, params, force, defaults)
 	{
 	    // validate a few rules for one JSON file, return the mlproj sub-object
 	    var validate = (json) => {
@@ -703,28 +703,19 @@
 	    // start with root
 	    var root = impl(href);
 	    // if not set explicitly, use default values
-	    if ( root.param('@srcdir') === undefined && defaults.srcdir ) {
-		root._params['@srcdir'] = defaults.srcdir;
-	    }
-	    if ( root.param('@code') === undefined && defaults.code ) {
-		root._params['@code'] = defaults.code;
-	    }
-	    // override values in `force`
-	    if ( force.code ) {
-		root._params['@code'] = force.code;
-	    }
-	    if ( force.host ) {
-		root._params['@host'] = force.host;
-	    }
-	    if ( force.password ) {
-		root._params['@password'] = force.password;
-	    }
-	    if ( force.srcdir ) {
-		root._params['@srcdir'] = force.srcdir;
-	    }
-	    if ( force.user ) {
-		root._params['@user'] = force.user;
-	    }
+	    [ 'code', 'srcdir' ].forEach(name => {
+		if ( root.param('@' + name) === undefined && defaults[name] ) {
+		    root.param('@' + name, defaults[name]);
+		}
+	    });
+	    // override values from `force`
+	    [ 'code', 'host', 'password', 'srcdir', 'user' ].forEach(name => {
+		if ( force[name] ) {
+		    root.param('@' + name, force[name]);
+		}
+	    });
+	    // override values from `params`
+	    Object.keys(params).forEach(name => root.param(name, params[name]));
 	    // resolve the param references
 	    root.resolve(root);
 	    // resolve import priority and cache databses and servers
