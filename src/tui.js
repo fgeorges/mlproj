@@ -12,27 +12,16 @@ const node    = require('./node');
  * The command action implementations.
  */
 
-// implementation of the action for any command accepting a project/environment
-function execWithProject(program, cmd)
+// implementation of the action for command `new`
+function execHelp(program, cmd)
 {
-    // the platform
-    var dry      = program.dry     ? true : false;
-    var verbose  = program.verbose ? true : false;
-    var platform = new node.Node(dry, verbose);
-    // the options
-    var env      = program.environ;
-    var path     = program.file;
-    var params   = program.param;
-    var force    = {};
-    [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
-    if ( program.password ) {
-	force.password = read.question('Password: ', { hideEchoBack: true });
-    }
-    // the project
-    platform.project(env, path, params, force, project => {
-	// execute the command
-	project.execute(cmd.clazz);
-    });
+    console.log('');
+    console.log('Command still to be implemented!');
+    console.log('');
+    console.log('Try and factorize (some of) it with `new`, as not relying on a project...');
+    console.log('');
+    console.dir(cmd);
+    console.log('');
 }
 
 // implementation of the action for command `new`
@@ -74,12 +63,40 @@ function execNew(program, cmd)
     platform.log(platform.green('→') + ' Check/edit files in: \t' + xpdir);
 }
 
+// implementation of the action for any command accepting a project/environment
+function execWithProject(program, cmd)
+{
+    // the platform
+    var dry      = program.dry     ? true : false;
+    var verbose  = program.verbose ? true : false;
+    var platform = new node.Node(dry, verbose);
+    // the options
+    var env      = program.environ;
+    var path     = program.file;
+    var params   = program.param;
+    var force    = {};
+    [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
+    if ( program.password ) {
+	force.password = read.question('Password: ', { hideEchoBack: true });
+    }
+    // the project
+    platform.project(env, path, params, force, project => {
+	// execute the command
+	project.execute(cmd.clazz);
+    });
+}
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * The program itself, using `commander`
  */
 
 // the commands
 var commands = [{
+    clazz       : cmd.HelpCommand,
+    command     : 'help',
+    description : 'use `help <command>` for help on sub-commands',
+    impl        : execHelp
+}, {
     clazz       : cmd.NewCommand,
     command     : 'new',
     description : 'create a new project in an empty dir',
