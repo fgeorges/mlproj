@@ -480,6 +480,8 @@ top of the list.
 ## TODO
 
 - new command `help` to display help about other commands
+- new command `load` to load data on databases
+- new command `test` to run tests from command line
 - new command to install a XAR/XAW file
 - new command to install a XAR/XAW from CXAN
 - new command to publish to CXAN
@@ -492,3 +494,27 @@ top of the list.
     - its names (in spaces and api, or JPath), default value, scalar or array?,
       is it "changeable"?, etc.
 - allow changing a server port, as it restarts the instance
+- add support for triggers in space files
+
+Support the following scenario (e.g. for the EXPath ML Console):
+
+```
+# check values are correct (supported)
+mlproj -e dev -h myvm -u admin -z -p port:8010 show
+
+# setup the environment (supported)
+mlproj -e dev -h myvm -u admin -z -p port:8010 setup
+
+# deploy modules (supported)
+mlproj -e dev -h myvm -u admin -z -p port:8010 deploy
+
+# initialize the app (to support)
+mlproj -e dev -h myvm -u admin -z -p port:8010 init
+```
+
+which could/should be made easier:
+
+```
+# install everything (setup + deploy + init) (to support)
+mlproj -e dev -h myvm -u admin -z -p port:8010 install
+```
