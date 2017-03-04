@@ -494,7 +494,6 @@ top of the list.
 
 ## TODO
 
-- new command `help` to display help about other commands
 - new command `load` to load data on databases
 - new command `add` to add components, indexes, etc. by answering few questions
 - new command `mlcp` to invoke MLCP with info from the environment files
