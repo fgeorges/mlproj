@@ -168,6 +168,12 @@ commands.forEach(cmd => {
     });
 });
 
+// add to the default help message
+program.on('--help', () => {
+    console.log('  Visit http://mlproj.org/ for details.');
+    console.log();
+});
+
 // parse the command line and execute the command
 program.parse(process.argv);
 
