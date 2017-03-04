@@ -263,8 +263,7 @@
         "import": "base.json",
         "connect": {
             "host": "prod.server",
-            "user": "admin",
-            "password": "admin"
+            "user": "admin"
         },
         "databases": [{
 	    "id": "modules",
