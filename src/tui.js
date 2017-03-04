@@ -33,9 +33,13 @@ var commands = [{
 
 program
     .version('0.12.0')
+    .option('-c, --code <code>',    'set/override the @code')
     .option('-d, --dry',            'dry run')
     .option('-e, --environ <name>', 'environment name')
     .option('-f, --file <file>',    'environment file')
+    .option('-h, --host <host>',    'set/override the @host')
+    .option('-s, --srcdir <dir>',   'set/override the @srcdir')
+    .option('-u, --user <user>',    'set/override the @user')
     .option('-v, --verbose',        'verbose mode')
     .option('-z, --password',       'ask for password interactively');
 
@@ -56,11 +60,12 @@ commands.forEach(cmd => {
 	// the project
 	var env      = program.environ;
 	var path     = program.file;
-	platform.project(env, path, project => {
-	    if ( program.password ) {
-		var pwd = read.question('Password: ', { hideEchoBack: true });
-		project.space.param('@password', pwd);
-	    }
+	var force    = {};
+	[ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
+	if ( program.password ) {
+	    force.password = read.question('Password: ', { hideEchoBack: true });
+	}
+	platform.project(env, path, force, project => {
 	    // execute the command
 	    project.execute(cmd.clazz);
 	});
@@ -77,13 +82,28 @@ program
     .action(() => {
         resolved = true;
 	if ( program.dry ) {
-	    throw new Error('Dry run not supported for `new`');
+	    throw new Error('Dry run option not supported for `new`');
 	}
 	if ( program.environ ) {
-	    throw new Error('Environment name not supported for `new`');
+	    throw new Error('Environment name option not supported for `new`');
 	}
 	if ( program.file ) {
-	    throw new Error('Environment file not supported for `new`');
+	    throw new Error('Environment file option not supported for `new`');
+	}
+	if ( program.code ) {
+	    throw new Error('Code option not supported for `new`');
+	}
+	if ( program.host ) {
+	    throw new Error('Host option not supported for `new`');
+	}
+	if ( program.srcdir ) {
+	    throw new Error('Source dir option not supported for `new`');
+	}
+	if ( program.user ) {
+	    throw new Error('User option not supported for `new`');
+	}
+	if ( program.password ) {
+	    throw new Error('Password option not supported for `new`');
 	}
 	var verbose  = program.verbose ? true : false;
 	var platform = new node.Node(false, verbose);

@@ -13,7 +13,7 @@
 	    this.dry     = dry;
 	    this.verbose = verbose;
 	}
-	project(env, path, callback) {
+	project(env, path, force, callback) {
 	    var base = this.cwd();
 	    if ( env && path ) {
 		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
@@ -24,7 +24,7 @@
 	    var prj = env
 		? new XProject(this, env, base)
 		: new DummyProject(this, path, base);
-	    prj.load(() => {
+	    prj.load(force, () => {
 		callback(prj);
 	    });
 	}
@@ -98,8 +98,8 @@
 	    this.path     = path;
 	}
 
-	load(srcdir, code) {
-	    this.space = Space.load(this.platform, this.path, srcdir, code);
+	load(force, defaults) {
+	    this.space = Space.load(this.platform, this.path, force, defaults);
 	    this.platform.space = this.space;
 	}
 
@@ -121,7 +121,7 @@
 	    this.base    = base;
 	}
 
-	load(callback) {
+	load(force, callback) {
 	    var path = this.platform.resolve('xproject/project.xml', this.base);
 	    this.platform.xml(path, (xml) => {
 		var p = xml.project;
@@ -133,7 +133,7 @@
 		this.version = p['$'].version;
 		this.title   = p.title && p.title[0];
 		this.srcdir  = this.platform.resolve('src/', this.base) + '/';
-		super.load(this.srcdir, this.abbrev);
+		super.load(force, { srcdir: this.srcdir, code: this.abbrev });
 		callback();
 	    });
 	}
@@ -148,8 +148,8 @@
 	    super(platform, platform.resolve(path, base));
 	}
 
-	load(callback) {
-	    super.load();
+	load(force, callback) {
+	    super.load(force, {});
 	    callback();
 	}
     }
@@ -657,7 +657,7 @@
 	    return this.resolveVars(resolved, forbiden);
 	}
 
-	static load(platform, href, srcdir, code)
+	static load(platform, href, force, defaults)
 	{
 	    // validate a few rules for one JSON file, return the mlproj sub-object
 	    var validate = (json) => {
@@ -702,12 +702,28 @@
 	    };
 	    // start with root
 	    var root = impl(href);
-	    // if not set explicitly, inherit them from the project...
-	    if ( root.param('@srcdir') === undefined && srcdir ) {
-		root._params['@srcdir'] = srcdir;
+	    // if not set explicitly, use default values
+	    if ( root.param('@srcdir') === undefined && defaults.srcdir ) {
+		root._params['@srcdir'] = defaults.srcdir;
 	    }
-	    if ( root.param('@code') === undefined && code ) {
-		root._params['@code'] = code;
+	    if ( root.param('@code') === undefined && defaults.code ) {
+		root._params['@code'] = defaults.code;
+	    }
+	    // override values in `force`
+	    if ( force.code ) {
+		root._params['@code'] = force.code;
+	    }
+	    if ( force.host ) {
+		root._params['@host'] = force.host;
+	    }
+	    if ( force.password ) {
+		root._params['@password'] = force.password;
+	    }
+	    if ( force.srcdir ) {
+		root._params['@srcdir'] = force.srcdir;
+	    }
+	    if ( force.user ) {
+		root._params['@user'] = force.user;
 	    }
 	    // resolve the param references
 	    root.resolve(root);
