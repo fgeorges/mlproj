@@ -12,20 +12,8 @@ const node    = require('./node');
  * The command action implementations.
  */
 
-// implementation of the action for command `new`
-function execHelp(program, cmd)
-{
-    console.log('');
-    console.log('Command still to be implemented!');
-    console.log('');
-    console.log('Try and factorize (some of) it with `new`, as not relying on a project...');
-    console.log('');
-    console.dir(cmd);
-    console.log('');
-}
-
-// implementation of the action for command `new`
-function execNew(program, cmd)
+// start of plain commands, validate forbidden options and return platform object
+function plainCmdStart(program, command)
 {
     // check forbidden options
     [ 'dry', 'environ', 'file', 'code', 'host', 'srcdir', 'user', 'password' ].forEach(name => {
@@ -35,8 +23,48 @@ function execNew(program, cmd)
     });
 
     // the platform
-    var verbose  = program.verbose ? true : false;
-    var platform = new node.Node(false, verbose);
+    var verbose = program.verbose ? true : false;
+    return new node.Node(false, verbose);
+}
+
+// implementation of the action for command `new`
+function execHelp(program, command, args)
+{
+    // the platform (and validate options)
+    var pf = plainCmdStart(program, command);
+
+    // the command
+    var name = args[0];
+    if ( ! name ) {
+	program.help();
+    }
+    else {
+	var cmd  = commands.find(c => c.name === name);
+	if ( ! cmd ) {
+	    pf.log('Unknwon command: ' + name);
+	}
+	else {
+	    pf.log('');
+	    if ( name === cmd.command ) {
+		pf.log('   ' + pf.bold(name));
+	    }
+	    else {
+		var idx  = cmd.command.indexOf(' ');
+		var args = cmd.command.slice(idx);
+		pf.log('   ' + pf.bold(name) + args);
+	    }
+	    pf.log('');
+	    pf.log('   ' + cmd.help);
+	    pf.log('');
+	}
+    }
+}
+
+// implementation of the action for command `new`
+function execNew(program, command)
+{
+    // the platform (and validate options)
+    var platform = plainCmdStart(program, command);
     var dir      = platform.cwd();
 
     // Check the directory is empty...!
@@ -54,8 +82,8 @@ function execNew(program, cmd)
     var port     = read.question('Port     (8080) : ', { defaultInput: '8080' });
 
     // execute the command
-    var command  = new cmd.clazz(platform, dir, abbrev, title, name, version, port);
-    var xpdir    = command.execute();
+    var cmd      = new command.clazz(platform, dir, abbrev, title, name, version, port);
+    var xpdir    = cmd.execute();
 
     // summary
     platform.log('\n--- ' + platform.bold('Summary') + ' ---');
@@ -92,33 +120,57 @@ function execWithProject(program, cmd)
 
 // the commands
 var commands = [{
-    clazz       : cmd.HelpCommand,
-    command     : 'help',
-    description : 'use `help <command>` for help on sub-commands',
-    impl        : execHelp
+    impl        : execHelp,
+    name        : 'help',
+    command     : 'help [name]',
+    description : 'display help about another command',
+    help        : `Display help about another command.
+   Just give the command name as a parameter.
+
+   Example:
+      mlproj help deploy`
 }, {
     clazz       : cmd.NewCommand,
+    impl        : execNew,
+    name        : 'new',
     command     : 'new',
     description : 'create a new project in an empty dir',
-    impl        : execNew
+    help        : `Create a new project in the current directory.
+   The directory must be empty.
+   The command asks interactively questions about the project to create.`
 }, {
     clazz       : cmd.ShowCommand,
+    impl        : execWithProject,
+    name        : 'show',
     command     : 'show',
     description : 'display the environment',
-    impl        : execWithProject
+    help        : `Display the details of the given environment.
+   The environment is "resolved" before display (variables, dependencies
+   are resolved, parameters are injected.)`
 }, {
     clazz       : cmd.SetupCommand,
+    impl        : execWithProject,
+    name        : 'setup',
     command     : 'setup',
     description : 'setup the environment on MarkLogic',
     options     : [
 	// { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
     ],
-    impl        : execWithProject
+    help        : `Create components in the given environment on MarkLogic.
+   Use the connection details from the environment to connect to
+   MarkLogic.
+   If (some) components already exist, ensure they have the right
+   properties and update them as needed.`
 }, {
     clazz       : cmd.DeployCommand,
+    impl        : execWithProject,
+    name        : 'deploy',
     command     : 'deploy',
     description : 'deploy modules to the modules database',
-    impl        : execWithProject
+    help        : `Deploy the module sources to the modules database.
+
+   TODO: Add an option to set/override the modules database from the
+   command line.`
 }];
 
 // collect params from several `--param name:value` options
@@ -162,9 +214,9 @@ commands.forEach(cmd => {
 	cmd.options.forEach(opt => {
             prg = prg.option(opt.option, opt.label) });
     }
-    prg.action(() => {
+    prg.action(function() {
         resolved = true;
-	cmd.impl(program, cmd);
+	cmd.impl(program, cmd, arguments);
     });
 });
 
