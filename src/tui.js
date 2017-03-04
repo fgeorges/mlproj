@@ -57,36 +57,6 @@ program
     .option('-v, --verbose',            'verbose mode')
     .option('-z, --password',           'ask for password interactively');
 
-commands.forEach(cmd => {
-    var prg = program
-        .command(cmd.command)
-        .description(cmd.description);
-    if ( cmd.options ) {
-	cmd.options.forEach(opt => {
-            prg = prg.option(opt.option, opt.label) });
-    }
-    prg.action(() => {
-        resolved = true;
-	// the platform
-	var dry      = program.dry     ? true : false;
-	var verbose  = program.verbose ? true : false;
-	var platform = new node.Node(dry, verbose);
-	// the project
-	var env      = program.environ;
-	var path     = program.file;
-	var params   = program.param;
-	var force    = {};
-	[ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
-	if ( program.password ) {
-	    force.password = read.question('Password: ', { hideEchoBack: true });
-	}
-	platform.project(env, path, params, force, project => {
-	    // execute the command
-	    project.execute(cmd.clazz);
-	});
-    });
-});
-
 // Command `new` is handled differently, as it does not rely on an environment.
 // Also, all the info gathering is dependent on the platform, web-based would
 // provide them straight to the command as the content of a form, so it is done
@@ -147,6 +117,37 @@ program
 	platform.log(platform.green('✓') + ' Project created: \t' + abbrev);
 	platform.log(platform.green('→') + ' Check/edit files in: \t' + xpdir);
     });
+
+// Other commands are all treated the same way.
+commands.forEach(cmd => {
+    var prg = program
+        .command(cmd.command)
+        .description(cmd.description);
+    if ( cmd.options ) {
+	cmd.options.forEach(opt => {
+            prg = prg.option(opt.option, opt.label) });
+    }
+    prg.action(() => {
+        resolved = true;
+	// the platform
+	var dry      = program.dry     ? true : false;
+	var verbose  = program.verbose ? true : false;
+	var platform = new node.Node(dry, verbose);
+	// the project
+	var env      = program.environ;
+	var path     = program.file;
+	var params   = program.param;
+	var force    = {};
+	[ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
+	if ( program.password ) {
+	    force.password = read.question('Password: ', { hideEchoBack: true });
+	}
+	platform.project(env, path, params, force, project => {
+	    // execute the command
+	    project.execute(cmd.clazz);
+	});
+    });
+});
 
 program.parse(process.argv);
 
