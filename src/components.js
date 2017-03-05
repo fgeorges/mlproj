@@ -41,6 +41,44 @@
 	}, []);
     }
 
+    function extractProps(props, table, json, type) {
+	// extract values
+	Object.keys(json).forEach(p => {
+	    var desc = table[p];
+	    if ( ! desc ) {
+		throw new Error('Unknwon property: ' + type + '.' + p);
+	    }
+	    if ( desc.ignore ) {
+		return; // do nothing for this one
+	    }
+	    var value = json[p];
+	    if ( desc.type !== typeof value ) {
+		if ( desc.type === 'number' && typeof value === 'string' ) {
+		    if ( ! /^[0-9]+(\.[0-9]+)?$/.test(value) ) {
+			throw new Error('Not a lexically valid number for '
+					+ type + '.' + p + ': ' + value);
+		    }
+		    value = Number.parseFloat(value);
+		}
+		else {
+		    throw new Error('Convertion from ' + typeof value + ' to '
+				    + desc.type + ' not supported (yet?)');
+		}
+	    }
+	    var validate = desc.validate;
+	    if ( validate && ! validate(value) ) {
+		throw new Error('Invalid value for ' + type + '.' + p + ': ' + value);
+	    }
+	    props[p] = value;
+	});
+	// chack mandatory properties
+	values(table).forEach(p => {
+	    if ( p.mandatory && props[p.name] === undefined ) {
+		throw new Error('Mandatory prop ' + type + '.' + p.name + ' not set');
+	    }
+	});
+    }
+
     /*~
      * Interface of a component.
      */
@@ -76,6 +114,10 @@
             this.forests  = {};
             this.indexes  = new Indexes(this, json.indexes);
             this.lexicons = new Lexicons(this, json.lexicons);
+            this.props    = {};
+	    // extract the configured properties
+	    extractProps(this.props, Database.props, json, 'database');
+	    // the forests
 	    var forests = json.forests;
 	    if ( forests === null || forests === undefined ) {
 		forests = 1;
@@ -235,6 +277,24 @@
 	}
     }
 
+    Database.props = {
+	// not a database property, but an environment file format artefact
+	compose:  { name : 'compose',  ignore : true },
+	// not database properties
+	id:       { name : 'id',       ignore : true },
+	name:     { name : 'name',     ignore : true },
+	// schema, security and triggers DB are complex, handled specifically
+	schema:   { name : 'schema',   ignore : true },
+	security: { name : 'security', ignore : true },
+	triggers: { name : 'triggers', ignore : true },
+	// forests are complex, handled specifically
+	forests:  { name : 'forests',  ignore : true },
+	// indexes and lexicons are complex, handled specifically
+	// TODO: Described them here, with their inner structure...
+	indexes:  { name : 'indexes',  ignore : true },
+	lexicons: { name : 'lexicons', ignore : true }
+    };
+
     /*~
      * A forest.
      */
@@ -283,40 +343,7 @@
             this.modules = modules;
             this.props   = {};
 	    // extract the configured properties
-	    Object.keys(json).forEach(p => {
-		var desc = Server.props[p];
-		if ( ! desc ) {
-		    throw new Error('Unknwon property: server.' + p);
-		}
-		if ( desc.ignore ) {
-		    return; // do nothing for this one
-		}
-		var value = json[p];
-		if ( desc.type !== typeof value ) {
-		    if ( desc.type === 'number' && typeof value === 'string' ) {
-			if ( ! /^[0-9]+(\.[0-9]+)?$/.test(value) ) {
-			    throw new Error('Not a lexically valid number for server.'
-					    + p + ': ' + value);
-			}
-			value = Number.parseFloat(value);
-		    }
-		    else {
-			throw new Error('Convertion from ' + typeof value + ' to '
-					+ desc.type + ' not supported (yet?)');
-		    }
-		}
-		var validate = desc.validate;
-		if ( validate && ! validate(value) ) {
-		    throw new Error('Invalid value for server.' + p + ': ' + value);
-		}
-		this.props[p] = value;
-	    });
-	    // chack mandatory properties
-	    values(Server.props).forEach(p => {
-		if ( p.mandatory && this.props[p.name] === undefined ) {
-		    throw new Error('Mandatory prop server.' + p.name + ' not set');
-		}
-	    });
+	    extractProps(this.props, Server.props, json, 'server');
 	    // use @srcdir if no modules DB and no root
             if ( ! this.modules && ! this.props.root ) {
 		var dir = space.param('@srcdir');
@@ -435,9 +462,8 @@
     Server.props = {
 	// not a server property, but an environment file format artefact
 	compose: { name : 'compose', ignore : true },
-	// not a server property
+	// not server properties
 	id:      { name : 'id',      ignore : true },
-	// not a server property
 	name:    { name : 'name',    ignore : true },
 	// not a server property, it is rather part of its name
 	group:   { name : 'group',   ignore : true },
