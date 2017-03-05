@@ -368,7 +368,7 @@
 	    // TODO: Should be applicable, but not supported yet, because
 	    // changing it restarts MarkLogic.
             if ( this.port !== actual['port'].toString() ) {
-		throw new Error('Server differ by `root`, which is not supported to be changed yet');
+		throw new Error('Server differ by `port`, which is not supported to be changed yet');
 	    }
 
 	    // applicable changes
