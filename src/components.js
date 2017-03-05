@@ -122,7 +122,6 @@
 	    logCheck(actions, 0, 'the database', this.name);
 	    new act.DatabaseProps(this).execute(
 		actions.platform,
-		actions.verbose,
 		msg => {
 		    // TODO: Integrate more nicely in the reporting...
 		    throw new Error('Error during GET DB ' + this.name + ': ' + msg);
@@ -130,7 +129,6 @@
 		body => {
 		    new act.ForestList().execute(
 			actions.platform,
-			actions.verbose,
 			msg => {
 			    // TODO: Integrate more nicely in the reporting...
 			    throw new Error('Error during GET forests: ' + msg);
@@ -316,7 +314,6 @@
 	    logCheck(actions, 0, 'the ' + this.type + ' server', this.name);
 	    new act.ServerProps(this).execute(
 		actions.platform,
-		actions.verbose,
 		msg => {
 		    // TODO: Integrate more nicely in the reporting...
 		    throw new Error('Error during GET AS ' + this.name + ': ' + msg);

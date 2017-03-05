@@ -501,7 +501,6 @@ top of the list.
 - new command to install a XAR/XAW file
 - new command to install a XAR/XAW from CXAN
 - new command to publish to CXAN
-- adapt the Console to mlproj
 - edit environment files from the Console
 - word lexicons
 - drive properties by configuration (on a property-by-property basis)

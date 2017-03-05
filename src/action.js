@@ -23,9 +23,9 @@
             platform.log(indent + ' ' + this.msg);
         }
 
-        execute(platform, verbose, error, success, dry)
+        execute(platform, error, success, dry)
 	{
-            if ( verbose ) {
+            if ( platform.verbose ) {
                 platform.warn('[' + platform.bold('verbose') + '] '
 			      + this.endpoint.verb + ' to ' + this.endpoint.url);
 		if ( this.data && ! this.type) {
@@ -303,10 +303,9 @@
      */
     class ActionList
     {
-        constructor(platform, verbose)
+        constructor(platform)
         {
             this.platform = platform;
-            this.verbose  = verbose;
             this.todo     = [];
             this.done     = [];
             this.error    = null;
@@ -321,7 +320,7 @@
         {
             if ( this.todo.length ) {
                 var action = this.todo.shift();
-                action.execute(this.platform, this.verbose, msg => {
+                action.execute(this.platform, msg => {
                     this.error = { action: action, message: msg };
                     // stop processing
 		    callback();
