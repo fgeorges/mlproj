@@ -276,22 +276,29 @@
         constructor(json, space, content, modules)
         {
 	    super();
-            this.group    = json.group || 'Default';
-            this.id       = json.id;
-            this.name     = json.name;
-            this.type     = json.type;
-            this.port     = json.port;
-            this.root     = json.root;
-            this.rewriter = json.rewriter;
-            this.handler  = json.handler;
-            this.content  = content;
-            this.modules  = modules;
-            if ( ! this.modules && ! this.root ) {
+            this.group   = json.group || 'Default';
+            this.id      = json.id;
+            this.name    = json.name;
+            this.type    = json.type;
+            this.port    = json.port;
+            this.content = content;
+            this.modules = modules;
+            this.props   = {};
+	    // extrcat the configured properties
+	    Object.keys(json).forEach(p => {
+		if ( [ 'group', 'id', 'name', 'type', 'port', 'content', 'modules' ].includes(p) ) {
+		    // handled specifically, do nothing
+		    return;
+		}
+		this.props[p] = json[p];
+	    });
+	    // use @srcdir if no modules DB and no root
+            if ( ! this.modules && ! this.props.root ) {
 		var dir = space.param('@srcdir');
 		if ( ! dir ) {
 		    throw new Error('No @srcdir for the root of the server: ' + this.name);
 		}
-		this.root = dir;
+		this.props.root = dir;
 	    }
         }
 
@@ -299,14 +306,14 @@
 	{
 	    pf.log(pf.bold('Server') + ': ' + pf.bold(pf.yellow(this.name)));
 	    pf.line(1, 'group', this.group);
-	    this.id       && pf.line(1, 'id',            this.id);
-	    this.type     && pf.line(1, 'type',          this.type);
-	    this.port     && pf.line(1, 'port',          this.port);
-	    this.content  && pf.line(1, 'content DB',    this.content.name);
-	    this.modules  && pf.line(1, 'modules DB',    this.modules.name);
-	    this.root     && pf.line(1, 'root',          this.root);
-	    this.rewriter && pf.line(1, 'url rewriter',  this.rewriter);
-	    this.handler  && pf.line(1, 'error handler', this.handler);
+	    this.id             && pf.line(1, 'id',            this.id);
+	    this.type           && pf.line(1, 'type',          this.type);
+	    this.port           && pf.line(1, 'port',          this.port);
+	    this.content        && pf.line(1, 'content DB',    this.content.name);
+	    this.modules        && pf.line(1, 'modules DB',    this.modules.name);
+	    this.props.root     && pf.line(1, 'root',          this.props.root);
+	    this.props.rewriter && pf.line(1, 'url rewriter',  this.props.rewriter);
+	    this.props.handler  && pf.line(1, 'error handler', this.props.handler);
 	}
 
         setup(actions, callback)
@@ -339,10 +346,11 @@
                 "content-database": this.content.name
             };
             this.port     && ( obj['port']             = this.port         );
-            this.root     && ( obj['root']             = this.root         );
             this.modules  && ( obj['modules-database'] = this.modules.name );
-            this.rewriter && ( obj['url-rewriter']     = this.rewriter     );
-            this.handler  && ( obj['error-handler']    = this.handler      );
+	    Object.keys(this.props).forEach(n => {
+		var k = Server.props[n].key;
+		obj[k] = v;
+	    });
 	    actions.add(new act.ServerCreate(this, obj));
 	    callback();
 	}
@@ -373,9 +381,6 @@
 
 	    // applicable changes
 	    diffs = [];
-            if ( this.root !== actual['root'] ) {
-		diffs.push({ name: 'root', value: this.root });
-	    }
             if ( this.content.name !== actual['content-database'] ) {
 		diffs.push({ name: 'content-database', value: this.content.name });
 	    }
@@ -387,14 +392,15 @@
 		    value: this.modules ? this.modules.name : null
 		});
 	    }
-            if ( ( this.rewriter || actual['url-rewriter'] )
-		 && this.rewriter !== actual['url-rewriter'] ) {
-		diffs.push({ name: 'url-rewriter', value: this.rewriter ? this.rewriter : '' });
-	    }
-            if ( ( this.handler || actual['error-handler'] )
-		 && this.handler !== actual['error-handler'] ) {
-		diffs.push({ name: 'error-handler', value: this.handler ? this.handler : '' });
-	    }
+	    values(Server.props).forEach(p => {
+		if ( ( this.props[p.name] || actual[p.key] )
+		     && this.props[p.name] !== actual[p.key] ) {
+		    diffs.push({
+			name  : p.key,
+			value : this.props[p.name] ? this.props[p.name] : ''
+		    });
+		}
+	    });
 	    diffs.forEach(diff => {
 		logAdd(actions, 0, 'update', diff.name);
 		actions.add(new act.ServerUpdate(this, diff.name, diff.value));
@@ -402,6 +408,24 @@
 	    callback();
 	}
     }
+
+    Server.props = {
+	root: {
+	    name : 'root',
+	    key  : 'root',
+	    type : 'string'
+	},
+	rewriter: {
+	    name : 'rewriter',
+	    key  : 'url-rewriter',
+	    type : 'string'
+	},
+	handler: {
+	    name : 'handler',
+	    key  : 'error-handler',
+	    type : 'string'
+	}
+    };
 
     /*~
      * All the indexes of a database.
