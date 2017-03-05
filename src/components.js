@@ -282,17 +282,16 @@
             this.content = content;
             this.modules = modules;
             this.props   = {};
-	    // extrcat the configured properties
+	    // extract the configured properties
 	    Object.keys(json).forEach(p => {
-		if ( [ 'compose', 'group', 'id', 'name', 'content', 'modules' ].includes(p) ) {
-		    // handled specifically, do nothing
-		    return;
-		}
-		var desc     = Server.props[p];
+		var desc = Server.props[p];
 		if ( ! desc ) {
 		    throw new Error('Unknwon property: server.' + p);
 		}
-		var value    = json[p];
+		if ( desc.ignore ) {
+		    return; // do nothing for this one
+		}
+		var value = json[p];
 		if ( desc.type !== typeof value ) {
 		    if ( desc.type === 'number' && typeof value === 'string' ) {
 			if ( ! /^[0-9]+(\.[0-9]+)?$/.test(value) ) {
@@ -337,8 +336,9 @@
 	    this.modules && pf.line(1, 'modules DB', this.modules.name);
 	    // explicit list of properties, to guarantee the order they are displayed
 	    [ 'type', 'port', 'root', 'rewriter', 'handler' ].forEach(p => {
-		if ( this.props[p] !== undefined ) {
-		    pf.line(1, Server.props[p].label, this.props[p]);
+		var label = Server.props[p].label;
+		if ( this.props[p] !== undefined && label ) {
+		    pf.line(1, label, this.props[p]);
 		}
 	    });
 	}
@@ -433,6 +433,17 @@
     }
 
     Server.props = {
+	// not a server property, but an environment file format artefact
+	compose: { name : 'compose', ignore : true },
+	// not a server property
+	id:      { name : 'id',      ignore : true },
+	// not a server property
+	name:    { name : 'name',    ignore : true },
+	// not a server property, it is rather part of its name
+	group:   { name : 'group',   ignore : true },
+	// content and modules DB are complex, handled specifically
+	content: { name : 'content', ignore : true },
+	modules: { name : 'modules', ignore : true },
 	type: {
 	    name      : 'type',
 	    key       : 'server-type',
