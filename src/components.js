@@ -279,18 +279,44 @@
             this.group   = json.group || 'Default';
             this.id      = json.id;
             this.name    = json.name;
-            this.type    = json.type;
-            this.port    = json.port;
             this.content = content;
             this.modules = modules;
             this.props   = {};
 	    // extrcat the configured properties
 	    Object.keys(json).forEach(p => {
-		if ( [ 'group', 'id', 'name', 'type', 'port', 'content', 'modules' ].includes(p) ) {
+		if ( [ 'compose', 'group', 'id', 'name', 'content', 'modules' ].includes(p) ) {
 		    // handled specifically, do nothing
 		    return;
 		}
-		this.props[p] = json[p];
+		var desc     = Server.props[p];
+		if ( ! desc ) {
+		    throw new Error('Unknwon property: server.' + p);
+		}
+		var value    = json[p];
+		if ( desc.type !== typeof value ) {
+		    if ( desc.type === 'number' && typeof value === 'string' ) {
+			if ( ! /^[0-9]+(\.[0-9]+)?$/.test(value) ) {
+			    throw new Error('Not a lexically valid number for server.'
+					    + p + ': ' + value);
+			}
+			value = Number.parseFloat(value);
+		    }
+		    else {
+			throw new Error('Convertion from ' + typeof value + ' to '
+					+ desc.type + ' not supported (yet?)');
+		    }
+		}
+		var validate = desc.validate;
+		if ( validate && ! validate(value) ) {
+		    throw new Error('Invalid value for server.' + p + ': ' + value);
+		}
+		this.props[p] = value;
+	    });
+	    // chack mandatory properties
+	    values(Server.props).forEach(p => {
+		if ( p.mandatory && this.props[p.name] === undefined ) {
+		    throw new Error('Mandatory prop server.' + p.name + ' not set');
+		}
 	    });
 	    // use @srcdir if no modules DB and no root
             if ( ! this.modules && ! this.props.root ) {
@@ -306,19 +332,20 @@
 	{
 	    pf.log(pf.bold('Server') + ': ' + pf.bold(pf.yellow(this.name)));
 	    pf.line(1, 'group', this.group);
-	    this.id             && pf.line(1, 'id',            this.id);
-	    this.type           && pf.line(1, 'type',          this.type);
-	    this.port           && pf.line(1, 'port',          this.port);
-	    this.content        && pf.line(1, 'content DB',    this.content.name);
-	    this.modules        && pf.line(1, 'modules DB',    this.modules.name);
-	    this.props.root     && pf.line(1, 'root',          this.props.root);
-	    this.props.rewriter && pf.line(1, 'url rewriter',  this.props.rewriter);
-	    this.props.handler  && pf.line(1, 'error handler', this.props.handler);
+	    this.id      && pf.line(1, 'id',         this.id);
+	    this.content && pf.line(1, 'content DB', this.content.name);
+	    this.modules && pf.line(1, 'modules DB', this.modules.name);
+	    // explicit list of properties, to guarantee the order they are displayed
+	    [ 'type', 'port', 'root', 'rewriter', 'handler' ].forEach(p => {
+		if ( this.props[p] !== undefined ) {
+		    pf.line(1, Server.props[p].label, this.props[p]);
+		}
+	    });
 	}
 
         setup(actions, callback)
 	{
-	    logCheck(actions, 0, 'the ' + this.type + ' server', this.name);
+	    logCheck(actions, 0, 'the ' + this.props.type + ' server', this.name);
 	    new act.ServerProps(this).execute(
 		actions.platform,
 		msg => {
@@ -342,11 +369,9 @@
 	    logAdd(actions, 0, 'create', 'server', this.name);
             var obj = {
                 "server-name":      this.name,
-                "server-type":      this.type,
                 "content-database": this.content.name
             };
-            this.port     && ( obj['port']             = this.port         );
-            this.modules  && ( obj['modules-database'] = this.modules.name );
+            this.modules && ( obj['modules-database'] = this.modules.name );
 	    Object.keys(this.props).forEach(n => {
 		var k = Server.props[n].key;
 		obj[k] = v;
@@ -359,24 +384,21 @@
 	{
 	    // incompatible changes
 	    var diffs = [];
-            if ( this.type !== actual['server-type'] ) {
-	    	diffs.push('type');
-	    }
+	    values(Server.props).filter(p => p.frozen).forEach(p => {
+		if ( this.props[p.name] !== actual[p.key] ) {
+	    	    diffs.push(p.name);
+		}
+	    });
 	    if ( diffs.length ) {
-		var msg = 'Server differ by `' + diffs[0] + '`';
+		var msg = 'Server exist and differ by server.' + diffs[0];
 		for ( var i = 1; i < diffs.length - 1; ++i ) {
-		    msg += ', `' + diffs[i] + '`';
+		    msg += ', server.' + diffs[i];
 		}
 		if ( diffs.length > 1 ) {
-		    msg += ' and `' + diffs[diffs.length - 1] + '`';
+		    msg += ' and server.' + diffs[diffs.length - 1];
 		}
+		msg += ', which cannot be updated';
 		throw new Error(msg);
-	    }
-
-	    // TODO: Should be applicable, but not supported yet, because
-	    // changing it restarts MarkLogic.
-            if ( this.port !== actual['port'].toString() ) {
-		throw new Error('Server differ by `port`, which is not supported to be changed yet');
 	    }
 
 	    // applicable changes
@@ -392,12 +414,13 @@
 		    value: this.modules ? this.modules.name : null
 		});
 	    }
-	    values(Server.props).forEach(p => {
-		if ( ( this.props[p.name] || actual[p.key] )
-		     && this.props[p.name] !== actual[p.key] ) {
+	    values(Server.props).filter(p => ! p.frozen).forEach(p => {
+		var here  = this.props[p.name];
+		var there = actual[p.key];
+		if ( ( here || there ) && here !== there ) {
 		    diffs.push({
 			name  : p.key,
-			value : this.props[p.name] ? this.props[p.name] : ''
+			value : here ? here : ''
 		    });
 		}
 	    });
@@ -410,20 +433,45 @@
     }
 
     Server.props = {
+	type: {
+	    name      : 'type',
+	    key       : 'server-type',
+	    type      : 'string',
+	    // TODO: Support more server types...
+	    validate  : val => [ 'http' ].includes(val),
+	    mandatory : true,
+	    frozen    : true,
+	    label     : 'root'
+	},
+	port: {
+	    name      : 'port',
+	    key       : 'port',
+	    type      : 'number',
+	    // TODO: Come with more precise conditions.
+	    validate  : val => Number.isInteger(val) && val > 100 && val < 10000,
+	    mandatory : true,
+	    // TODO: Should not be frozen, but not supported yet, because
+	    // changing it restarts MarkLogic.
+	    frozen    : true,
+	    label     : 'port'
+	},
 	root: {
-	    name : 'root',
-	    key  : 'root',
-	    type : 'string'
+	    name  : 'root',
+	    key   : 'root',
+	    type  : 'string',
+	    label : 'root'
 	},
 	rewriter: {
-	    name : 'rewriter',
-	    key  : 'url-rewriter',
-	    type : 'string'
+	    name  : 'rewriter',
+	    key   : 'url-rewriter',
+	    type  : 'string',
+	    label : 'url rewriter'
 	},
 	handler: {
-	    name : 'handler',
-	    key  : 'error-handler',
-	    type : 'string'
+	    name  : 'handler',
+	    key   : 'error-handler',
+	    type  : 'string',
+	    label : 'error handler'
 	}
     };
 
