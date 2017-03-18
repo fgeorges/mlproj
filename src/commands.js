@@ -45,9 +45,10 @@
 	    // create `xproject/ml/` and `xproject/ml/{base,dev,prod}.json`
 	    var mldir = pf.resolve('ml', xpdir);
 	    pf.mkdir(mldir);
-	    pf.write(pf.resolve('base.json', mldir), NEW_BASE_ENV(this));
-	    pf.write(pf.resolve('dev.json',  mldir), NEW_DEV_ENV(this));
-	    pf.write(pf.resolve('prod.json', mldir), NEW_PROD_ENV(this));
+	    pf.write(pf.resolve('base.json',    mldir), NEW_BASE_ENV(this));
+	    pf.write(pf.resolve('default.json', mldir), NEW_DEFAULT_ENV(this));
+	    pf.write(pf.resolve('dev.json',     mldir), NEW_DEV_ENV(this));
+	    pf.write(pf.resolve('prod.json',    mldir), NEW_PROD_ENV(this));
 
 	    return xpdir;
 	}
@@ -232,6 +233,18 @@
                 "idref": "content"
             }
         }]
+    }
+}
+`;
+    }
+
+    // helper function for the command `new`, to create xproject/ml/default.json
+    function NEW_DEFAULT_ENV(vars)
+    {
+	return `{
+    "mlproj": {
+        "format": "0.1",
+        "import": "dev.json"
     }
 }
 `;

@@ -19,7 +19,7 @@
 		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
 	    }
 	    if ( ! env && ! path ) {
-		throw new Error('None of `environ` and `path` set');
+		env = 'default';
 	    }
 	    var prj = env
 		? new XProject(this, env, base)
