@@ -1,0 +1,8 @@
+<project xmlns="http://expath.org/ns/project"
+         name="http://mlproj.org/example/simple-achel"
+         abbrev="simple-achel"
+         version="0.1.0">
+
+   <title>Simple, full-fledged example project</title>
+
+</project>

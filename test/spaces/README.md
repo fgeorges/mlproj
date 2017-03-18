@@ -1,5 +1,5 @@
 [Metasyntactic variable](https://en.wikipedia.org/wiki/Metasyntactic_variable)
-names to use for projects, based on this abecedary:
+names to use for spaces, based on this abecedary:
 
 ![Animals abecedary](animals.jpg)
 
