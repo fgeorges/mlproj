@@ -215,7 +215,8 @@ commands.forEach(cmd => {
             prg = prg.option(opt.option, opt.label);
 	});
     }
-    prg.action(() => {
+    // 'function()' needed for 'arguments', cannot use '() => ...' here
+    prg.action(function() {
         resolved = true;
 	cmd.impl(program, cmd, arguments);
     });
