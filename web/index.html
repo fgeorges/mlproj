@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mlproj</title>
+
+    <!-- CSS stylesheets -->
+    <link href="css/bootstrap.css"  rel="stylesheet" type="text/css" />
+    <link href="css/clean-blog.css" rel="stylesheet" type="text/css" />
+
+    <!-- fonts -->
+    <link href="css/font-awesome.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+
+    <!--
+        TODO,FIXME: Should be at the very end of the HTML.  Only when
+        the `script` element generated in the `h2o:code[@lang]` template
+        rule has been pushed to the end of the HTML as well, as it must
+        appear after this importing one...
+    <script src="js/ace/ace.js" type="text/javascript"/>
+    -->
+  </head>
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top" id="navbar">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            Menu <i class="fa fa-bars"></i>
+          </button>
+          <a class="navbar-left" href="/" style="margin-top: 15px;">
+            <img src="images/package-icon.png" style="height: 33px;" />
+          </a>
+        </div>
+        <!-- the menu items -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#intro" class="nav-item">Introduction</a></li>
+	    <!--
+            <li><a href="doc/" class="nav-item">Documentation</a></li>
+            <li><a href="blog/">Articles</a></li>
+            <li><a href="#..." class="nav-item">...</a></li>
+	    -->
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="front nav-item" href="./#intro">
+      <div class="title">
+        <h1><span>mlproj</span></h1>
+        <h2 class="subheading">
+	  <span id="rotate" style="display: inline; opacity: 0.875056;">Project and environment manager for MarkLogic</span>
+	</h2>
+	<span class="meta">Get your project ready to go in seconds!</span>
+      </div>
+    </div>
+
+    <article>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+	  <a class="anchor" id="intro"></a><h3></h3>
+	    <p>
+	       <code>mlproj</code> is a project manager for MarkLogic.  It allows you to get
+	       started in seconds with a new project.  Literally!
+	    </p>
+	    <p>
+	       You can describe and maintain your environment, and their specificities, in an
+	       easy-to-read and easy-to-maintain format.  And you can of course automate the
+	       setup and deployment of your different environments.
+	    </p>
+	    <p>
+	       In order to get started, install it using <code>npm</code>:
+	    </p>
+	    <pre>
+npm install mlproj -g</pre>
+	    <p>
+	       This website is still under construction.  For more info, please see
+	       the <a href="http://github.com/fgeorges/mlproj">Github repository</a>.
+	    </p>
+	    <p>
+	       To access the built-in help in the program, just invoke <code>mlproj
+	       help</code>:
+	    </p>
+	    <pre>
+fgeorges@callisto:~$ mlproj help
+
+  Usage: mlproj [options] [command]
+
+  Commands:
+
+    help [name]  display help about another command
+    new          create a new project in an empty dir
+    show         display the environment
+    setup        setup the environment on MarkLogic
+    deploy       deploy modules to the modules database
+
+  Options:
+
+    -h, --help                output usage information
+    -V, --version             output the version number
+    -c, --code &lt;code>         set/override the @code
+    -d, --dry                 dry run
+    -e, --environ &lt;name>      environment name
+    -f, --file &lt;file>         environment file
+    -h, --host &lt;host>         set/override the @host
+    -p, --param &lt;name:value>  set/override a parameter value (use : or =)
+    -s, --srcdir &lt;dir>        set/override the @srcdir
+    -u, --user &lt;user>         set/override the @user
+    -v, --verbose             verbose mode
+    -z, --password            ask for password interactively
+
+fgeorges@callisto:~$ </pre>
+	    <p>
+	       Or watch this animation for a taste of it:
+	    </p>
+	    <img src="images/mlproj-intro.gif"
+		 style="display: block; margin-left: auto; margin-right: auto;"/>
+	    <p>
+	       Feedback welcome (open an issue
+	       on <a href="http://github.com/fgeorges/mlproj">Github</a>, contact me
+	       on <a href="http://twitter.com/fgeorges">Twitter</a>, or contact me by any
+	       other mean you are aware of...)  Enjoy!
+	    </p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- JS libraries -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/clean-blog.js"></script>
+
+    <script>
+       // display the navbar only when not at the very top of the page
+       $('#navbar').hide();
+       $(window).scroll(function() {
+	   // when the page is scrolled run this
+	   if ( $(this).scrollTop() != 0 ) {
+	       // if you're NOT at the top
+	       $('#navbar').fadeIn('fast');
+	   }
+	   else {
+	       $('#navbar').fadeOut('fast');
+	   }
+       });
+
+       // use a scrolling anumation for links in the navbar
+       $('.nav-item').click(function(event) {
+	   event.preventDefault();
+	   // scroll to...
+	   var href = $(this).attr('href');
+	   if ( href.slice(0, 2) === './' ) {
+	       href = href.slice(2);
+	   }
+	   var elem = $(href);
+	   $('html,body').animate({scrollTop: elem.offset().top}, 'slow');
+       });
+    </script>
+
+    <script>
+       // have rotating (sub-)titles...
+/* COMMENTED OUT FOR NOW...  Just the time to get some good catch phrases... :-)
+       (function() {
+	   var i = 1;
+	   var titles = [ 'Connect your data', 'Break your data silos', 'Define your data strategy' ];
+	   var loop = function() {
+	       i = (i + 1) % titles.length;
+	       $('#rotate').fadeOut(function() {
+		   $(this).text(titles[i]);
+	       }).fadeIn();
+	       setTimeout(loop, 3000);
+	   };
+	   setTimeout(loop, 3000);
+       }());
+*/
+    </script>
+
+  </body>
+</html>
