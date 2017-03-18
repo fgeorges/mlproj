@@ -212,9 +212,10 @@ commands.forEach(cmd => {
         .description(cmd.description);
     if ( cmd.options ) {
 	cmd.options.forEach(opt => {
-            prg = prg.option(opt.option, opt.label) });
+            prg = prg.option(opt.option, opt.label);
+	});
     }
-    prg.action(function() {
+    prg.action(() => {
         resolved = true;
 	cmd.impl(program, cmd, arguments);
     });
