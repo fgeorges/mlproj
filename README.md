@@ -494,6 +494,8 @@ top of the list.
 
 ## TODO
 
+- for `deploy`, send several files at once, one-by-one is way too slow
+  (or even zip then all, insert it as a doc, and unzip them with eval endpoint)
 - new command `load` to load data on databases
 - new command `add` to add components, indexes, etc. by answering few questions
 - new command `mlcp` to invoke MLCP with info from the environment files
