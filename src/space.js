@@ -454,7 +454,7 @@
 	    }
 	    this._allDbs = res.list;
 
-	    // ensure we have instatiated all databases
+	    // ensure we have instantiated all databases
 	    var leftover = unsolved(ctxt, res);
 	    if ( leftover.length ) {
 		var disp = leftover.map(c => {

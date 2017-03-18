@@ -2,7 +2,8 @@
 
 (function() {
 
-    const act = require('./action');
+    const act   = require('./action');
+    const props = require('./properties');
 
     function logCheck(actions, indent, msg, arg) {
 	var p = actions.platform;
@@ -29,54 +30,6 @@
 	    s += '   ';
 	}
 	p.log(s + '  need to ' + p.red(verb) + ' ' + msg + (arg ? ': \t' + arg : ''));
-    }
-
-    function values(o) {
-	const reduce = Function.bind.call(Function.call, Array.prototype.reduce);
-	const isEnumerable = Function.bind.call(Function.call, Object.prototype.propertyIsEnumerable);
-	const concat = Function.bind.call(Function.call, Array.prototype.concat);
-	const keys = Reflect.ownKeys;
-	return reduce(keys(o), (v, k) => {
-	    return concat(v, typeof k === 'string' && isEnumerable(o, k) ? [o[k]] : []);
-	}, []);
-    }
-
-    function extractProps(props, table, json, type) {
-	// extract values
-	Object.keys(json).forEach(p => {
-	    var desc = table[p];
-	    if ( ! desc ) {
-		throw new Error('Unknwon property: ' + type + '.' + p);
-	    }
-	    if ( desc.ignore ) {
-		return; // do nothing for this one
-	    }
-	    var value = json[p];
-	    if ( desc.type !== typeof value ) {
-		if ( desc.type === 'number' && typeof value === 'string' ) {
-		    if ( ! /^[0-9]+(\.[0-9]+)?$/.test(value) ) {
-			throw new Error('Not a lexically valid number for '
-					+ type + '.' + p + ': ' + value);
-		    }
-		    value = Number.parseFloat(value);
-		}
-		else {
-		    throw new Error('Convertion from ' + typeof value + ' to '
-				    + desc.type + ' not supported (yet?)');
-		}
-	    }
-	    var validate = desc.validate;
-	    if ( validate && ! validate(value) ) {
-		throw new Error('Invalid value for ' + type + '.' + p + ': ' + value);
-	    }
-	    props[p] = value;
-	});
-	// chack mandatory properties
-	values(table).forEach(p => {
-	    if ( p.mandatory && props[p.name] === undefined ) {
-		throw new Error('Mandatory prop ' + type + '.' + p.name + ' not set');
-	    }
-	});
     }
 
     /*~
@@ -112,11 +65,8 @@
             this.security = security === 'self' ? this : security;
             this.triggers = triggers === 'self' ? this : triggers;
             this.forests  = {};
-            this.indexes  = new Indexes(this, json.indexes);
-            this.lexicons = new Lexicons(this, json.lexicons);
-            this.props    = {};
 	    // extract the configured properties
-	    extractProps(this.props, Database.props, json, 'database');
+            this.props    = props.database.parse(json);
 	    // the forests
 	    var forests = json.forests;
 	    if ( forests === null || forests === undefined ) {
@@ -155,8 +105,7 @@
 		pf.line(1, 'forests:');
 		forests.sort().forEach(f => pf.line(2, f));
 	    }
-	    this.indexes.show(pf);
-	    this.lexicons.show(pf);
+	    Object.keys(this.props).forEach(p => this.props[p].show(pf));
 	}
 
         setup(actions, callback)
@@ -201,14 +150,15 @@
 	    this.schema   && ( obj['schema-database']   = this.schema.name   );
 	    this.security && ( obj['security-database'] = this.security.name );
 	    this.triggers && ( obj['triggers-database'] = this.triggers.name );
-	    // its indexes and lexicons
-	    this.indexes.create(obj);
-	    this.lexicons.create(obj);
+	    // its properties
+	    Object.keys(this.props).forEach(p => {
+		this.props[p].create(obj);
+	    });
 	    // enqueue the "create db" action
 	    actions.add(new act.DatabaseCreate(this, obj));
 	    logCheck(actions, 1, 'forests');
 	    // check the forests
-	    values(this.forests).forEach(f => f.create(actions, forests));
+	    Object.keys(this.forests).forEach(f => this.forests[f].create(actions, forests));
 	    callback();
 	}
 
@@ -223,26 +173,24 @@
 	    logCheck(actions, 1, 'forests');
 	    var actual  = body.forest || [];
 	    var desired = Object.keys(this.forests);
-	    // to remove: those in `actual` but not in `desired`
+	    // forests to remove: those in `actual` but not in `desired`
 	    actual
 		.filter(name => ! desired.includes(name))
 		.forEach(name => {
 		    new Forest(this, name).remove(actions);
 		});
-	    // to add: those in `desired` but not in `actual`
+	    // forests to add: those in `desired` but not in `actual`
 	    desired
 		.filter(name => ! actual.includes(name))
 		.forEach(name => {
 		    this.forests[name].create(actions, forests);
 		});
 
-	    // check indexes
-	    logCheck(actions, 1, 'indexes');
-	    this.indexes.update(actions, body);
-
-	    // check lexicons
-	    logCheck(actions, 1, 'lexicons');
-	    this.lexicons.update(actions, body);
+	    // check properties
+	    logCheck(actions, 1, 'properties');
+	    Object.keys(this.props).forEach(p => {
+		this.props[p].update(actions, body, this, logAdd);
+	    });
 
 	    callback();
 	}
@@ -276,24 +224,6 @@
 	    }
 	}
     }
-
-    Database.props = {
-	// not a database property, but an environment file format artefact
-	compose:  { name : 'compose',  ignore : true },
-	// not database properties
-	id:       { name : 'id',       ignore : true },
-	name:     { name : 'name',     ignore : true },
-	// schema, security and triggers DB are complex, handled specifically
-	schema:   { name : 'schema',   ignore : true },
-	security: { name : 'security', ignore : true },
-	triggers: { name : 'triggers', ignore : true },
-	// forests are complex, handled specifically
-	forests:  { name : 'forests',  ignore : true },
-	// indexes and lexicons are complex, handled specifically
-	// TODO: Described them here, with their inner structure...
-	indexes:  { name : 'indexes',  ignore : true },
-	lexicons: { name : 'lexicons', ignore : true }
-    };
 
     /*~
      * A forest.
@@ -341,16 +271,15 @@
             this.name    = json.name;
             this.content = content;
             this.modules = modules;
-            this.props   = {};
 	    // extract the configured properties
-	    extractProps(this.props, Server.props, json, 'server');
+            this.props   = props.server.parse(json, this.props);
 	    // use @srcdir if no modules DB and no root
             if ( ! this.modules && ! this.props.root ) {
 		var dir = space.param('@srcdir');
 		if ( ! dir ) {
 		    throw new Error('No @srcdir for the root of the server: ' + this.name);
 		}
-		this.props.root = dir;
+		this.props.root = new props.Result(props.server.props.root, dir);
 	    }
         }
 
@@ -363,9 +292,8 @@
 	    this.modules && pf.line(1, 'modules DB', this.modules.name);
 	    // explicit list of properties, to guarantee the order they are displayed
 	    [ 'type', 'port', 'root', 'rewriter', 'handler' ].forEach(p => {
-		var label = Server.props[p].label;
-		if ( this.props[p] !== undefined && label ) {
-		    pf.line(1, label, this.props[p]);
+		if ( this.props[p] !== undefined ) {
+		    this.props[p].show(pf);
 		}
 	    });
 	}
@@ -399,9 +327,8 @@
                 "content-database": this.content.name
             };
             this.modules && ( obj['modules-database'] = this.modules.name );
-	    Object.keys(this.props).forEach(n => {
-		var k = Server.props[n].key;
-		obj[k] = v;
+	    Object.keys(this.props).forEach(p => {
+		this.props[p].create(obj);
 	    });
 	    actions.add(new act.ServerCreate(this, obj));
 	    callback();
@@ -409,536 +336,27 @@
 
         update(actions, callback, actual)
 	{
-	    // incompatible changes
-	    var diffs = [];
-	    values(Server.props).filter(p => p.frozen).forEach(p => {
-		if ( this.props[p.name] !== actual[p.key] ) {
-	    	    diffs.push(p.name);
-		}
-	    });
-	    if ( diffs.length ) {
-		var msg = 'Server exist and differ by server.' + diffs[0];
-		for ( var i = 1; i < diffs.length - 1; ++i ) {
-		    msg += ', server.' + diffs[i];
-		}
-		if ( diffs.length > 1 ) {
-		    msg += ' and server.' + diffs[diffs.length - 1];
-		}
-		msg += ', which cannot be updated';
-		throw new Error(msg);
-	    }
-
-	    // applicable changes
-	    diffs = [];
+	    // the content and modules databases
             if ( this.content.name !== actual['content-database'] ) {
-		diffs.push({ name: 'content-database', value: this.content.name });
+		logAdd(actions, 0, 'update', 'content-database');
+		actions.add(new act.ServerUpdate(this, 'content-database', this.content.name));
 	    }
             if ( ( ! this.modules && actual['modules-database'] )
 		 || ( this.modules && ! actual['modules-database'] )
 		 || ( this.modules && this.modules.name !== actual['modules-database'] ) ) {
-		diffs.push({
-		    name: 'modules-database',
-		    value: this.modules ? this.modules.name : null
-		});
+		var mods = this.modules ? this.modules.name : null;
+		logAdd(actions, 0, 'update', 'modules-database');
+		actions.add(new act.ServerUpdate(this, 'modules-database', mods));
 	    }
-	    values(Server.props).filter(p => ! p.frozen).forEach(p => {
-		var here  = this.props[p.name];
-		var there = actual[p.key];
-		if ( ( here || there ) && here !== there ) {
-		    diffs.push({
-			name  : p.key,
-			value : here ? here : ''
-		    });
-		}
+
+	    // check properties
+	    logCheck(actions, 1, 'properties');
+	    Object.keys(this.props).forEach(p => {
+		this.props[p].update(actions, actual, this, logAdd);
 	    });
-	    diffs.forEach(diff => {
-		logAdd(actions, 0, 'update', diff.name);
-		actions.add(new act.ServerUpdate(this, diff.name, diff.value));
-	    });
+
 	    callback();
 	}
-    }
-
-    Server.props = {
-	// not a server property, but an environment file format artefact
-	compose: { name : 'compose', ignore : true },
-	// not server properties
-	id:      { name : 'id',      ignore : true },
-	name:    { name : 'name',    ignore : true },
-	// not a server property, it is rather part of its name
-	group:   { name : 'group',   ignore : true },
-	// content and modules DB are complex, handled specifically
-	content: { name : 'content', ignore : true },
-	modules: { name : 'modules', ignore : true },
-	type: {
-	    name      : 'type',
-	    key       : 'server-type',
-	    type      : 'string',
-	    // TODO: Support more server types...
-	    validate  : val => [ 'http' ].includes(val),
-	    mandatory : true,
-	    frozen    : true,
-	    label     : 'root'
-	},
-	port: {
-	    name      : 'port',
-	    key       : 'port',
-	    type      : 'number',
-	    // TODO: Come with more precise conditions.
-	    validate  : val => Number.isInteger(val) && val > 100 && val < 10000,
-	    mandatory : true,
-	    // TODO: Should not be frozen, but not supported yet, because
-	    // changing it restarts MarkLogic.
-	    frozen    : true,
-	    label     : 'port'
-	},
-	root: {
-	    name  : 'root',
-	    key   : 'root',
-	    type  : 'string',
-	    label : 'root'
-	},
-	rewriter: {
-	    name  : 'rewriter',
-	    key   : 'url-rewriter',
-	    type  : 'string',
-	    label : 'url rewriter'
-	},
-	handler: {
-	    name  : 'handler',
-	    key   : 'error-handler',
-	    type  : 'string',
-	    label : 'error handler'
-	}
-    };
-
-    /*~
-     * All the indexes of a database.
-     */
-    class Indexes
-    {
-        constructor(db, indexes)
-        {
-	    this.db        = db;
-            this.rangeElem = {};
-            this.rangeAttr = {};
-            this.rangePath = {};
-            if ( indexes ) {
-		var keys = Object.keys(indexes);
-		if ( indexes.ranges ) {
-		    keys.splice(keys.indexOf('ranges'), 1);
-                    indexes.ranges.forEach(idx => {
-		        if ( idx.path ) {
-			    PathRangeIndex.addToMap(this.rangePath, idx);
-			}
-		        else if ( idx.parent ) {
-			    AttributeRangeIndex.addToMap(this.rangeAttr, idx);
-			}
-			else {
-			    ElementRangeIndex.addToMap(this.rangeElem, idx);
-			}
-		    });
-		}
-		if ( keys.length ) {
-		    throw new Error('Unknown index type(s): ' + keys);
-		}
-            }
-        }
-
-        show(pf)
-	{
-	    values(this.rangeElem).forEach(r => r.show(pf));
-	    values(this.rangeAttr).forEach(r => r.show(pf));
-	    values(this.rangePath).forEach(r => r.show(pf));
-	}
-
-	update(actions, body)
-	{
-	    // element range indexes
-	    var elemRanges = {};
-	    ( body['range-element-index'] || [] ).forEach(idx => {
-		var name = idx['localname'];
-		var ns   = idx['namespace-uri'];
-		var key  = ElementRangeIndex.indexKey(name, ns);
-		elemRanges[key] = idx;
-	    });
-	    ElementRangeIndex.update(actions, this.rangeElem, elemRanges, this.db);
-
-	    // attribute range indexes
-	    var attrRanges = {};
-	    ( body['range-element-attribute-index'] || [] ).forEach(idx => {
-		var name  = idx['localname'];
-		var ns    = idx['namespace-uri'];
-		var pName = idx['parent-localname'];
-		var pNs   = idx['parent-namespace-uri'];
-		var key   = ElementRangeIndex.indexKey(name, ns, pName, pNs);
-		attrRanges[key] = idx;
-	    });
-	    AttributeRangeIndex.update(actions, this.rangeAttr, attrRanges, this.db);
-
-	    // path range indexes
-	    var pathRanges = {};
-	    ( body['range-path-index'] || [] ).forEach(idx => {
-		var key = idx['path-expression'];
-		pathRanges[key] = idx;
-	    });
-	    PathRangeIndex.update(actions, this.rangePath, pathRanges, this.db);
-	}
-
-        create(db)
-        {
-	    ElementRangeIndex.create(db, this.rangeElem);
-	    AttributeRangeIndex.create(db, this.rangeAttr);
-	    PathRangeIndex.create(db, this.rangePath);
-        }
-    }
-
-    /*~
-     * Abstract class for one range index.
-     */
-    class RangeIndex
-    {
-	static indexKey(name, ns, parentName, parentNs)
-	{
-	    var key = ( ns ? '{' + ns + '}' : '' ) + name;
-	    if ( parentName ) {
-		key += '|' + ( parentNs ? '{' + parentNs + '}' : '' ) + parentName;
-	    }
-	    return key;
-	}
-
-	static addToMap(map, json, ctor)
-	{
-	    var names = json.name;
-	    if ( ! Array.isArray(names) ) {
-		names = [ json.name ];
-	    }
-	    while ( names.length ) {
-		json.name = names.shift();
-		var p   = json.parent;
-		var key = json.path
-		    ? json.path
-		    : ( p
-			? RangeIndex.indexKey(json.name, json.namespace, p.name, p.namespace)
-			: RangeIndex.indexKey(json.name, json.namespace) );
-		map[key] = ctor(json);
-	    }
-	}
-
-	static update(actions, objects, json, db, prop, value, type)
-	{
-	    var actual  = Object.keys(json);
-	    var desired = Object.keys(objects);
-	    // to keep: those in both `actual` and `desired`
-	    // check they are what's desired, or fail
-	    var keep = actual.filter(name => desired.includes(name));
-	    keep.forEach(name => {
-		objects[name].update(actions, name, json[name]);
-	    });
-	    // if there is any change...
-	    if ( keep.length !== actual.length || keep.length !== desired.length ) {
-		logAdd(actions, 1, 'update', type + ' range indexes');
-		actions.add(new act.DatabaseUpdate(db, prop, value(objects)));
-	    }
-	}
-
-        constructor(json)
-        {
-            this.type      = json.type;
-            this.positions = json.positions;
-            this.invalid   = json.invalid;
-            this.collation = json.collation;
-	    if ( this.type !== 'string' && this.collation ) {
-		throw new Error('Range index with collation not of type string');
-	    }
-        }
-
-        create()
-        {
-            var obj = {
-                "scalar-type":           this.type,
-                "range-value-positions": this.positions,
-                "invalid-values":        this.invalid
-            };
-	    if ( this.type === 'string' ) {
-		if ( this.collation ) {
-		    obj.collation = this.collation;
-		}
-		else {
-		    obj.collation = 'http://marklogic.com/collation/';
-		}
-	    }
-            return obj;
-        }
-
-	update(actions, name, actual)
-	{
-	    var diffs = [];
-	    this.updateDiffs(actions, name, actual, diffs);
-	    if ( diffs.length ) {
-		var msg = 'Range index for `' + name + '` differ by `' + diffs[0] + '`';
-		for ( var i = 1; i < diffs.length - 1; ++i ) {
-		    msg += ', `' + diffs[i] + '`';
-		}
-		if ( diffs.length > 1 ) {
-		    msg += ' and `' + diffs[diffs.length - 1] + '`';
-		}
-		// TODO: Instead of stopping here, we should accumulate such
-		// errors in `actions` and keep going.  In `ActionList.execute`,
-		// we can then check if there is any error before going further.
-		// This way, we could accumulate all errors instead of stopping
-		// on the first one, for reporting purposes.  Applies to other
-		// places as well.
-		throw new Error(msg);
-	    }
-	}
-
-	updateDiffs(actions, name, actual, diffs)
-	{
-            if ( this.type !== actual['scalar-type'] ) {
-		diffs.push('type');
-	    }
-            if ( this.positions !== actual['range-value-positions'] ) {
-		diffs.push('positions');
-	    }
-	    // TODO: Don't we want to allow some changes, e.g. the value of
-	    // `invalid-values`?  What changes does the Management API allow?
-            if ( this.invalid !== actual['invalid-values'] ) {
-		diffs.push('invalid');
-	    }
-            if ( this.type === 'string' && this.collation !== actual['collation'] ) {
-		diffs.push('collation');
-	    }
-	}
-    }
-
-    /*~
-     * One element range index.
-     */
-    class ElementRangeIndex extends RangeIndex
-    {
-	static addToMap(map, json)
-	{
-	    RangeIndex.addToMap(map, json, idx => new ElementRangeIndex(idx));
-	}
-
-	static update(actions, objects, json, db)
-	{
-	    RangeIndex.update(actions, objects, json, db, ElementRangeIndex.prop,
-			      ElementRangeIndex.value, 'element');
-	}
-
-	static value(ranges)
-	{
-	    // if there is no index, that will be an empty array, preventing the
-	    // default DLS range indexes to be created
-            return values(ranges)
-		.map(idx => idx.create());
-	}
-
-        static create(db, ranges)
-        {
-            db[ElementRangeIndex.prop] = ElementRangeIndex.value(ranges);
-        }
-
-        constructor(json)
-        {
-	    super(json);
-            this.name      = json.name;
-            this.namespace = json.namespace || '';
-        }
-
-        show(pf)
-	{
-	    pf.line(1, 'element range index:');
-	    pf.line(2, 'name', (this.namespace ? '{' + this.namespace + '}' : '') + this.name);
-	    pf.line(2, 'type', this.type);
-	    this.positions  && pf.line(2, 'positions', this.positions);
-	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
-	    this.collaction && pf.line(2, 'invalid',   this.collaction);
-	}
-
-        create()
-        {
-            var obj = super.create();
-	    obj['localname']     = this.name;
-	    obj['namespace-uri'] = this.namespace;
-            return obj;
-        }
-
-	updateDiffs(actions, name, actual, diffs)
-	{
-            if ( this.name !== actual['localname'] ) {
-		diffs.push('name');
-	    }
-            if ( this.namespace !== actual['namespace-uri'] ) {
-		diffs.push('namespace');
-	    }
-	}
-    }
-    ElementRangeIndex.prop = 'range-element-index';
-
-    /*~
-     * One attribute range index.
-     */
-    class AttributeRangeIndex extends ElementRangeIndex
-    {
-	static addToMap(map, json)
-	{
-	    RangeIndex.addToMap(map, json, idx => new AttributeRangeIndex(idx));
-	}
-
-	static update(actions, objects, json, db)
-	{
-	    RangeIndex.update(actions, objects, json, db, AttributeRangeIndex.prop,
-			      AttributeRangeIndex.value, 'attribute');
-	}
-
-	static value(ranges)
-	{
-            return values(ranges)
-		.map(idx => idx.create());
-	}
-
-        static create(db, ranges)
-        {
-            db[AttributeRangeIndex.prop] = AttributeRangeIndex.value(ranges);
-        }
-
-        constructor(json)
-        {
-	    super(json);
-            this.parentName = json.parent.name;
-            this.parentNs   = json.parent.namespace || '';
-        }
-
-        show(pf)
-	{
-	    pf.line(1, 'attribute range index:');
-	    pf.line(2, 'name',   (this.namespace ? '{' + this.namespace + '}' : '') + this.name);
-	    pf.line(2, 'parent', (this.parentNs  ? '{' + this.parentNs  + '}' : '') + this.parentName);
-	    pf.line(2, 'type',   this.type);
-	    this.positions  && pf.line(2, 'positions', this.positions);
-	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
-	    this.collaction && pf.line(2, 'invalid',   this.collaction);
-	}
-
-        create()
-        {
-            var obj = super.create();
-	    obj['parent-localname']     = this.parentName;
-	    obj['parent-namespace-uri'] = this.parentNs;
-            return obj;
-        }
-
-	updateDiffs(actions, name, actual, diffs)
-	{
-	    super.updateDiffs(actions, name, actual, diffs);
-            if ( this.parentName !== actual['parent-localname'] ) {
-		diffs.push('parent/name');
-	    }
-            if ( this.parentNs !== actual['parent-namespace-uri'] ) {
-		diffs.push('parent/namespace');
-	    }
-	}
-    }
-    AttributeRangeIndex.prop = 'range-element-attribute-index';
-
-    /*~
-     * One path range index.
-     */
-    class PathRangeIndex extends RangeIndex
-    {
-	static addToMap(map, json)
-	{
-	    RangeIndex.addToMap(map, json, idx => new PathRangeIndex(idx));
-	}
-
-	static update(actions, objects, json, db)
-	{
-	    RangeIndex.update(actions, objects, json, db, PathRangeIndex.prop,
-			      PathRangeIndex.value, 'path');
-	}
-
-	static value(ranges)
-	{
-            return values(ranges)
-		.map(idx => idx.create());
-	}
-
-        static create(db, ranges)
-        {
-            db[PathRangeIndex.prop] = PathRangeIndex.value(ranges);
-        }
-
-        constructor(json)
-        {
-	    super(json);
-            this.path = json.path;
-        }
-
-        show(pf)
-	{
-	    pf.line(1, 'path range index:');
-	    pf.line(2, 'path', this.path);
-	    pf.line(2, 'type', this.type);
-	    this.positions  && pf.line(2, 'positions', this.positions);
-	    this.invalid    && pf.line(2, 'invalid',   this.invalid);
-	    this.collaction && pf.line(2, 'invalid',   this.collaction);
-	}
-
-        create()
-        {
-            var obj = super.create();
-	    obj['path-expression'] = this.path;
-            return obj;
-        }
-
-	updateDiffs(actions, name, actual, diffs)
-	{
-	    super.updateDiffs(actions, name, actual, diffs);
-            if ( this.path !== actual['path-expression'] ) {
-		diffs.push('path');
-	    }
-	}
-    }
-    PathRangeIndex.prop = 'range-path-index';
-
-    /*~
-     * All the lexicons of a database.
-     */
-    class Lexicons
-    {
-        constructor(db, lexicons)
-        {
-	    this.db   = db;
-            this.uri  = lexicons && lexicons.uri;
-            this.coll = lexicons && lexicons.collection;
-        }
-
-	update(actions, body)
-	{
-	    if ( ( this.uri !== undefined ) && ( this.uri !== body['uri-lexicon'] ) ) {
-		logAdd(actions, 1, 'update', 'uri lexicon');
-		actions.add(new act.DatabaseUpdate(this.db, 'uri-lexicon', this.uri));
-	    }
-	    if ( ( this.coll !== undefined ) && ( this.coll !== body['collection-lexicon'] ) ) {
-		logAdd(actions, 1, 'update', 'collection lexicon');
-		actions.add(new act.DatabaseUpdate(this.db, 'collection-lexicon', this.coll));
-	    }
-	}
-
-        show(pf)
-	{
-	    (this.uri  !== undefined) && pf.line(1, 'uri lexicon',        this.uri);
-	    (this.coll !== undefined) && pf.line(1, 'collection lexicon', this.coll);
-	}
-
-        create(db)
-        {
-	    this.uri  && ( db['uri-lexicon']        = this.uri  );
-	    this.coll && ( db['collection-lexicon'] = this.coll );
-        }
     }
 
     module.exports = {
