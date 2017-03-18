@@ -505,11 +505,6 @@ top of the list.
 - new command to publish to CXAN
 - edit environment files from the Console
 - word lexicons
-- drive properties by configuration (on a property-by-property basis)
-    - start with simple properties, like URI and collection lexicons
-    - create two such arrays, in cmp.Database and cmp.Server
-    - its names (in spaces and api, or JPath), default value, scalar or array?,
-      is it "changeable"?, etc.
 - allow changing a server port, as it restarts the instance
 - add support for triggers in space files
 
