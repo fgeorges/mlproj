@@ -495,7 +495,6 @@ top of the list.
 ## TODO
 
 - document the environment file format on the website
-- create a dev script to track properties supported in the environ file format
 - for `deploy`, send several files at once, one-by-one is way too slow
   (or even zip then all, insert it as a doc, and unzip them with eval endpoint)
 - new command `load` to load data on databases
