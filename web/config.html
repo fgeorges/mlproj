@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mlproj - Commands</title>
+
+    <!-- CSS stylesheets -->
+    <link href="css/bootstrap.css"  rel="stylesheet" type="text/css" />
+    <link href="css/clean-blog.css" rel="stylesheet" type="text/css" />
+
+    <!-- fonts -->
+    <link href="css/font-awesome.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top" id="navbar">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            Menu <i class="fa fa-bars"></i>
+          </button>
+          <a class="navbar-left" href="./" style="margin-top: 15px;">
+            <img src="images/package-icon.png" style="height: 33px;" />
+          </a>
+        </div>
+        <!-- the menu items -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="./">Introduction</a></li>
+            <li><a href="commands">Commands</a></li>
+            <li><a href="config">Config</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <article>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+	    <a class="anchor" id="intro"></a>
+	    <h1>Config</h1>
+	    <p>
+	      This page documents the environment file format.  It contains the following
+	      sections:
+	    </p>
+	    <ul>
+	      <li><a href="#supported">Supported properties</a></li>
+	    </ul>
+	    <p>
+	      <b>TODO</b>: Describe the environment file format...!
+	    </p>
+
+
+	    <a class="anchor" id="supported"></a>
+	    <h3>Supported properties</h3>
+	    <p>
+	      All properties from the Management API are not supported yet to be
+	      represented in the environment files.  Here are the lists of the supported
+	      properties, for resp. databases and servers.
+	    </p>
+	    <p>
+	      These lists help identifying what is left to do on the environment file
+	      format design, giving a good idea of what is the coverage of the file
+	      format, and mapping between property names and paths in the file format.
+	      They are based on the Management API in MarkLogic 9.0 EA4.
+	    </p>
+	    <p>
+	      Each entry contains the name of the property as in the Management API,
+	      whether it is supported or not, and if it is a path-like notation of where
+	      it can be set in the environment file format.
+	    </p>
+
+<h4>Database properties</h4>
+<p>Supported properties for databases.</p>
+<table class="table">
+<thead>
+<tr><th>name</th><th>path</th><th style="text-align:center">supported</th></tr>
+</thead>
+<tbody>
+<tr><td>assignment-policy</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>attribute-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>collection-lexicon</td><td>lexicons.collection</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>data-encryption</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>database-backups</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>database-name</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>database-replication</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-rulesets</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>directory-creation</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>element-attribute-word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>element-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>element-word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>element-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>element-word-query-throughs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>enabled</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>encryption-key-id</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>expunge-locks</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-case-sensitive-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-diacritic-sensitive-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-element-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-element-phrase-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-element-trailing-wildcard-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-element-word-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-phrase-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fast-reverse-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>field-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>field-value-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fields</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>forests</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>format-compatibility</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fragment-parents</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>fragment-roots</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-element-attribute-pair-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-element-child-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-element-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-element-pair-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>geospatial-region-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-geospatial-region-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-list-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-range-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-reverse-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-tree-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>in-memory-triple-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>index-detection</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>inherit-collections</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>inherit-permissions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>inherit-quality</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>journal-count</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>journal-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>journaling</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>language</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>large-size-threshold</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>locking</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>maintain-directory-last-modified</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>maintain-last-modified</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-blackouts</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-max-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-min-ratio</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-min-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-priority</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>merge-timestamp</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>one-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>path-namespaces</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>phrase-arounds</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>phrase-throughs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>positions-list-max-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>preallocate-journals</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>preload-mapped-data</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>preload-replica-mapped-data</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>range-element-attribute-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>range-element-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>range-field-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>range-index-optimize</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>range-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>rebalancer-enable</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>rebalancer-throttle</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>reindexer-enable</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>reindexer-throttle</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>reindexer-timestamp</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>retain-until-backup</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>retired-forest-count</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>schema-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>security-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>stemmed-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>tf-normalization</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>three-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>three-character-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>trailing-wildcard-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>trailing-wildcard-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>triple-index</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>triple-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>two-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>uri-lexicon</td><td>lexicons.uri</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>word-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+</tbody>
+</table>
+<h4>Server properties</h4>
+<p>Supported properties for servers.</p>
+<table class="table">
+<thead>
+<tr><th>name</th><th>path</th><th style="text-align:center">supported</th></tr>
+</thead>
+<tbody>
+<tr><td>address</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>authentication</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>backlog</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>collation</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>compute-content-length</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>concurrent-request-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>content-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>coordinate-system</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>debug-allow</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-error-format</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-inference-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-time-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-user</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>default-xquery-version</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>display-last-login</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>distribute-timestamps</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>enabled</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>error-handler</td><td>handler</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>execute</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>external-securities</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>file-log-level</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>group-name</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>internal-security</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>keep-alive-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>log-errors</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>max-inference-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>max-time-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>module-locations</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>multi-version-concurrency-control</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>namespaces</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-byte-order-mark</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-cdata-section-localname</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-cdata-section-namespace-uri</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-doctype-public</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-doctype-system</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-encoding</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-escape-uri-attributes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-include-content-type</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-include-default-attributes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-indent</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-indent-tabs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-indent-untyped</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-media-type</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-method</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-normalization-form</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-omit-xml-declaration</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-sgml-character-entities</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-standalone</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-undeclare-prefixes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>output-version</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>port</td><td>port</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>pre-commit-trigger-depth</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>pre-commit-trigger-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>profile-allow</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>request-blackouts</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>request-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>rewrite-resolves-globally</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>root</td><td>root</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>schemas</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>server-name</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>server-type</td><td>type</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>session-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-allow-sslv3</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-allow-tls</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-ciphers</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-disable-sslv3</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-disable-tlsv1</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-disable-tlsv1-1</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-disable-tlsv1-2</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-hostname</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>ssl-require-client-certificate</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>static-expires</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>threads</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+<tr><td>url-rewriter</td><td>rewriter</td><td style="color:green;text-align:center">✓</td></tr>
+<tr><td>webDAV</td><td></td><td style="color:red;text-align:center">✗</td></tr>
+</tbody>
+</table>
+
+
+
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- JS libraries -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/clean-blog.js"></script>
+
+  </body>
+</html>

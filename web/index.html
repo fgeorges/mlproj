@@ -39,8 +39,9 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#intro" class="nav-item">Introduction</a></li>
+            <li><a href="commands">Commands</a></li>
+            <li><a href="config">Config</a></li>
 	    <!--
-            <li><a href="doc/" class="nav-item">Documentation</a></li>
             <li><a href="blog/">Articles</a></li>
             <li><a href="#..." class="nav-item">...</a></li>
 	    -->
@@ -63,28 +64,31 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
-	  <a class="anchor" id="intro"></a><h3></h3>
+	    <a class="anchor" id="intro"></a><h3></h3>
 	    <p>
-	       <code>mlproj</code> is a project manager for MarkLogic.  It allows you to get
-	       started in seconds with a new project.  Literally!
+	      <code>mlproj</code> is a project manager for MarkLogic.  It allows you to
+	      get started in seconds with a new project.  Literally!
 	    </p>
 	    <p>
-	       You can describe and maintain your environment, and their specificities, in an
-	       easy-to-read and easy-to-maintain format.  And you can of course automate the
-	       setup and deployment of your different environments.
+	      You can describe and maintain your environments, and their specificities,
+	      in an easy-to-read and easy-to-maintain format.  And you can of course
+	      automate the setup and deployment of your different environments.
 	    </p>
 	    <p>
-	       In order to get started, install it using <code>npm</code>:
+	      In order to get started, install it using <code>npm</code>:
 	    </p>
 	    <pre>
 npm install mlproj -g</pre>
 	    <p>
-	       This website is still under construction.  For more info, please see
-	       the <a href="http://github.com/fgeorges/mlproj">Github repository</a>.
+	      You will find the following documentation here:
+	      <ul>
+		<li>the various <a href="commands">commands</a></li>
+		<li>the <a href="config">environment file</a> format</li>
+	      </ul>
 	    </p>
 	    <p>
-	       To access the built-in help in the program, just invoke <code>mlproj
-	       help</code>:
+	      To access the built-in help in the program, just invoke <code>mlproj
+	      help</code>:
 	    </p>
 	    <pre>
 fgeorges@callisto:~$ mlproj help
@@ -116,7 +120,9 @@ fgeorges@callisto:~$ mlproj help
 
 fgeorges@callisto:~$ </pre>
 	    <p>
-	       Or watch this animation for a taste of it:
+	       This animation gives you a taste of <code>mlproj</code> (it creates a new
+	       project interactively, shows the details of the <code>prod</code>
+	       environment, and finally set it up on MarkLogic):
 	    </p>
 	    <img src="images/mlproj-intro.gif"
 		 style="display: block; margin-left: auto; margin-right: auto;"/>
