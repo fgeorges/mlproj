@@ -115,7 +115,10 @@
     class XProject extends Project
     {
 	constructor(platform, env, base) {
-	    var path = platform.resolve('xproject/ml/' + env + '.json', base);
+	    if ( ! /^[-_.0-9a-zA-Z]+$/.test(env) ) {
+		throw new Error('Invalid environment name: ' + env);
+	    }
+	    var path = platform.resolve('xproject/mlenvs/' + env + '.json', base);
 	    super(platform, path);
 	    this.environ = env;
 	    this.base    = base;

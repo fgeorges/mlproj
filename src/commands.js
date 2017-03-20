@@ -46,8 +46,8 @@
 	    pf.mkdir(xpdir);
 	    pf.write(pf.resolve('project.xml', xpdir), NEW_PROJECT_XML(this));
 
-	    // create `xproject/ml/` and `xproject/ml/{base,dev,prod}.json`
-	    var mldir = pf.resolve('ml', xpdir);
+	    // create `xproject/mlenvs/` and `xproject/mlenvs/{base,default,dev,prod}.json`
+	    var mldir = pf.resolve('mlenvs', xpdir);
 	    pf.mkdir(mldir);
 	    pf.write(pf.resolve('base.json',    mldir), NEW_BASE_ENV(this));
 	    pf.write(pf.resolve('default.json', mldir), NEW_DEFAULT_ENV(this));
