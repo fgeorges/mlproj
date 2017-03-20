@@ -37,6 +37,10 @@
 	execute() {
 	    var pf = this.platform;
 
+	    // create `src/`
+	    var srcdir = pf.resolve('src', this.dir);
+	    pf.mkdir(srcdir);
+
 	    // create `xproject/` and `xproject/project.xml`
 	    var xpdir = pf.resolve('xproject', this.dir);
 	    pf.mkdir(xpdir);
