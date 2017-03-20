@@ -47,229 +47,87 @@
 
 	    <h1>Config</h1>
 	    <p>
-	      This page documents the environment file format.  It contains the following
-	      sections:
+	      The `mlproj` command itself can be configured in various ways.  It looks in
+	      a few different config files, so you can maintain some pieces of
+	      configuration where it makes more sense (at the global level, in a specific
+	      project, or even in a specific environment).
+	    </p>
+	    <p>
+	      The first section below describes that general mechanism and the different
+	      files involved.  The subsequent sections document soecific pieces of
+	      configuration.  All sections on this page are:
 	    </p>
 	    <ul>
-	      <li><a href="#supported">Supported properties</a></li>
+	      <li><a href="#files">Files</a></li>
+	      <li><a href="#mlcp">MLCP</a></li>
 	    </ul>
 	    <p>
-	      <b>TODO</b>: Describe the environment file format...!
+	      This page is about configuring the `mlproj` command as a whole.  There are
+	      dedicated pages about "configuring" a specific <a href="projects">project</a>
+	      or its <a href="environments">environments</a>.
 	    </p>
 
-
-	    <a class="anchor" id="supported"></a>
-	    <h3>Supported properties</h3>
+	    <a class="anchor" id="files"></a>
+	    <h3>Files</h3>
 	    <p>
-	      All properties from the Management API are not supported yet to be
-	      represented in the environment files.  Here are the lists of the supported
-	      properties, for resp. databases and servers.
-	    </p>
-	    <p>
-	      These lists help identifying what is left to do on the environment file
-	      format design, giving a good idea of what is the coverage of the file
-	      format, and mapping between property names and paths in the file format.
-	      They are based on the Management API in MarkLogic 9.0 EA4.
+	      There are three different places where a piece of configuration can be
+	      saved.  At the "global" level (in the user's home directory), at the current
+	      project level, or in one of its specific environments.
 	    </p>
 	    <p>
-	      Each entry contains the name of the property as in the Management API,
-	      whether it is supported or not, and if it is a path-like notation of where
-	      it can be set in the environment file format.
+	      The most specific file "wins" (first the environment used, then the project,
+	      then the global config file):
+	    </p>
+	    <ul>
+	      <li><code>xproject/mlenvs/{environ}.json</code></li>
+	      <li><code>xproject/mlproj.json</code></li>
+	      <li><code>~/.mlproj.json</code></li>
+	      <li><code>~/mlproj.json</code></li>
+	    </ul>
+	    <p>
+	      Note that the config fine in the user home directory can have or not a dot
+	      as first character in its name (<code>.mlproj.json</code>
+	      versus <code>mlproj.json</code>).  The one with a dot is the idiomatic name,
+	      whilst the one with no dot is supported for platforms where it is hard to
+	      create a file with such a name.
 	    </p>
 
-<h4>Database properties</h4>
-<p>Supported properties for databases.</p>
-<table class="table">
-<thead>
-<tr><th>name</th><th>path</th><th style="text-align:center">supported</th></tr>
-</thead>
-<tbody>
-<tr><td>assignment-policy</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>attribute-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>collection-lexicon</td><td>lexicons.collection</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>data-encryption</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>database-backups</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>database-name</td><td></td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>database-replication</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-rulesets</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>directory-creation</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>element-attribute-word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>element-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>element-word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>element-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>element-word-query-throughs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>enabled</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>encryption-key-id</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>expunge-locks</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-case-sensitive-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-diacritic-sensitive-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-element-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-element-phrase-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-element-trailing-wildcard-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-element-word-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-phrase-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fast-reverse-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>field-value-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>field-value-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fields</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>forests</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>format-compatibility</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fragment-parents</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>fragment-roots</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-element-attribute-pair-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-element-child-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-element-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-element-pair-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>geospatial-region-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-geospatial-region-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-list-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-range-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-reverse-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-tree-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>in-memory-triple-index-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>index-detection</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>inherit-collections</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>inherit-permissions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>inherit-quality</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>journal-count</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>journal-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>journaling</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>language</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>large-size-threshold</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>locking</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>maintain-directory-last-modified</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>maintain-last-modified</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-blackouts</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-max-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-min-ratio</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-min-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-priority</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>merge-timestamp</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>one-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>path-namespaces</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>phrase-arounds</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>phrase-throughs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>positions-list-max-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>preallocate-journals</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>preload-mapped-data</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>preload-replica-mapped-data</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>range-element-attribute-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>range-element-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>range-field-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>range-index-optimize</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>range-path-indexes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>rebalancer-enable</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>rebalancer-throttle</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>reindexer-enable</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>reindexer-throttle</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>reindexer-timestamp</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>retain-until-backup</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>retired-forest-count</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>schema-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>security-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>stemmed-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>tf-normalization</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>three-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>three-character-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>trailing-wildcard-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>trailing-wildcard-word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>triple-index</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>triple-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>two-character-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>uri-lexicon</td><td>lexicons.uri</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>word-lexicons</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>word-positions</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>word-searches</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-</tbody>
-</table>
-<h4>Server properties</h4>
-<p>Supported properties for servers.</p>
-<table class="table">
-<thead>
-<tr><th>name</th><th>path</th><th style="text-align:center">supported</th></tr>
-</thead>
-<tbody>
-<tr><td>address</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>authentication</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>backlog</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>collation</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>compute-content-length</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>concurrent-request-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>content-database</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>coordinate-system</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>debug-allow</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-error-format</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-inference-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-time-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-user</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>default-xquery-version</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>display-last-login</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>distribute-timestamps</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>enabled</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>error-handler</td><td>handler</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>execute</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>external-securities</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>file-log-level</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>group-name</td><td></td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>internal-security</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>keep-alive-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>log-errors</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>max-inference-size</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>max-time-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>module-locations</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>multi-version-concurrency-control</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>namespaces</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-byte-order-mark</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-cdata-section-localname</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-cdata-section-namespace-uri</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-doctype-public</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-doctype-system</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-encoding</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-escape-uri-attributes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-include-content-type</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-include-default-attributes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-indent</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-indent-tabs</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-indent-untyped</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-media-type</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-method</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-normalization-form</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-omit-xml-declaration</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-sgml-character-entities</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-standalone</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-undeclare-prefixes</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>output-version</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>port</td><td>port</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>pre-commit-trigger-depth</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>pre-commit-trigger-limit</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>profile-allow</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>request-blackouts</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>request-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>rewrite-resolves-globally</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>root</td><td>root</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>schemas</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>server-name</td><td></td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>server-type</td><td>type</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>session-timeout</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-allow-sslv3</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-allow-tls</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-ciphers</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-disable-sslv3</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-disable-tlsv1</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-disable-tlsv1-1</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-disable-tlsv1-2</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-hostname</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>ssl-require-client-certificate</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>static-expires</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>threads</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-<tr><td>url-rewriter</td><td>rewriter</td><td style="color:green;text-align:center">✓</td></tr>
-<tr><td>webDAV</td><td></td><td style="color:red;text-align:center">✗</td></tr>
-</tbody>
-</table>
-
-
+	    <a class="anchor" id="mlcp"></a>
+	    <h3>MLCP</h3>
+	    <p>
+	      The MarkLogic <a href="http://developer.marklogic.com/products/mlcp">Content
+	      Pump</a> is a command line tool to load/extrcat content to/from MarkLogic
+	      databases.  Its interface, its option names, can sometimes be quite
+	      difficult to remember though.  When MLCP is enabled, `mlproj` will:
+	    </p>
+	    <ul>
+	      <li>use it for its own purposes (to deploy modules for instance, which is
+	      more efficient using MLCP)</li>
+	      <li>provide a simpler interface to load content, via the
+	      command <code>mlproj load</code></li>
+	      <li>provide a frontend to MLPC, via the command <code>mlproj mlcp</code>, so
+	      it automatically uses the connection info from the environment files</li>
+	    </ul>
+	    <p>
+	      To install MLCP:
+	    </p>
+	    <ul>
+	      <li>download
+	      the <a href="http://developer.marklogic.com/products/mlcp">latest
+	      binaries</a> (at the time of writing, labelled <code>Release 8.0.6.3
+	      binaries zip package</code>)</li>
+	      <li>unzip it somwehere (e.g. in <code>/usr/local/mlcp/</code> or
+		in <code>~/mlcp/</code>)</li>
+	      <li>add the following to <code>~/.mlproj.json</code> (or in your project or
+	      environment files):
+	    </ul>
+	    <pre>{
+   "mlproj": {
+      "mlcp": {
+         "bin": "/usr/local/mlcp/mlcp-8.0.6.3/bin/mlcp.sh"
+      }
+   }
+}</pre>
 
           </div>
         </div>
