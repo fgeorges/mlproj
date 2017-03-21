@@ -495,6 +495,9 @@ top of the list.
 ## TODO
 
 - document the environment file format on the website
+- allow command `new` to create projects with different scaffoldings
+  - using "embedded" scaffoldings (empty, plain, web, rest...)
+  - using "remotes" ones (on Git repos?)
 - new command `load` to load data on databases
 - new command `add` to add components, indexes, etc. by answering few questions
 - new command `mlcp` to invoke MLCP with info from the environment files
@@ -503,6 +506,9 @@ top of the list.
 - new command to install a XAR/XAW from CXAN
 - new command to publish to CXAN
 - edit environment files from the Console
+  - move website in `mlproj-web` repo
+  - move core libs in `mlproj-core` package
+  - use `mlproj-core` in the Console
 - word lexicons
 - allow changing a server port, as it restarts the instance
 - add support for triggers in space files
