@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>mlproj - Get started</title>
+
+    <!-- CSS stylesheets -->
+    <link href="css/bootstrap.css"  rel="stylesheet" type="text/css" />
+    <link href="css/clean-blog.css" rel="stylesheet" type="text/css" />
+
+    <!-- fonts -->
+    <link href="css/font-awesome.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-custom navbar-fixed-top" id="navbar">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            Menu <i class="fa fa-bars"></i>
+          </button>
+          <a class="navbar-left" href="./" style="margin-top: 15px;">
+            <img src="images/package-icon.png" style="height: 33px;" />
+          </a>
+        </div>
+        <!-- the menu items -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="./">Introduction</a></li>
+            <li><a href="start">Get started</a></li>
+            <li><a href="commands">Commands</a></li>
+            <li><a href="projects">Projects</a></li>
+            <li><a href="Environments">Environments</a></li>
+            <li><a href="config">Config</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <article>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+	    <h1>Get started</h1>
+	    <p>
+	      This page guides you through the first steps to work on a project.  And
+	      beyond.  The only requirement is to have MArkLogic installed and running
+	      already.
+	    </p>
+
+	    <h3>TL;DR</h3>
+	    <p>
+	      Let us start with a summary of this entire introduction.  In case you are in
+	      a big rush, that should give you enough to get started.
+	    </p>
+	    <pre>
+<b>$</b> npm install mlproj -g                    # install mlproj
+<b>$</b> mlproj help
+<b>$</b> 
+<b>$</b> mkdir my-foobar                          # create a new project
+<b>$</b> cd my-foobar
+<b>$</b> mlproj new
+<b>$</b> 
+<b>$</b> mlproj show                              # create the env on MarkLogic
+<b>$</b> mlproj setup
+<b>$</b> 
+<b>$</b> mlproj deploy                            # deploy code and load data
+<b>$</b> mlproj load doc some/doc.xml</pre>
+	    <p>
+	      And now for the explanations...
+	    </p>
+
+	    <h3>Once and for all</h3>
+	    <p>
+	      Before starting wih <code>mlproj</code>, you need to install it on your
+	      computer.  This has to be done only once:
+	    </p>
+	    <pre><b>$</b> npm install mlproj -g</pre>
+	    <p>
+	      You can validate that the install was successful by displaying the main help
+	      message:
+	    </p>
+	    <pre><b>$</b> mlproj help</pre>
+	    <p>
+	      The <code>npm install</code> command has to be invoked only once.  But you
+	      can also use it again later to upgrade to the latest version.
+	      Since <code>mlproj</code> evolves quite rapidly at the moment, it is
+	      recommended you use it for time to time.
+	    </p>
+
+	    <h3>New project</h3>
+	    <p>
+	      Create a new project is as easy as invoking the command <code>new</code>,
+	      and answering a few questions interactively.  It has to be invoked from an
+	      empty directory:
+	    </p>
+	    <pre>
+<b>$</b> mkdir my-foobar
+<b>$</b> cd my-foobar
+<b>$</b> mlproj new
+--- <b>Questions</b> ---
+Project code    : my-foobar
+Title           : My own foobar project
+Name URI (http://mlproj.org/example/my-foobar): http://example.org/my-foobar
+Version  (0.1.0): 
+Port     (8080) : 
+
+--- <b>Summary</b> ---
+<span style="color: green">✓</span> Project created:      my-foobar
+<span style="color: green">→</span> Check/edit files in:  /home/fgeorges/tmp/my-foobar/xproject
+<b>$</b> </pre>
+	    <p>
+	      The values within parentheses are the default values to use, if you hit
+	      the <code>enter</code> key without typing anything.
+	    </p>
+	    <p>
+	      As the summary message suggests, files have been created in a new
+	      sub-directory <code>xproject/</code>, in the current directory.  This new
+	      directory contains the project descriptor, as well as the environment files.
+	      More on that later, but for now, just have a look at them and, if MarkLogic
+	      is installed on <code>localhost</code>:
+	    </p>
+	    <ul>
+	      <li>adapt user and password in <code>xproject/mlenvs/dev.json</code></li>
+	    </ul>
+	    <p>
+	      If not:
+	    </p>
+	    <ul>
+	      <li>adapt user, password, and host in <code>xproject/mlenvs/prod.json</code></li>
+	      <li>change <code>"dev.json"</code> into <code>"prod.json"</code>
+		in <code>xproject/mlenvs/default.json</code></li>
+	    </ul>
+	    <p></p>
+
+	    <h3>Check settings</h3>
+	    <p>
+	      Congratulations, you have just created your first project!  Now invoke the
+	      command <code>show</code>, to see how it has been configured and if nothing
+	      has to be changed:
+	    </p>
+	    <pre>
+<b>$</b> mlproj show
+
+<b>Project</b>: <span style="color: orange"><b>my-foobar</b></span>
+   title:               My own foobar project
+   name:                http://example.org/my-foobar
+   version:             0.1.0
+
+<b>Environment</b>: <span style="color: orange"><b>default</b></span>
+   host:                localhost
+   user:                admin
+   password:            *****
+   sources dir:         /tmp/yo/src/
+   modules DB:          (filesystem)
+   parameters:
+      port:             8080
+   import graph:
+      -> dev.json
+         -> base.json
+
+<b>Database</b>: <span style="color: orange"><b>my-foobar-content</b></span>
+   id:                  content
+   forests:
+      my-foobar-content-001
+
+<b>Server</b>: <span style="color: orange"><b>my-foobar</b></span>
+   group:               Default
+   id:                  app
+   content DB:          my-foobar-content
+   port:                8080
+   root:                /tmp/yo/src/
+
+<b>$</b> </pre>
+	    <p>
+	      TODO: Bla bla bla...  Explain a bit the output...
+	    </p>
+
+	    <h3>On MarkLogic!</h3>
+	    <p>
+	      TODO: Bla bla bla...
+	    </p>
+
+	    <h3>Deploy code</h3>
+	    <p>
+	      TODO: Bla bla bla...
+	    </p>
+
+	    <h3>Load data</h3>
+	    <p>
+	      TODO: Bla bla bla...
+	    </p>
+
+	    <h3>What now?</h3>
+	    <p>
+	      TODO: Bla bla bla...  Commands...  Bla bla bla...Environments...  Bla bla
+	      bla...
+	    </p>
+
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- JS libraries -->
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="js/clean-blog.js"></script>
+
+  </body>
+</html>
