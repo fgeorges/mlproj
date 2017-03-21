@@ -287,13 +287,46 @@
 
     /*~
      * Client API: insert a document.
+     *
+     * Using this API for inserting docuemnts is deeeaaaad slow.  Especially for
+     * *.xq files on the EXPath Console.  No idea why.  So invoke XDBC instead,
+     * see below.
      */
+    /*
     class DocInsert extends ClientPut
     {
         constructor(db, uri, doc) {
 	    super('/documents?uri=' + uri + '&database=' + db.name,
 		  doc,
 		  'Insert document: \t' + uri);
+	    this.type = 'text/plain';
+        }
+    }
+    */
+
+    /*~~~~~ XDBC actions. */
+
+    /*~
+     * An XDBC PUT action.
+     */
+    class XdbcPut extends Put
+    {
+        constructor(url, data, msg) {
+	    super(url, data, msg, '', 8000);
+        }
+    }
+
+    /*~
+     * XDBC: insert a document.
+     */
+    class DocInsert extends XdbcPut
+    {
+        constructor(db, uri, doc) {
+	    // TODO: Add "perm" parameters.
+	    super('insert?uri=' + uri + '&dbname=' + db.name,
+		  doc,
+		  'Insert document: \t' + uri);
+	    // TODO: Should we use something else?  XDBC/XCC is bad (is not!) documented...
 	    this.type = 'text/plain';
         }
     }

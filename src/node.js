@@ -243,7 +243,8 @@
 		if ( err ) {
 		    error(err);
 		}
-		else if ( http.statusCode !== 201 && http.statusCode !== 204 ) {
+		// XDBC PUT /insert returns 200
+		else if ( http.statusCode !== 200 && http.statusCode !== 201 && http.statusCode !== 204 ) {
 		    this.verboseHttp(http, body);
 		    error('Entity not updated: ' + ( body.errorResponse
 						     ? body.errorResponse.message
