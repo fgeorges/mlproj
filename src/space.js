@@ -182,10 +182,6 @@
 	    if ( json.connect ) {
 		extract(json.connect, ['host', 'user', 'password']);
 	    }
-	    // TODO: @srcdir should be initialized automatically to the project
-	    // source dir (the subdir src/ in the dir containing xproject/),
-	    // @srcdir being just a way to override it (or sometimes to set it,
-	    // especially in tests.)
 	    if ( json.srcdir ) {
 		this.param('@srcdir', platform.resolve(json.srcdir, base) + '/');
 	    }
@@ -706,16 +702,14 @@
 	    // start with root
 	    var root = impl(href);
 	    // if not set explicitly, use default values
-	    [ 'code', 'srcdir' ].forEach(name => {
-		if ( root.param('@' + name) === undefined && defaults[name] ) {
+	    Object.keys(defaults).forEach(name => {
+		if ( root.param('@' + name) === undefined ) {
 		    root.param('@' + name, defaults[name]);
 		}
 	    });
 	    // override values from `force`
-	    [ 'code', 'host', 'password', 'srcdir', 'user' ].forEach(name => {
-		if ( force[name] ) {
-		    root.param('@' + name, force[name]);
-		}
+	    Object.keys(force).forEach(name => {
+		root.param('@' + name, force[name]);
 	    });
 	    // override values from `params`
 	    Object.keys(params).forEach(name => root.param(name, params[name]));

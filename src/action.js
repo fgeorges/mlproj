@@ -323,6 +323,7 @@
     {
         constructor(db, uri, doc) {
 	    // TODO: Add "perm" parameters.
+	    // TODO: Add "format" parameter (xml, text, binary)
 	    super('insert?uri=' + uri + '&dbname=' + db.name,
 		  doc,
 		  'Insert document: \t' + uri);
