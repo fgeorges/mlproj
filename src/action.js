@@ -337,10 +337,10 @@
 	    }
         }
 
-        summary()
+        summary(skipdone)
         {
 	    var pf = this.platform;
-            if ( this.done.length ) {
+            if ( ! skipdone && this.done.length ) {
                 pf.log(pf.green('Done') + ':');
                 this.done.forEach(a => a.display(pf, pf.green('✓')));
             }

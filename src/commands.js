@@ -195,8 +195,7 @@
 		this.actions.add(new act.DocInsert(db, uri, doc));
 	    });
             this.actions.execute(() => {
-		// TODO: Display errors if any...
-		// And actions not done...
+		this.actions.summary(true);
 	    });
 	}
     }
