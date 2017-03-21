@@ -28,6 +28,12 @@
 		callback(prj);
 	    });
 	}
+	config(name) {
+	    throw new Error('Platform.config is abstract');
+	}
+	configs() {
+	    throw new Error('Platform.configs is abstract');
+	}
 	cwd() {
 	    throw new Error('Platform.cwd is abstract');
 	}
@@ -52,7 +58,24 @@
 	read(path) {
 	    throw new Error('Platform.read is abstract');
 	}
-	json(path) {
+	// validate a few rules for all JSON files, return the mlproj sub-object
+	validateJson(json) {
+	    var proj = json.mlproj;
+	    if ( ! proj ) {
+		throw new Error('Invalid file, must have the root `mlproj`');
+	    }
+	    if ( Object.keys(json).length !== 1 ) {
+		throw new Error('Invalid file, must have only one root');
+	    }
+	    if ( ! proj.format ) {
+		throw new Error('Invalid file, must have the property `format`');
+	    }
+	    if ( proj.format !== '0.1' ) {
+		throw new Error('Invalid file, `format` not 0.1: ' + proj.format);
+	    }
+	    return proj;
+	}
+	json(path, validate) {
 	    throw new Error('Platform.json is abstract');
 	}
 	xml(path, callback) {
@@ -93,9 +116,10 @@
      */
     class Project
     {
-	constructor(platform, path) {
+	constructor(platform, path, proj) {
 	    this.platform = platform;
 	    this.path     = path;
+	    this.proj     = proj;
 	}
 
 	load(params, force, defaults) {
@@ -106,6 +130,37 @@
 	execute(command) {
 	    var cmd = new command(this);
 	    cmd.execute();
+	}
+
+	// Precedence:
+	// - space's config if exists
+	// - if not project's config if exists
+	// - if not global config if exists
+	config(name)
+	{
+	    var v = this.space.config(name);
+	    if ( v !== undefined ) {
+		return v;
+	    }
+	    if ( this.proj && this.proj.config ) {
+		v = this.proj.config[name];
+		if ( v !== undefined ) {
+		    return v;
+		}
+	    }
+	    return this.platform.config(name);
+	}
+
+	configs()
+	{
+	    var names = this.space.configs();
+	    if ( this.proj && this.proj.config ) {
+		names = names.concat(
+		    Object.keys(this.proj.config).filter(n => ! names.includes(n)));
+	    }
+	    names = names.concat(
+		this.platform.configs().filter(n => ! names.includes(n)));
+	    return names;
 	}
     }
 
@@ -119,7 +174,8 @@
 		throw new Error('Invalid environment name: ' + env);
 	    }
 	    var path = platform.resolve('xproject/mlenvs/' + env + '.json', base);
-	    super(platform, path);
+	    var proj = XProject.projectFile(platform, base);
+	    super(platform, path, proj);
 	    this.environ = env;
 	    this.base    = base;
 	}
@@ -139,6 +195,19 @@
 		super.load(params, force, { srcdir: this.srcdir, code: this.abbrev });
 		callback();
 	    });
+	}
+    }
+
+    XProject.projectFile = (pf, base) => {
+        var path = pf.resolve('xproject/mlproj.json', base);
+	try {
+	    return pf.json(path, true);
+	}
+	catch (err) {
+	    // ignore ENOENT, file does not exist
+	    if ( err.code !== 'ENOENT' ) {
+		throw err;
+	    }
 	}
     }
 
@@ -179,11 +248,14 @@
 		});
 	    };
 	    extract(json, ['code', 'title', 'desc']);
+	    if ( json.srcdir ) {
+		this.param('@srcdir', platform.resolve(json.srcdir, base) + '/');
+	    }
 	    if ( json.connect ) {
 		extract(json.connect, ['host', 'user', 'password']);
 	    }
-	    if ( json.srcdir ) {
-		this.param('@srcdir', platform.resolve(json.srcdir, base) + '/');
+	    if ( json.config ) {
+		this._config = json.config;
 	    }
 	}
 
@@ -215,6 +287,26 @@
 	    var names = Object.keys(this._params).filter(n => n.slice(0, 1) !== '@');
 	    for ( var i = this._imports.length - 1; i >= 0; --i ) {
 		var imported = this._imports[i].space.params();
+		names = names.concat(imported.filter(n => ! names.includes(n)));
+	    }
+	    return names;
+	}
+
+	config(name)
+	{
+	    var v = this._config && this._config[name];
+	    var i = this._imports.length;
+	    while ( v === undefined && i > 0 ) {
+		v = this._imports[--i].space.config(name);
+	    }
+	    return v;
+	}
+
+	configs()
+	{
+	    var names = this._config ? Object.keys(this._config) : [];
+	    for ( var i = this._imports.length - 1; i >= 0; --i ) {
+		var imported = this._imports[i].space.configs();
 		names = names.concat(imported.filter(n => ! names.includes(n)));
 	    }
 	    return names;
@@ -658,28 +750,10 @@
 
 	static load(platform, href, params, force, defaults)
 	{
-	    // validate a few rules for one JSON file, return the mlproj sub-object
-	    var validate = (json) => {
-		var proj = json.mlproj;
-		if ( ! proj ) {
-		    throw new Error('Invalid file, must have the root `mlproj`');
-		}
-		if ( Object.keys(json).length !== 1 ) {
-		    throw new Error('Invalid file, must have only one root');
-		}
-		if ( ! proj.format ) {
-		    throw new Error('Invalid file, must have the property `format`');
-		}
-		if ( proj.format !== '0.1' ) {
-		    throw new Error('Invalid file, `format` not 0.1: ' + proj.format);
-		}
-		return proj;
-	    }
 	    // recursive implementation
 	    var impl = (href, base) => {
 		var path    = base ? platform.resolve(href, base) : href;
-		var json    = platform.json(path);
-		var proj    = validate(json);
+		var proj    = platform.json(path, true);
 		var idx     = path.lastIndexOf('/');
 		if ( idx < 0 ) {
 		    throw new Error('File path does not have any slash: ' + path);

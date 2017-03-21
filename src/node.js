@@ -3,6 +3,7 @@
 (function() {
 
     const fs      = require('fs');
+    const os      = require('os');
     const path    = require('path');
     const chalk   = require('chalk');
     const read    = require('readline-sync');
@@ -18,6 +19,26 @@
     {
 	constructor(dry, verbose) {
 	    super(dry, verbose);
+	    // try one...
+	    var proj = Node.userJson(this, '.mlproj.json');
+	    if ( proj ) {
+		this._config = proj.config;
+	    }
+	    // ...or the other
+	    proj = Node.userJson(this, 'mlproj.json');
+	    if ( proj ) {
+		this._config = proj.config;
+	    }
+	}
+
+	config(name) {
+	    if ( this._config ) {
+		return this._config[name];
+	    }
+	}
+
+	configs() {
+	    return this._config ? Object.keys(this._config) : [];
 	}
 
 	cwd() {
@@ -78,8 +99,12 @@
 	    return fs.readFileSync(path, 'utf8');
 	}
 
-	json(path) {
-	    return JSON.parse(this.read(path));
+	json(path, validate) {
+	    var json = JSON.parse(this.read(path));
+	    if ( validate ) {
+		return this.validateJson(json);
+	    }
+	    return json;
 	}
 
 	xml(path, callback) {
@@ -335,6 +360,19 @@
 	    flaten(files, res);
 
 	    return res;
+	}
+    }
+
+    Node.userJson = (pf, name) => {
+    	try {
+	    var path = pf.resolve(name, os.homedir());
+	    return pf.json(path, true);
+	}
+	catch (err) {
+	    // ignore ENOENT, file does not exist
+	    if ( err.code !== 'ENOENT' ) {
+		throw err;
+	    }
 	}
     }
 

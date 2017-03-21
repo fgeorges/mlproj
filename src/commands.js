@@ -85,6 +85,19 @@
 	    p.title   && pf.line(1, 'title',   p.title);
 	    p.name    && pf.line(1, 'name',    p.name);
 	    p.version && pf.line(1, 'version', p.version);
+	    // display the config parameters applicable
+	    this.project.configs().forEach(c => {
+		var cfg = this.project.config(c)
+		if ( 'object' === typeof cfg ) {
+		    pf.line(1, 'cfg.' + c);
+		    Object.keys(cfg).forEach(n => {
+			pf.line(2, n, cfg[n]);
+		    });
+		}
+		else {
+		    pf.line(1, 'cfg.' + c, cfg);
+		}
+	    });
 	    pf.log('');
 	}
 
