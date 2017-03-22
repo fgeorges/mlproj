@@ -300,7 +300,7 @@
 
         setup(actions, callback)
 	{
-	    logCheck(actions, 0, 'the ' + this.props.type + ' server', this.name);
+	    logCheck(actions, 0, 'the ' + this.props['server-type'].value + ' server', this.name);
 	    new act.ServerProps(this).execute(
 		actions.platform,
 		msg => {
