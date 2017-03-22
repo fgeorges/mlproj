@@ -178,12 +178,64 @@ Port     (8080) :
 
 <b>$</b> </pre>
 	    <p>
-	      TODO: Bla bla bla...  Explain a bit the output...
+	      What you see here is pretty self-explanatory:
+	    </p>
+	    <ul>
+	      <li>information about the project itself (essentially what you fed the
+		command <code>new</code> with)</li>
+	      <li>the environment details (connection, parameters, import graph)</li>
+	      <li>each database and server in the environment, with their details</li>
+	    </ul>
+	    <p>
+	      If anything must be changed, look at the files
+	      in <code>xproject/mlenvs/</code>, and see if you can adapt the corresponding
+	      value.  All details are in the <a href="environments">environment format</a>
+	      documentation.
 	    </p>
 
 	    <h3>On MarkLogic!</h3>
 	    <p>
-	      TODO: Bla bla bla...
+	      So what is the point of all this, if it is not to create the corresponding
+	      components (databases and application servers) on MarkLogic?  To do so,
+	      nothing more simple:
+	    </p>
+	    <pre>
+<b>$</b> mlproj setup
+--- <b>Prepare</b> ---
+<b>•</b> <span style="color: orange">checking</span> the database: 	my-foobar-content
+<span style="color: orange">→</span> Retrieve database props: 	my-foobar-content
+  need to <span style="color: green">create</span> database: 	my-foobar-content
+   <b>•</b> <span style="color: orange">checking</span> forests
+     need to <span style="color: green">create</span> forest: 	my-foobar-content-001
+<b>•</b> <span style="color: orange">checking</span> the http server: 	my-foobar
+<span style="color: orange">→</span> Retrieve server props: 	my-foobar
+  need to <span style="color: green">create</span> server: 	my-foobar
+
+--- <b>Progress</b> ---
+<span style="color: orange">→</span> Create database: 		my-foobar-modules
+<span style="color: orange">→</span> Create forest:  		my-foobar-modules-001
+<span style="color: orange">→</span> Create database: 		my-foobar-content
+<span style="color: orange">→</span> Create forest:  		my-foobar-content-001
+<span style="color: orange">→</span> Create server: 		my-foobar
+
+--- <b>Summary</b> ---
+<span style="color: green">Done</span>:
+<span style="color: green">✓</span> Create database: 		my-foobar-modules
+<span style="color: green">✓</span> Create forest:  		my-foobar-modules-001
+<span style="color: green">✓</span> Create database: 		my-foobar-content
+<span style="color: green">✓</span> Create forest:  		my-foobar-content-001
+<span style="color: green">✓</span> Create server: 		my-foobar
+<b>$</b> </pre>
+	    <p>
+	      As you can see, <code>mlproj</code> first gather all information about what
+	      needs to be created, changed, or updated, and accumulate the list of actions
+	      to be done before actually executing them.  This maximizes the detection of
+	      errors before starting to make any change.
+	    </p>
+	    <p>
+	      In case of any error, processing stops.  The summary gives the list of
+	      completed actions, the error details, then the list of actions that were
+	      still to be executed at the time.
 	    </p>
 
 	    <h3>Deploy code</h3>
