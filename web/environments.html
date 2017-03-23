@@ -335,8 +335,114 @@
 	    <a class="anchor" id="databases"></a>
 	    <h3>Databases</h3>
 	    <p>
-	      TODO: Bla bla bla...
+	      The property <code>databases</code> is an array of databases.  Each database
+	      is an object that looks like the following:
 	    </p>
+	    <pre>
+{
+    "id":   "...",
+    "name": "...",
+    "forests": [
+        "..."
+    ],
+    "schema": {
+        <em>(database object or ref)</em>
+    },
+    "security": {
+        <em>(database object or ref)</em>
+    },
+    "triggers": {
+        <em>(database object or ref)</em>
+    },
+    "indexes": {
+        "ranges": [{
+            "type":      "string",
+            "name":      "ape",
+            "positions": false,
+            "invalid":   "ignore"
+        }, {
+            "type":      "string",
+            "name":      [ "bear", "cat" ],
+            "positions": false,
+            "invalid":   "ignore"
+        }]
+    },
+    "lexicons": {
+        "uri": false,
+        "collection": true
+    }
+}</pre>
+	    <p>
+	      The <code>id</code> is a unique ID used only in the environment files, to
+	      refer to databases (e.g. from a server, to be its modules database).
+	      The <code>name</code> is the name of the database, as it will be set on
+	      MarkLogic.
+	    </p>
+	    <p>
+	      <code>forests</code> describes the forests attached to the database.  If it
+	      is an array, its values must be strings, used as names for the forests.  It
+	      can also by a number (must be a positive integer then, including zero),
+	      which gives the number of forests to attach to the database.  The forest
+	      names are then derived from the database name, by appending
+	      <code>-001</code>, <code>-002</code>, etc.
+	    </p>
+	    <p>
+	      <code>schema</code>, <code>security</code> and <code>triggers</code> are
+	      resp. the database's Schema DB, Security DB and Triggers DB.  As always,
+	      they can be either ID or name reference to an existing database description,
+	      or be a full, embedded database object.
+	    </p>
+	    <p>
+	      Range indexes can be set in the <code>ranges</code> array.  Each is an
+	      object with the following properties (if there is <code>path</code> it is a
+	      path range index, if there is <code>parent</code> it is an attribute range
+	      index, and if not it is an element range index):
+	    </p>
+	    <ul>
+	      <li><code>type</code> - the scalar type of the range index
+		(<code>int</code>, <code>string</code>...)</li>
+	      <li><code>positions</code> - a boolean, whether to save or not the range
+		value positions</li>
+	      <li><code>invalid</code>: what to do in case of invalid values:
+		<code>reject</code> or <code>ignore</code></li>
+	      <li><code>colation</code>: the collation to use for the range index</li>
+	      <li><code>name</code>: the local name of the element or attribute (only for
+		element and attribute range indexes)</li>
+	      <li><code>namespace</code>: the namespace URI of the element or attribute
+		(only for element and attribute range indexes)</li>
+	      <li><code>parent.name</code>: the local name of the parent element of the
+		attribute (only for attribute range indexes)</li>
+	      <li><code>parent.namespace</code>: the namespace URI of the parent element
+		of the attribute (only for attribute range indexes)</li>
+	      <li><code>path</code>: the path expression to use (only for path range
+		indexes)</li>
+	    </ul>
+	    <p>
+	      <code>lexicons.uri</code> and <code>lexicons.collection</code> set whether
+	      to maintain resp. a URI or a collection lexicon for that database.
+	    </p>
+	    <blockquote>
+	      This is far from covering all aspects and all possible properties of
+	      databases, forests and servers.  It is a work in progress.  The goal is to
+	      support all properties supported by the Management API of MarkLogic.  If you
+	      need one that is not supported yet, make sure to open an issue about it, so
+	      it moves to the top of the list.
+	    </blockquote>
+	    <p>
+	      Anywhere a database object is expected (to give a database its schema,
+	      security or triggers database, or a server its content or modules database),
+	      you can instead use a database reference.  A database reference is an object
+	      containing only one property: <code>idref</code> to point to a database by
+	      ID, or <code>nameref</code> to point to a database by name:
+	    </p>
+	    <pre>
+"schema": {
+    "nameref": "@{code}-schema"
+},
+"security": {
+    "idref": "security"
+},</pre>
+	    <p></p>
 
 	    <a class="anchor" id="servers"></a>
 	    <h3>Servers</h3>
@@ -354,10 +460,10 @@
     "rewriter": "/plumbing/rewriter.sjs",
     "handler":  "/plumbing/errors.sjs",
     "content": {
-        "name": "@{code}-content"
+        <em>(database object or ref)</em>
     },
     "modules": {
-        "name": "@{code}-modules"
+        <em>(database object or ref)</em>
     }
 }</pre>
 	    <p>
@@ -377,7 +483,7 @@
 	      <li><code>handler</code> - the path to the error handler</li>
 	      <li><code>content</code> and <code>modules</code> - resp. the content
 		database and the modules database.  They can be either a full-fledged
-		database definition, or a reference to an existing database description
+		database object, or a reference to an existing database description
 		(using <code>idref</code> or <code>nameref</code>)</li>
 	    </ul>
 	    <p></p>
