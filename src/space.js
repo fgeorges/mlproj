@@ -19,7 +19,17 @@
 		throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
 	    }
 	    if ( ! env && ! path ) {
-		env = 'default';
+		try {
+		    // unused here, just to see if it exists
+		    pf.read('xproject/mlenvs/default.json');
+		    env = 'default';
+		}
+		catch (err) {
+		    // ignore ENOENT, file does not exist
+		    if ( err.code !== 'ENOENT' ) {
+			throw err;
+		    }
+		}
 	    }
 	    var prj = env
 		? new XProject(this, env, base)
