@@ -67,6 +67,7 @@
 		<li><code>show</code> - display the environment</li>
 		<li><code>setup</code> - setup the environment on MarkLogic</li>
 		<li><code>deploy</code> - deploy modules to the modules database</li>
+		<li><code>load</code> - load documents to the content database</li>
 	      </ul>
 	    </p>
 	    <p>
@@ -268,6 +269,31 @@
 
    TODO: Add an option to set/override the modules database from the
    command line.</pre>
+	    <p>
+	    </p>
+
+
+	    <h3>load</h3>
+	    <p>
+	      Load a document to the content database.
+	    </p>
+	    <pre>
+   load &lt;what> &lt;args...>
+
+   Load a document to the content database.
+   The parameters are the fixed string "doc", then the path of a file.
+   The path must be relative.  Its first part must be a directory.  This part
+   is got rid of, the rest becomes the URI of the document to insert.
+
+   For instance, the following loads the content of data/hello.xml to the
+   document with the URI /hello.xm:
+
+       mlproj load doc data/hello.xml</pre>
+	    <p>
+	      This version of <code>load</code> is minimalistic.  This is only a first
+	      minimal version, that lets you update one document.  It is being improved to
+	      load directories, compute the URI, set the collections, permissions, etc.
+	    </p>
 	    <p>
 	    </p>
 		
