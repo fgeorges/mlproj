@@ -52,11 +52,335 @@
 	      sections:
 	    </p>
 	    <ul>
+	      <li><a href="#intro">Introduction</a></li>
+	      <li><a href="#overall">Overall structure</a></li>
+	      <li><a href="#params">Parameters</a></li>
+	      <li><a href="#import">Imports</a></li>
+	      <li><a href="#databases">Databases</a></li>
+	      <li><a href="#servers">Servers</a></li>
 	      <li><a href="#supported">Supported properties</a></li>
 	    </ul>
 	    <p>
-	      <b>TODO</b>: Describe the environment file format...!
+	      You can find examples of environment files in
+	      <a href="http://github.com/fgeorges/mlproj/tree/master/test/spaces">
+		<code>test/spaces/</code></a> (individual sets of environment files) and
+	      <a href="http://github.com/fgeorges/mlproj/tree/master/test/projects">
+		<code>test/projects/</code></a> (more complete projects, including
+	      environment files.)
 	    </p>
+
+	    <a class="anchor" id="intro"></a>
+	    <h3>Introduction</h3>
+	    <p>
+	      The environment files describe the details of a MarkLogic environment.  They
+	      includes connection details, but also all the components and their details.
+	      "Component" is a generic term used here to refer to both databases and app
+	      servers.
+	    </p>
+	    <p>
+	      The environment files are stored in a project in the
+	      directory <code>xproject/mlenvs/</code>.  The name of the file is the name
+	      of the environment (with the extension <code>.json</code>.)  For instance,
+	      the environment "prod" is in <code>xproject/mlenvs/prod.json</code>.
+	    </p>
+	    <p>
+	      Some commands need an environment to operate upon (e.g. <code>deploy</code>)
+	      whilst other do not (e.g. <code>new</code>.)  There are 3 ways of specifying
+	      the environment for a command to use:
+	    </p>
+	    <ul>
+	      <li>using the default environment
+		in <code>xproject/mlenvs/default.json</code>; typically this one only
+		imports another one, is not checked in your source revision control, so
+		everyone can set a different default environment</li>
+	      <li>pass an environment by name, using the option <code>-e</code>; its value
+		is used to construct a file
+		name: <code>xproject/mlenvs/{name}.json</code></li>
+	      <li>pass the path to an environment file, using the
+		option <code>-f</code></li>
+	    </ul>
+	    <p></p>
+
+	    <a class="anchor" id="overall"></a>
+	    <h3>Overall structure</h3>
+	    <p>
+	      The overall structure of an environment file is like the following:
+	    </p>
+	    <pre>
+{
+    "mlproj": {
+	"format": "0.1",
+	"import": "base.json",
+	"code":   "awesome-app",
+	"title":  "Short title for the project",
+	"desc":   "Longer description of the project.  You can use **Markdown**.",
+	"srcdir": "...",
+	"connect": {
+	    "host":     "...",
+	    "user":     "...",
+	    "password": "..."
+	},
+	"params": {
+	    "..."
+	},
+	"databases": [{
+	    "..."
+	}],
+	"servers": [{
+	    "..."
+	}]
+    }
+}</pre>
+	    <p>
+	      All properties are optional, except for <code>format</code>, which is the
+	      version of the file format (for now always 0.1, until it stabilizes).  The
+	      simple properties are:
+	    </p>
+	    <ul>
+	      <li><code>code</code> - The code is a short code, containing only ASCII
+		alphanumeric characters (as well as <code>-</code> and _). It is typically
+		used to refer to the project, and to build component names in a consistent
+		way (for databases, forests and servers).</li>
+	      <li><code>title</code> - The title is a short, human-friendly description of
+		the project. It can use Markdown notation (the notation used in
+		Github).</li>
+	      <li><code>desc</code> - The description is a longer description of the
+		project than the title. It can use Markdown notation.</li>
+	      <li><code>srcdir</code> - The source directory is the path to the directory
+		  with the sources of the project. This property is generally set
+		  automatically, when used in a standard <code>XProject</code> structure,
+		  as the directory <code>src/</code>.  <br /> It is sometimes useful to
+		  set it explicitly for either 1) represent a more complex setup, or 2)
+		  still be able to use those files with a project with another structure
+		  than the standard <code>XProject</code> structure.</li>
+	      <li><code>connect</code> - This property contains connection information:
+		the user name to use, its password, as well as the host where MarkLogic is
+		installed.</li>
+	    </ul>
+	    <p>
+	      These properties can also be referred to in other places, for "variable
+	      substitutions" (see the section on <a href="#params">parameters</a> for
+	      details on substitution.)
+	    </p>
+	    <p>
+	      The <code>code</code>, <code>srcdir</code>, and the
+	      three <code>connect</code> properties (host, user, password) can be set with
+	      options on the command line.  The value set on the command line takes
+	      precedence over the corresponding value in the environment file, if any,
+	      which is convenient to use another value without modifying any file.  See
+	      the <a href="commands">global options</a> for details.
+	    </p>
+
+	    <a class="anchor" id="params"></a>
+	    <h3>Parameters</h3>
+	    <p>
+	      The property <code>params</code> is a plain JSON object for you to create
+	      variables.  Parameters are key/value pairs: they have a name (the object
+	      property key) and a value (the corresponding object value).  Values must be
+	      strings.
+	    </p>
+	    <p>
+	      Parameters can be referred to in other places of the files, by using the
+	      <code>${...}</code> notation.  Anywhere in a string value, this notation is
+	      replaced by the actual value of the parameter of that name.  This is called
+	      "variable substitution".  Parameters can be "overriden" (assigned a
+	      different value) in an importing file, or on the command line.
+	    </p>
+	    <p>
+	      The notation <code>@{...}</code> (with an "at" sign instead of a "dollar"
+	      sign) do not use parameters, but values comming from "standard" properties.
+	      You can use the following variable substitutions, referring to properties
+	      with the same name:
+	    </p>
+	    <ul>
+	      <li><code>@{code}</code></li>
+	      <li><code>@{title}</code></li>
+	      <li><code>@{desc}</code></li>
+	      <li><code>@{srcdir}</code></li>
+	      <li><code>@{host}</code></li>
+	      <li><code>@{user}</code></li>
+	      <li><code>@{password}</code></li>
+	    </ul>
+	    <p>
+	      A typical use of <code>@{code}</code> is to construct component names, and
+	      for parameters it is to capture variable parts like port numbers:
+	    </p>
+	    <pre>
+{
+    "name": "@{code}-server",
+    "type": "http",
+    "port": "${port}"
+}</pre>
+	    <p></p>
+
+	    <a class="anchor" id="import"></a>
+	    <h3>Imports</h3>
+	    <p>
+	      The value of the property <code>import</code> is a path to another file to
+	      import, relative to the current file.  Usually it is simply a file name, as
+	      they are all grouped in the same directory.  Starting at one file, its
+	      <code>import</code> is resolved if any, then recursively all their imports
+	      are resolved, to get a larger environment object.
+	    </p>
+	    <p>
+	      At each step, if the imported file contains a parameter already existing in
+	      an importing file, it is "overriden" (hidden).
+	    </p>
+	    <p>
+	      At each step, if the imported file contains a component (database or server)
+	      already existing in an importing file (same ID or same name), it is
+	      "merged".  The properties of that component in the importing file hide the
+	      properties with the same name in the imported file.
+	    </p>
+	    <p>
+	      If you want a component to entirely override one with the same name in an
+	      imported file, use the property <code>compose</code> with the value
+	      <code>hide</code>.  By default it is <code>merge</code>.
+	    </p>
+	    <p>
+	      Let say we point to the following environment file:
+	    </p>
+	    <pre>
+{
+    "mlproj": {
+	"format": "0.1",
+	"import": "base.json",
+	"connect": {
+	    "host":     "localhost",
+	    "user":     "admin",
+	    "password": "admin"
+	},
+	"params": {
+	    "port": 8099
+	},
+	"servers": [{
+	    "id": "server",
+	    "modules": {
+		"name": "@{code}-modules"
+	    }
+	}]
+    }
+}</pre>
+	    <p>
+	      and the following in <code>base.json</code>:
+	    </p>
+	    <pre>
+{
+    "mlproj": {
+	"format": "0.1",
+	"code":   "my-app",
+	"title":  "My project",
+	"params": {
+	    "port": 8080,
+	    "root": "/"
+	},
+	"databases": [{
+	    "id":   "content",
+	    "name": "@{code}-content"
+	}],
+	"servers": [{
+	    "id":   "server",
+	    "name": "@{code}",
+	    "type": "http",
+	    "port": "${port}",
+	    "root": "${root}",
+	    "content": {
+		"idref": "content"
+	    }
+	}]
+    }
+}</pre>
+	    <p>
+	      Then the first one is somewhat equivalent to the following file, where
+	      imports and variable substitutions have been resolved:
+	    </p>
+	    <pre>
+{
+    "mlproj": {
+	"format": "0.1",
+	"code":   "my-app",
+	"title":  "My project",
+	"connect": {
+	    "host":     "localhost",
+	    "user":     "admin",
+	    "password": "admin"
+	},
+	"servers": [{
+	    "name": "my-app",
+	    "type": "http",
+	    "port": "8099",
+	    "root": "/",
+	    "content": {
+		"name": "my-app-content"
+	    },
+	    "modules": {
+		"name": "my-app-modules"
+	    }
+	}]
+    }
+}</pre>
+	    <p>
+	      Note like the properties for the server have been merged from both
+	      files. Note as well that <code>${port}</code> is resolved to the parameter
+	      with that name with the highest import precedence (in the importing file),
+	      even though it is used in another file (in the imported file).
+	    </p>
+	    <p>
+	      If you need to import several files, you can use an array of strings instead
+	      of a single string as the value of <code>import</code>
+	    </p>
+	    <pre>"import": [ "one.json", "two.json", "three.json" ]</pre>
+	    <p></p>
+
+	    <a class="anchor" id="databases"></a>
+	    <h3>Databases</h3>
+	    <p>
+	      TODO: Bla bla bla...
+	    </p>
+
+	    <a class="anchor" id="servers"></a>
+	    <h3>Servers</h3>
+	    <p>
+	      The property <code>servers</code> is an array of servers.  Each server is an
+	      object that looks like the following:
+	    </p>
+	    <pre>
+{
+    "id":   "app",
+    "name": "@{code}",
+    "type": "http",
+    "port": "${port}",
+    "root": "/",
+    "rewriter": "/plumbing/rewriter.sjs",
+    "handler":  "/plumbing/errors.sjs",
+    "content": {
+        "name": "@{code}-content"
+    },
+    "modules": {
+        "name": "@{code}-modules"
+    }
+}</pre>
+	    <p>
+	      The various properties are:
+	    </p>
+	    <ul>
+	      <li><code>id</code> - a unique ID used only in the environment files, to
+		refer to servers</li>
+	      <li><code>name</code> - the name of the server, as it will be set on
+		MarkLogic</li>
+	      <li><code>type</code> - the server type (either <code>http</code>,
+		<code>webdav</code>, <code>xdbc</code> or <code>odbc</code>)</li>
+	      <li><code>port</code> - the port number to use for the server</li>
+	      <li><code>root</code> - the root for modules (either on the file system, or
+		on the modules database if it is set)</li>
+	      <li><code>rewriter</code> - the path to the URL rewriter</li>
+	      <li><code>handler</code> - the path to the error handler</li>
+	      <li><code>content</code> and <code>modules</code> - resp. the content
+		database and the modules database.  They can be either a full-fledged
+		database definition, or a reference to an existing database description
+		(using <code>idref</code> or <code>nameref</code>)</li>
+	    </ul>
+	    <p></p>
 
 	    <a class="anchor" id="supported"></a>
 	    <h3>Supported properties</h3>
