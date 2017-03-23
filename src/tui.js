@@ -92,7 +92,7 @@ function execNew(program, command)
 }
 
 // implementation of the action for any command accepting a project/environment
-function execWithProject(program, cmd)
+function execWithProject(program, cmd, args)
 {
     // the platform
     var dry      = program.dry     ? true : false;
@@ -110,7 +110,7 @@ function execWithProject(program, cmd)
     // the project
     platform.project(env, path, params, force, project => {
 	// execute the command
-	project.execute(cmd.clazz);
+	project.execute(cmd.clazz, args);
     });
 }
 
@@ -171,6 +171,21 @@ var commands = [{
 
    TODO: Add an option to set/override the modules database from the
    command line.`
+}, {
+    clazz       : cmd.LoadCommand,
+    impl        : execWithProject,
+    name        : 'load',
+    command     : 'load <what> <args...>',
+    description : 'load documents to the content database',
+    help        : `Load a document to the content database.
+   The parameters are the fixed string "doc", then the path of a file.
+   The path must be relative.  Its first part must be a directory.  This part
+   is got rid of, the rest becomes the URI of the document to insert.
+
+   For instance, the following loads the content of data/hello.xml to the
+   document with the URI /hello.xm:
+
+       mlproj load doc data/hello.xml`
 }];
 
 // collect params from several `--param name:value` options
@@ -218,7 +233,9 @@ commands.forEach(cmd => {
     // 'function()' needed for 'arguments', cannot use '() => ...' here
     prg.action(function() {
         resolved = true;
-	cmd.impl(program, cmd, arguments);
+	var args = Array.from(arguments);
+	args.pop();
+	cmd.impl(program, cmd, args);
     });
 });
 

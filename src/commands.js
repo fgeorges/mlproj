@@ -213,6 +213,52 @@
 	}
     }
 
+    /*~
+     * Load document in a content database.
+     */
+    class LoadCommand extends Command
+    {
+	execute(what, args) {
+	    var pf    = this.project.platform;
+	    var space = this.project.space;
+	    var db    = space.contentDb();
+            this.actions = new act.ActionList(pf);
+	    if ( 'doc' === what ) {
+		this.loadDoc(pf, space, db, args);
+	    }
+	    else {
+		throw new Error('Unknown type of stuff to load: ' + what);
+	    }
+            this.actions.execute(() => {
+		this.actions.summary(true);
+	    });
+	}
+
+	loadDoc(pf, space, db, args) {
+	    // "load doc data/foo/bar.xml"
+	    if ( args.length === 1 ) {
+		// TODO; Validate it is relative...!
+		var path = args[0];
+		var idx  = path.indexOf('/');
+		if ( idx < 0 ) {
+		    throw new Error('The path in `load doc path` must start at a sub-directory');
+		}
+		var uri = path.slice(idx);
+		// TODO: read() uses utf-8, cannot handle binary
+		var doc = pf.read(path);
+		this.actions.add(new act.DocInsert(db, uri, doc));
+	    }
+	    // "load doc data /foo/bar.xml"
+	    // "load doc data/foo/bar.xml urn:some:foo:bar.xml"
+	    else if ( args.length === 2 ) {
+		throw new Error('TODO: Not implemented yet...');
+	    }
+	    else {
+		throw new Error('Wrong number of arguments to load doc: ' + args.length);
+	    }
+	}
+    }
+
     // helper function for the command `new`, to create xproject/project.xml
     function NEW_PROJECT_XML(vars)
     {
@@ -314,7 +360,8 @@
         NewCommand    : NewCommand,
         ShowCommand   : ShowCommand,
         SetupCommand  : SetupCommand,
-        DeployCommand : DeployCommand
+        DeployCommand : DeployCommand,
+        LoadCommand   : LoadCommand
     }
 }
 )();

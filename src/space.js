@@ -21,12 +21,14 @@
 	    if ( ! env && ! path ) {
 		try {
 		    // unused here, just to see if it exists
-		    pf.read(pf.resolve('xproject/mlenvs/default.json', base));
+		    this.read(this.resolve('xproject/mlenvs/default.json', base));
 		    env = 'default';
 		}
 		catch (err) {
-		    // ignore ENOENT, file does not exist
-		    if ( err.code !== 'ENOENT' ) {
+		    if ( err.code === 'ENOENT' ) {
+			throw new Error('Default env does not exist (and no --environ or --file)');
+		    }
+		    else {
 			throw err;
 		    }
 		}
@@ -137,9 +139,9 @@
 	    this.platform.space = this.space;
 	}
 
-	execute(command) {
+	execute(command, args) {
 	    var cmd = new command(this);
-	    cmd.execute();
+	    cmd.execute.apply(cmd, args);
 	}
 
 	// Precedence:
@@ -334,6 +336,16 @@
 
 	modulesDb()
 	{
+	    return this._getDb('modules');
+	}
+
+	contentDb()
+	{
+	    return this._getDb('content');
+	}
+
+	_getDb(which)
+	{
 	    var srvs = this.servers();
 	    if ( ! srvs.length ) {
 		throw new Error('No server in the environment');
@@ -342,10 +354,11 @@
 		throw new Error('More than 1 server in the environment');
 	    }
 	    var srv = srvs[0];
-	    if ( ! srv.modules ) {
-		throw new Error('Server has no modules database: ' + srv.name);
+	    var res = srv[which];
+	    if ( ! res ) {
+		throw new Error('Server has no ' + which + ' database: ' + srv.name);
 	    }
-	    return srv.modules;
+	    return res;
 	}
 
 	// cache databases and servers (resolving import priority)
