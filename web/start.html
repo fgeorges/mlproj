@@ -61,18 +61,26 @@
 	    <pre>
 <b>$</b> npm install mlproj -g                    # install mlproj
 <b>$</b> mlproj help
-<b>$</b> 
+
 <b>$</b> mkdir my-foobar                          # create a new project
 <b>$</b> cd my-foobar
 <b>$</b> mlproj new
-<b>$</b> 
+
 <b>$</b> mlproj show                              # create the env on MarkLogic
 <b>$</b> mlproj setup
-<b>$</b> 
+
 <b>$</b> mlproj deploy                            # deploy code and load data
 <b>$</b> mlproj load doc some/doc.xml</pre>
 	    <p>
-	      And now for the explanations...
+	      One more tip though.  Using the global option <code>-d</code> enters the
+	      "dry run mode".  In this mode, no action is actually done, it is only
+	      simulated and displayed, so you can inspect first what <em>would</em> happen
+	      when you run the command for real.  For instance for the
+	      command <code>setup</code>:
+	    </p>
+	    <pre><b>$</b> mlproj -d setup</pre>
+	    <p>
+	      And now for some more explanations...
 	    </p>
 
 	    <h3>Once and for all</h3>
@@ -240,18 +248,87 @@ Port     (8080) :
 
 	    <h3>Deploy code</h3>
 	    <p>
-	      TODO: Bla bla bla...
+	      Now, let us simulate hours and days and weeks of work, by creating the
+	      following modules in the <code>src/</code> directory.  Feel free to use
+	      JavaScript instead if this is your language of choice.  The goal is just to
+	      get some files in <code>src/</code>.
 	    </p>
+	    <blockquote>
+	      Note that deploying code to the modules database is only required (and does
+	      only make sense) when the app server is attached to a modules database, as
+	      opposed to accessing the modules directly on the locahost file system.  With
+	      the default environment files, this means you need to deploy only if you
+	      use <code>prod.json</code>, not with <code>dev.json</code> (which is the
+	      default).  Trying to deploy with the latter will result in an error.
+	    </blockquote>
+	    <p>
+	      This is <code>src/lib/foo.xqy</code>:
+	    </p>
+	    <pre>
+module namespace foo = "http://example.com/foobar/lib/foo";
+
+declare function foo:hello($who)
+{
+   'Hello, ' || $who || '!'
+};
+</pre>
+	    <p>
+	      And this is <code>src/endpoints/bar.xqy</code>:
+	    </p>
+	    <pre>
+import module namespace foo = "http://example.com/foobar/lib/foo"
+   at "../lib/foo.xqy";
+
+foo:hello('world')</pre>
+	    <p>
+	      Now we can deploy the code to the modules database.
+	    </p>
+	    <pre>
+<b>$</b> mlproj deploy
+<span style="color: orange">→</span> Insert document: 	/endpoints/bar.xqy
+<span style="color: orange">→</span> Insert document: 	/lib/foo.xqy
+<b>$</b> </pre>
+	    <p></p>
 
 	    <h3>Load data</h3>
 	    <p>
-	      TODO: Bla bla bla...
+	      The last step you might need in order to play with a project is the ability
+	      to load some document.  For that, use the command <code>load doc</code>.
+	      First create a document to be loaded, in <code>data/hello.xml</code>:
+	    </p>
+	    <pre>
+&lt;greetings>
+   &lt;who>World&lt;/who>
+&lt;/greetings></pre>
+	    <p>
+	      Then load it in the content database:
+	    </p>
+	    <pre>
+<b>$</b> mlproj load doc data/hello.xml
+<span style="color: orange">→</span> Insert document: 	/hello.xml
+<b>$</b> </pre>
+	    <p>
+	      As you can see, <code>mlproj</code> conveniently infers the document URI in
+	      the database, based on the filename in the <code>data/</code> sub-directory.
 	    </p>
 
 	    <h3>What now?</h3>
 	    <p>
-	      TODO: Bla bla bla...  Commands...  Bla bla bla...Environments...  Bla bla
-	      bla...
+	      This quick overview should give you enough to get started:
+	      install <code>mlproj</code>, create a new project, create its databases and
+	      app servers on MarkLogic, deploy the code, and load some data.
+	    </p>
+	    <p>
+	      The next steps now, if you want to learn more, is to have a look at:
+	    </p>
+	    <ul>
+	      <li>the list of <a href="commands">commands</a> available</li>
+	      <li>the description of the <a href="environments">environment</a> files, to
+		describe the components to create on MarkLogic (databases and app servers)
+		and their properties (indexes, URL rewriter, etc.)</li>
+	    </ul>
+	    <p>
+	      Have fun!
 	    </p>
 
           </div>
