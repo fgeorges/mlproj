@@ -21,7 +21,7 @@
 	    if ( ! env && ! path ) {
 		try {
 		    // unused here, just to see if it exists
-		    pf.read('xproject/mlenvs/default.json');
+		    pf.read(pf.resolve('xproject/mlenvs/default.json', base));
 		    env = 'default';
 		}
 		catch (err) {
