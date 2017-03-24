@@ -89,7 +89,8 @@ function exportText()
 }
 
 // export to a HTML table
-function exportTable()
+// if `ignore` is thruly, ignore not supoprted properties
+function exportTable(ignore)
 {
     const display = (obj, all) => {
 	console.log('<table class="table">');
@@ -101,6 +102,9 @@ function exportTable()
 	// quick hack
 	res['database-name'] = [ 'name' ];
 	res['server-name']   = [ 'name' ];
+	res['forest']        = [ 'forests' ];
+	// TODO: Detect `res` props that are not in `all`, and generate an error
+	// for unknown property...
 	all.forEach(p => {
 	    if ( res[p] ) {
 		console.log('<tr>'
@@ -108,6 +112,9 @@ function exportTable()
 			    + '<td>' + res[p] + '</td>'
 			    + '<td style="color:green;text-align:center">✓</td>'
 			    + '</tr>');
+	    }
+	    else if ( ignore ) {
+		// ignore
 	    }
 	    else {
 		console.log('<tr>'
@@ -121,11 +128,14 @@ function exportTable()
 	console.log('</table>');
     };
 
-    console.log('<h3>Database properties</h3>');
+    console.log('<h4>Database properties</h4>');
+    console.log('<p>Supported properties for databases.</p>');
     display(props.database, all.dbProps);
-    console.log('<h3>Server properties</h3>');
+    console.log('<h4>Server properties</h4>');
+    console.log('<p>Supported properties for servers.</p>');
     display(props.server, all.srvProps);
 }
 
 // exportText();
 exportTable();
+// exportTable(true);
