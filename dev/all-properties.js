@@ -123,6 +123,7 @@
 	'three-character-word-positions',
 	'trailing-wildcard-searches',
 	'trailing-wildcard-word-positions',
+	'triggers-database',
 	'triple-index',
 	'triple-positions',
 	'two-character-searches',
