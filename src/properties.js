@@ -510,7 +510,31 @@
 	.add('port',     true,  new  Integer('port',          'port').freeze())
 	.add('root',     false, new   String('root',          'root'))
 	.add('rewriter', false, new   String('url-rewriter',  'url rewriter'))
-	.add('handler',  false, new   String('error-handler', 'error handler'));
+	.add('handler',  false, new   String('error-handler', 'error handler'))
+	.add('output',   false, new ConfigObject()
+	     .add('byte-order-mark',             false, new   Enum('output-byte-order-mark',             'output byte order mark',             [ 'yes', 'no', 'default' ]))
+	     .add('cdata-section-localname',     false, new String('output-cdata-section-localname',     'output cdata section localname'))
+	     .add('cdata-section-namespace-uri', false, new String('output-cdata-section-namespace-uri', 'output cdata section namespace uri'))
+	     .add('doctype-public',              false, new String('output-doctype-public',              'output doctype public'))
+	     .add('doctype-system',              false, new String('output-doctype-system',              'output doctype system'))
+	     .add('encoding',                    false, new   Enum('output-encoding',                    'output encoding', [
+		 'UTF-8', 'ASCII', 'ISO-8859-1', 'ISO-8859-5', 'ISO-8859-6', 'ISO-2022-KR', 'ISO-2022-JP', 'EUC-CN', 'EUC-KR', 'EUC-JP', 'CP932',
+		 'CP936', 'CP949', 'CP950', 'CP1252', 'CP1256', 'KOI8-R', 'GB12052', 'GB18030', 'GB2312', 'HZ-GB-2312', 'BIG5', 'BIG5-HKSCS', 'Shift_JIS' ]))
+	     .add('escape-uri-attributes',       false, new   Enum('output-escape-uri-attributes',       'output escape uri attributes',       [ 'yes', 'no', 'default' ]))
+	     .add('include-content-type',        false, new   Enum('output-include-content-type',        'output include content type',        [ 'yes', 'no', 'default' ]))
+	     .add('include-default-attributes',  false, new   Enum('output-include-default-attributes',  'output include default attributes',  [ 'yes', 'no', 'default' ]))
+	     .add('indent',                      false, new   Enum('output-indent',                      'output indent',                      [ 'yes', 'no', 'default' ]))
+	     .add('indent-tabs',                 false, new   Enum('output-indent-tabs',                 'output indent tabs',                 [ 'yes', 'no', 'default' ]))
+	     .add('indent-untyped',              false, new   Enum('output-indent-untyped',              'output indent untyped',              [ 'yes', 'no', 'default' ]))
+	     .add('media-type',                  false, new String('output-media-type',                  'output media type'))
+	     .add('method',                      false, new   Enum('output-method',                      'output method', [
+		 'default', 'xml', 'xhtml', 'html', 'text', 'sparql-results-json', 'sparql-results-csv', 'n-triples', 'n-quads' ]))
+	     .add('normalization-form',          false, new   Enum('output-normalization-form',          'output normalization form',          [ 'none', 'NFC', 'NFD', 'NFKD' ]))
+	     .add('omit-xml-declaration',        false, new   Enum('output-omit-xml-declaration',        'output omit xml declaration',        [ 'yes', 'no', 'default' ]))
+	     .add('sgml-character-entities',     false, new   Enum('output-sgml-character-entities',     'output sgml character entities',     [ 'none', 'normal', 'math', 'pub' ]))
+	     .add('standalone',                  false, new   Enum('output-standalone',                  'output standalone',                  [ 'yes', 'no', 'omit' ]))
+	     .add('undeclare-prefixes',          false, new   Enum('output-undeclare-prefixes',          'output undeclare prefixes',          [ 'yes', 'no', 'default' ]))
+	     .add('version',                     false, new String('output-version',                     'output version')))
 
     module.exports = {
         database : database,
