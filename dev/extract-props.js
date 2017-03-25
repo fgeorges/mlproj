@@ -95,32 +95,25 @@ function exportTable(ignore)
     const display = (obj, all) => {
 	console.log('<table class="table">');
 	console.log('<thead>');
-	console.log('<tr><th>name</th><th>path</th><th style="text-align:center">supported</th></tr>');
+	console.log('<tr><th>name</th><th>path</th></tr>');
 	console.log('</thead>');
 	console.log('<tbody>');
 	var res = accumulate(byName, obj);
 	// quick hack
-	res['database-name'] = [ 'name' ];
-	res['server-name']   = [ 'name' ];
-	res['forest']        = [ 'forests' ];
+	res['database-name']     = [ 'name' ];
+	res['forest']            = [ 'forests' ];
+	res['schema-database']   = [ 'schema' ];
+	res['security-database'] = [ 'security' ];
+	res['triggers-database'] = [ 'triggers' ];
+	res['server-name']       = [ 'name' ];
 	// TODO: Detect `res` props that are not in `all`, and generate an error
 	// for unknown property...
+	const cross = '<span style="color:red">✗</span>'
 	all.forEach(p => {
-	    if ( res[p] ) {
+	    if ( ! ignore ) {
 		console.log('<tr>'
 			    + '<td>' + p + '</td>'
-			    + '<td>' + res[p] + '</td>'
-			    + '<td style="color:green;text-align:center">✓</td>'
-			    + '</tr>');
-	    }
-	    else if ( ignore ) {
-		// ignore
-	    }
-	    else {
-		console.log('<tr>'
-			    + '<td>' + p + '</td>'
-			    + '<td></td>'
-			    + '<td style="color:red;text-align:center">✗</td>'
+			    + '<td>' + (res[p] ? res[p] : cross) + '</td>'
 			    + '</tr>');
 	    }
 	});
