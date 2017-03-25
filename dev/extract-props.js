@@ -108,12 +108,11 @@ function exportTable(ignore)
 	res['server-name']       = [ 'name' ];
 	// TODO: Detect `res` props that are not in `all`, and generate an error
 	// for unknown property...
-	const cross = '<span style="color:red">✗</span>'
 	all.forEach(p => {
 	    if ( ! ignore ) {
 		console.log('<tr>'
 			    + '<td>' + p + '</td>'
-			    + '<td>' + (res[p] ? res[p] : cross) + '</td>'
+			    + '<td>' + (res[p] ? res[p] : '✗') + '</td>'
 			    + '</tr>');
 	    }
 	});
