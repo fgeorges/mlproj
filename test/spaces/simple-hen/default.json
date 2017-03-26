@@ -1,0 +1,38 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "code": "simple-hen",
+        "title": "Example with fast searches, and server output properties",
+        "connect": {
+            "host": "ml9ea4",
+            "user": "admin",
+            "password": "admin"
+        },
+        "params": {
+            "port": "7080"
+        },
+        "databases": [{
+            "name": "@{code}-content",
+            "searches": {
+		"fast": {
+		    "case-sensitive"            : true,
+		    "diacritic-sensitive"       : false,
+		    "element-character"         : false,
+		    "element-phrase"            : true,
+		    "element-trailing-wildcard" : true,
+		    "element-word"              : false,
+		    "phrase"                    : false,
+		    "reverse"                   : true
+		}}
+        }],
+        "servers": [{
+            "name": "@{code}",
+	    "output": {
+		"byte-order-mark"             : "no",
+		"cdata-section-localname"     : "...",
+		"cdata-section-namespace-uri" : "...",
+		...
+	    }
+        }]
+    }
+}
