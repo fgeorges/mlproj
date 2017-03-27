@@ -68,6 +68,14 @@
 		<code>test/projects/</code></a> (more complete projects, including
 	      environment files.)
 	    </p>
+	    <blockquote>
+	      This is far from covering all aspects and all possible properties of
+	      databases, forests and servers.  It is a work in progress.  The goal is to
+	      support all properties supported by the Management API of MarkLogic.  If you
+	      need one that is not supported yet, make sure to open an issue about it, so
+	      it moves to the top of the list.
+	    </blockquote>
+	    <p></p>
 
 	    <a class="anchor" id="intro"></a>
 	    <h3>Introduction</h3>
@@ -367,6 +375,9 @@
             "invalid":   "ignore"
         }]
     },
+    "searches": {
+        <em>(infos on searches)</em>
+    },
     "lexicons": {
         "uri": false,
         "collection": true
@@ -392,6 +403,7 @@
 	      they can be either ID or name reference to an existing database description,
 	      or be a full, embedded database object.
 	    </p>
+	    <h4>Range indexes</h4>
 	    <p>
 	      Range indexes can be set in the <code>ranges</code> array.  Each is an
 	      object with the following properties (if there is <code>path</code> it is a
@@ -417,17 +429,37 @@
 	      <li><code>path</code>: the path expression to use (only for path range
 		indexes)</li>
 	    </ul>
+	    <h4>Searches</h4>
+	    <p>
+	      The property <code>searches</code> is an object that contains information,
+	      options, and switches about searches.  For now it contains only the fast
+	      searches switches:
+	    </p>
+	    <pre>
+"searches": {
+    "fast": {
+        "case-sensitive"            : true,
+        "diacritic-sensitive"       : false,
+        "element-character"         : false,
+        "element-phrase"            : true,
+        "element-trailing-wildcard" : true,
+        "element-word"              : false,
+        "phrase"                    : false,
+        "reverse"                   : true
+    }
+}</pre>
+	    <p>
+	      Each property in <code>fast</code> corresponds to the property
+	      <code>fast-{name}-searches</code> in the Management API.  For instance,
+	      <code>case-sensitive</code> corresponds to
+	      <code>fast-case-sensitive-searches</code>.
+	    </p>
+	    <h4>Lexicons</h4>
 	    <p>
 	      <code>lexicons.uri</code> and <code>lexicons.collection</code> set whether
 	      to maintain resp. a URI or a collection lexicon for that database.
 	    </p>
-	    <blockquote>
-	      This is far from covering all aspects and all possible properties of
-	      databases, forests and servers.  It is a work in progress.  The goal is to
-	      support all properties supported by the Management API of MarkLogic.  If you
-	      need one that is not supported yet, make sure to open an issue about it, so
-	      it moves to the top of the list.
-	    </blockquote>
+	    <h4>Database references</h4>
 	    <p>
 	      Anywhere a database object is expected (to give a database its schema,
 	      security or triggers database, or a server its content or modules database),
@@ -464,6 +496,9 @@
     },
     "modules": {
         <em>(database object or ref)</em>
+    },
+    "output": {
+        <em>(serialization options)</em>
     }
 }</pre>
 	    <p>
@@ -486,7 +521,39 @@
 		database object, or a reference to an existing database description
 		(using <code>idref</code> or <code>nameref</code>)</li>
 	    </ul>
-	    <p></p>
+	    <h4>Output</h4>
+	    <p>
+	      The property <code>output</code> is an object that contains serialization
+	      options for the server:
+	    </p>
+	    <pre>
+"output": {
+    "byte-order-mark"             : "no",
+    "cdata-section-localname"     : "...",
+    "cdata-section-namespace-uri" : "...",
+    "doctype-public"              : "...",
+    "doctype-system"              : "...",
+    "encoding"                    : "UTF-8",
+    "escape-uri-attributes"       : "yes",
+    "include-content-type"        : "yes",
+    "include-default-attributes"  : "no",
+    "indent"                      : "yes",
+    "indent-tabs"                 : "no",
+    "indent-untyped"              : "yes",
+    "media-type"                  : "...",
+    "method"                      : "xhtml",
+    "normalization-form"          : "none",
+    "omit-xml-declaration"        : "default",
+    "sgml-character-entities"     : "none",
+    "standalone"                  : "omit",
+    "undeclare-prefixes"          : "default",
+    "version"                     : "2.0",
+}</pre>
+	    <p>
+	      Each property corresponds to the property <code>output-{name}</code> in the
+	      Management API.  For instance, <code>doctype-public</code> corresponds to
+	      <code>putput-doctype-public</code>.
+	    </p>
 
 	    <a class="anchor" id="supported"></a>
 	    <h3>Supported properties</h3>
