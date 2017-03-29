@@ -60,6 +60,7 @@
 	    </p>
 	    <ul>
 	      <li><a href="#files">Files</a></li>
+	      <li><a href="#connect">Connection</a></li>
 	      <li><a href="#mlcp">MLCP</a></li>
 	    </ul>
 	    <p>
@@ -91,6 +92,27 @@
 	      versus <code>mlproj.json</code>).  The one with a dot is the idiomatic name,
 	      whilst the one with no dot is supported for platforms where it is hard to
 	      create a file with such a name.
+	    </p>
+
+	    <a class="anchor" id="connect"></a>
+	    <h3>Connection</h3>
+	    <p>
+	      You can set the default connection credentials to use in the user
+	      configuration file, by using the object <code>connect</code> (like in the
+	      environment files themselves):
+	    </p>
+	    <pre>
+{
+   "mlproj": {
+      "connect": {
+         "host": "myvm",
+         "user": "admin"
+      }
+   }
+}</pre>
+	    <p>
+	      These credentials (host, user and/or password) will be used only if they are
+	      not set on the command line nor in the environment file.
 	    </p>
 
 	    <a class="anchor" id="mlcp"></a>

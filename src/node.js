@@ -22,13 +22,15 @@
 	    // try one...
 	    var proj = Node.userJson(this, '.mlproj.json');
 	    if ( proj ) {
-		this._config = proj.config;
+		this._config  = proj.config;
+		this._connect = proj.connect;
 	    }
 	    else {
 		// ...or the other
 		proj = Node.userJson(this, 'mlproj.json');
 		if ( proj ) {
-		    this._config = proj.config;
+		    this._config  = proj.config;
+		    this._connect = proj.connect;
 		}
 	    }
 	}

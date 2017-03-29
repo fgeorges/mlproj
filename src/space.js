@@ -137,6 +137,17 @@
 	load(params, force, defaults) {
 	    this.space = Space.load(this.platform, this.path, params, force, defaults);
 	    this.platform.space = this.space;
+	    [ 'host', 'user', 'password' ].forEach(name => {
+		var val = this.space.param('@' + name);
+		if ( ! val ) {
+		    if ( this.proj && this.proj.connect && this.proj.connect[name] ) {
+			this.space.param('@' + name, this.proj.connect[name]);
+		    }
+		    else if ( this.platform._connect && this.platform._connect[name] ) {
+			this.space.param('@' + name, this.platform._connect[name]);
+		    }
+		}
+	    });
 	}
 
 	execute(command, args) {
