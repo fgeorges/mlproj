@@ -24,10 +24,12 @@
 	    if ( proj ) {
 		this._config = proj.config;
 	    }
-	    // ...or the other
-	    proj = Node.userJson(this, 'mlproj.json');
-	    if ( proj ) {
-		this._config = proj.config;
+	    else {
+		// ...or the other
+		proj = Node.userJson(this, 'mlproj.json');
+		if ( proj ) {
+		    this._config = proj.config;
+		}
 	    }
 	}
 
