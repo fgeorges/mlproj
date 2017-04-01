@@ -67,6 +67,9 @@
         resolve(href, base) {
             throw new Error('Platform.resolve is abstract');
         }
+        dirname(href) {
+            throw new Error('Platform.dirname is abstract');
+        }
         read(path) {
             throw new Error('Platform.read is abstract');
         }
@@ -788,11 +791,7 @@
             var impl = (href, base) => {
                 var path    = base ? platform.resolve(href, base) : href;
                 var proj    = platform.json(path, true);
-                var idx     = path.lastIndexOf('/');
-                if ( idx < 0 ) {
-                    throw new Error('File path does not have any slash: ' + path);
-                }
-                var newBase = path.slice(0, idx);
+                var newBase = platform.dirname(path);
                 var space   = new Space(proj, newBase, platform);
                 var imports = proj['import'];
                 if ( typeof imports === 'string' ) {

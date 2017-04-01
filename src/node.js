@@ -99,6 +99,10 @@
             return path.resolve(base, href);
         }
 
+        dirname(href) {
+            return path.dirname(href);
+        }
+
         read(path) {
             return fs.readFileSync(path, 'utf8');
         }
