@@ -17,9 +17,9 @@ function plainCmdStart(program, command)
 {
     // check forbidden options
     [ 'dry', 'environ', 'file', 'code', 'host', 'srcdir', 'user', 'password' ].forEach(name => {
-	if ( program[name] ) {
-	    throw new Error('Option `--' + name + '` not supported for command `' + cmd.command + '`');
-	}
+        if ( program[name] ) {
+            throw new Error('Option `--' + name + '` not supported for command `' + cmd.command + '`');
+        }
     });
 
     // the platform
@@ -36,27 +36,27 @@ function execHelp(program, command, args)
     // the command
     var name = args[0];
     if ( ! name ) {
-	program.help();
+        program.help();
     }
     else {
-	var cmd  = commands.find(c => c.name === name);
-	if ( ! cmd ) {
-	    pf.log('Unknwon command: ' + name);
-	}
-	else {
-	    pf.log('');
-	    if ( name === cmd.command ) {
-		pf.log('   ' + pf.bold(name));
-	    }
-	    else {
-		var idx  = cmd.command.indexOf(' ');
-		var args = cmd.command.slice(idx);
-		pf.log('   ' + pf.bold(name) + args);
-	    }
-	    pf.log('');
-	    pf.log('   ' + cmd.help);
-	    pf.log('');
-	}
+        var cmd  = commands.find(c => c.name === name);
+        if ( ! cmd ) {
+            pf.log('Unknwon command: ' + name);
+        }
+        else {
+            pf.log('');
+            if ( name === cmd.command ) {
+                pf.log('   ' + pf.bold(name));
+            }
+            else {
+                var idx  = cmd.command.indexOf(' ');
+                var args = cmd.command.slice(idx);
+                pf.log('   ' + pf.bold(name) + args);
+            }
+            pf.log('');
+            pf.log('   ' + cmd.help);
+            pf.log('');
+        }
     }
 }
 
@@ -69,7 +69,7 @@ function execNew(program, command)
 
     // Check the directory is empty...!
     if ( fs.readdirSync(dir).length ) {
-	throw new Error('Directory is not empty: ' + dir);
+        throw new Error('Directory is not empty: ' + dir);
     }
 
     // gather info by asking the user...
@@ -105,12 +105,12 @@ function execWithProject(program, cmd, args)
     var force    = {};
     [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
     if ( program.password ) {
-	force.password = read.question('Password: ', { hideEchoBack: true });
+        force.password = read.question('Password: ', { hideEchoBack: true });
     }
     // the project
     platform.project(env, path, params, force, project => {
-	// execute the command
-	project.execute(cmd.clazz, args);
+        // execute the command
+        project.execute(cmd.clazz, args);
     });
 }
 
@@ -154,7 +154,7 @@ var commands = [{
     command     : 'setup',
     description : 'setup the environment on MarkLogic',
     options     : [
-	// { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
+        // { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
     ],
     help        : `Create components in the given environment on MarkLogic.
    Use the connection details from the environment to connect to
@@ -192,10 +192,10 @@ var commands = [{
 var params = (item, memo) => {
     var idx = item.indexOf(':');
     if ( idx < 0 ) {
-	idx = item.indexOf('=');
+        idx = item.indexOf('=');
     }
     if ( idx < 0 ) {
-	throw new Error('Invalid parameter, must use : or = between name and value');
+        throw new Error('Invalid parameter, must use : or = between name and value');
     }
     var name  = item.slice(0, idx);
     var value = item.slice(idx + 1);
@@ -226,16 +226,16 @@ commands.forEach(cmd => {
         .command(cmd.command)
         .description(cmd.description);
     if ( cmd.options ) {
-	cmd.options.forEach(opt => {
+        cmd.options.forEach(opt => {
             prg = prg.option(opt.option, opt.label);
-	});
+        });
     }
     // 'function()' needed for 'arguments', cannot use '() => ...' here
     prg.action(function() {
         resolved = true;
-	var args = Array.from(arguments);
-	args.pop();
-	cmd.impl(program, cmd, args);
+        var args = Array.from(arguments);
+        args.pop();
+        cmd.impl(program, cmd, args);
     });
 });
 
