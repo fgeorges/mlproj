@@ -3,22 +3,22 @@
         "format": "0.1",
         "code": "simple-ape",
         "title": "Simple base space example",
-	"srcdir" : "/tmp/src/",
+        "srcdir" : "/tmp/src/",
         "params": {
             "port": "7010"
         },
         "servers": [{
-	    "id": "server",
+            "id": "server",
             "name": "@{code}",
             "type": "http",
             "port": "${port}",
             "content": {
-		"name": "@{code}-content"
+                "name": "@{code}-content"
             },
             "modules": {
-		"name": "@{code}-modules"
+                "name": "@{code}-modules"
             },
-	    "root": "/"
+            "root": "/"
         }]
     }
 }

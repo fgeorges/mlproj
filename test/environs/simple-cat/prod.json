@@ -10,21 +10,21 @@
             "password": "admin"
         },
         "databases": [{
-	    "id": "schema",
-	    "name": "@{code}-schema"
-	}, {
-	    "name": "@{code}-security"
-	}, {
-	    "name": "@{code}-content",
-	    "schema": {
-		"idref": "schema"
-	    },
-	    "security": {
-		"nameref": "@{code}-security"
-	    },
-	    "triggers": {
-		"name": "@{code}-triggers"
-	    }
-	}]
+            "id": "schema",
+            "name": "@{code}-schema"
+        }, {
+            "name": "@{code}-security"
+        }, {
+            "name": "@{code}-content",
+            "schema": {
+                "idref": "schema"
+            },
+            "security": {
+                "nameref": "@{code}-security"
+            },
+            "triggers": {
+                "name": "@{code}-triggers"
+            }
+        }]
     }
 }

@@ -9,20 +9,20 @@
             "password": "admin"
         },
         "databases": [{
-	    "name": "@{code}",
-	    "indexes": {
+            "name": "@{code}",
+            "indexes": {
                 "ranges": [{
-		    "type":      "string",
-		    "name":      "ape",
-		    "positions": false,
-		    "invalid":   "ignore"
+                    "type":      "string",
+                    "name":      "ape",
+                    "positions": false,
+                    "invalid":   "ignore"
                 }, {
-		    "type":      "string",
-		    "name":      [ "bear", "cat" ],
-		    "positions": false,
-		    "invalid":   "ignore"
+                    "type":      "string",
+                    "name":      [ "bear", "cat" ],
+                    "positions": false,
+                    "invalid":   "ignore"
                 }]
-	    }
-	}]
+            }
+        }]
     }
 }

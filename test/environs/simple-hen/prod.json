@@ -14,25 +14,25 @@
         "databases": [{
             "name": "@{code}-content",
             "searches": {
-		"fast": {
-		    "case-sensitive"            : true,
-		    "diacritic-sensitive"       : false,
-		    "element-character"         : false,
-		    "element-phrase"            : true,
-		    "element-trailing-wildcard" : true,
-		    "element-word"              : false,
-		    "phrase"                    : false,
-		    "reverse"                   : true
-		}}
+                "fast": {
+                    "case-sensitive"            : true,
+                    "diacritic-sensitive"       : false,
+                    "element-character"         : false,
+                    "element-phrase"            : true,
+                    "element-trailing-wildcard" : true,
+                    "element-word"              : false,
+                    "phrase"                    : false,
+                    "reverse"                   : true
+                }}
         }],
         "servers": [{
             "name": "@{code}",
-	    "output": {
-		"byte-order-mark"             : "no",
-		"cdata-section-localname"     : "...",
-		"cdata-section-namespace-uri" : "...",
-		...
-	    }
+            "output": {
+                "byte-order-mark"             : "no",
+                "cdata-section-localname"     : "...",
+                "cdata-section-namespace-uri" : "...",
+                ...
+            }
         }]
     }
 }

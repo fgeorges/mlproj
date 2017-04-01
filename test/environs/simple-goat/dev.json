@@ -16,14 +16,14 @@
             "type": "http",
             "port": "${port}",
             "content": {
-		"name": "@{code}-content"
+                "name": "@{code}-content"
             },
             "modules": {
-		"name": "@{code}-modules"
+                "name": "@{code}-modules"
             },
-	    "root": "/",
-	    "rewriter": "/plumbing/rewriter.sjs",
-	    "handler": "/plumbing/errors.sjs"
+            "root": "/",
+            "rewriter": "/plumbing/rewriter.sjs",
+            "handler": "/plumbing/errors.sjs"
         }]
     }
 }

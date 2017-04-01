@@ -5,11 +5,11 @@
             "port": "6010"
         },
         "databases": [{
-	    "id": "content",
-	    "name": "@{code}-content"
-	}],
+            "id": "content",
+            "name": "@{code}-content"
+        }],
         "servers": [{
-	    "id": "app",
+            "id": "app",
             "name": "@{code}",
             "type": "http",
             "port": "${port}",

@@ -9,11 +9,11 @@
             "password": "admin"
         },
         "databases": [{
-	    "name": "@{code}-content",
-	    "lexicons": {
-		"uri": false,
-		"collection": true
-	    }
+            "name": "@{code}-content",
+            "lexicons": {
+                "uri": false,
+                "collection": true
+            }
         }]
     }
 }

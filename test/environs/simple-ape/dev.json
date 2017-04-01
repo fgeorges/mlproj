@@ -8,11 +8,11 @@
             "password": "admin"
         },
         "servers": [{
-	    "compose": "merge",
-	    "id": "server",
+            "compose": "merge",
+            "id": "server",
             "modules": null,
             "root": null,
-	    "comment": "By default, with no modules DB, root is `{proj}/src/`."
+            "comment": "By default, with no modules DB, root is `{proj}/src/`."
         }]
     }
 }

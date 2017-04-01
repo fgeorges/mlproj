@@ -7,15 +7,15 @@
             "user": "admin"
         },
         "databases": [{
-	    "id": "modules",
-	    "name": "@{code}-modules"
-	}],
+            "id": "modules",
+            "name": "@{code}-modules"
+        }],
         "servers": [{
-	    "id": "app",
+            "id": "app",
             "modules": {
                 "idref": "modules"
             },
-	    "root": "/"
+            "root": "/"
         }]
     }
 }
