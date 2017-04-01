@@ -205,7 +205,7 @@ var params = (item, memo) => {
 
 // the global options
 program
-    .version('0.20.0')
+    .version('0.21.0')
     .option('-c, --code <code>',        'set/override the @code')
     .option('-d, --dry',                'dry run')
     .option('-e, --environ <name>',     'environment name')
