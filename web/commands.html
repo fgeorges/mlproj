@@ -46,167 +46,167 @@
         <div class="row">
           <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
 
-	    <h1>Commands</h1>
-	    <p>
-	      Like the famous <code>git</code> and <code>apt-get</code>
-	      programs, <code>mlproj</code> is one single program, providing several
-	      commands, by giving a different command name as the first parameter on the
-	      command line.
-	    </p>
-	    <p>
-	      For instance, "<code>mlproj new</code>" invokes the command <code>new</code>
-	      with no option, to create a new project interactively.
-	    </p>
-	    <p>
-	      The available comamnds are:
-	    </p>
-	    <p>
-	      <ul>
-		<li><code>help</code> - display help about another command</li>
-		<li><code>new</code> - create a new project in an empty dir</li>
-		<li><code>show</code> - display the environment</li>
-		<li><code>setup</code> - setup the environment on MarkLogic</li>
-		<li><code>deploy</code> - deploy modules to the modules database</li>
-		<li><code>load</code> - load documents to the content database</li>
-	      </ul>
-	    </p>
-	    <p>
-	      Each command can get parameters and options, after its name.  Before its
-	      name, there can also be some <em>global options</em>.  In the following
-	      invocation, <code>-e</code> is a global option, with value <code>dev</code>,
-	      <code>foo</code> is the name of an imaginary command, and <code>bar</code>
-	      is a parameter of the command itself:
-	    </p>
-	    <pre>mlproj -e dev foo bar</pre>
-	    <p></p>
+            <h1>Commands</h1>
+            <p>
+              Like the famous <code>git</code> and <code>apt-get</code>
+              programs, <code>mlproj</code> is one single program, providing several
+              commands, by giving a different command name as the first parameter on the
+              command line.
+            </p>
+            <p>
+              For instance, "<code>mlproj new</code>" invokes the command <code>new</code>
+              with no option, to create a new project interactively.
+            </p>
+            <p>
+              The available comamnds are:
+            </p>
+            <p>
+              <ul>
+                <li><code>help</code> - display help about another command</li>
+                <li><code>new</code> - create a new project in an empty dir</li>
+                <li><code>show</code> - display the environment</li>
+                <li><code>setup</code> - setup the environment on MarkLogic</li>
+                <li><code>deploy</code> - deploy modules to the modules database</li>
+                <li><code>load</code> - load documents to the content database</li>
+              </ul>
+            </p>
+            <p>
+              Each command can get parameters and options, after its name.  Before its
+              name, there can also be some <em>global options</em>.  In the following
+              invocation, <code>-e</code> is a global option, with value <code>dev</code>,
+              <code>foo</code> is the name of an imaginary command, and <code>bar</code>
+              is a parameter of the command itself:
+            </p>
+            <pre>mlproj -e dev foo bar</pre>
+            <p></p>
 
-	    <h3>Global options</h3>
-	    <p>
-	      The global options, those options to pass to <code>mlproj</code> itself,
-	      before the command name, are:
-	    </p>
-	    <table class="table">
-	      <tr>
-		<th>short</th>
-		<th>long</th>
-		<th>description</th>
-	      </tr>
-	      <tr>
-		<td><code>-h</code></td>
-		<td><code>--help</code></td>
-		<td>output usage information</td>
-	      </tr>
-	      <tr>
-		<td><code>-V</code></td>
-		<td><code>--version</code></td>
-		<td>output the version number</td>
-	      </tr>
-	      <tr>
-		<td><code>-c</code></td>
-		<td><code>--code &lt;code></code></td>
-		<td>set/override the @code</td>
-	      </tr>
-	      <tr>
-		<td><code>-d</code></td>
-		<td><code>--dry</code></td>
-		<td>dry run</td>
-	      </tr>
-	      <tr>
-		<td><code>-e</code></td>
-		<td><code>--environ &lt;name></code></td>
-		<td>environment name</td>
-	      </tr>
-	      <tr>
-		<td><code>-f</code></td>
-		<td><code>--file &lt;file></code></td>
-		<td>environment file</td>
-	      </tr>
-	      <tr>
-		<td><code>-h</code></td>
-		<td><code>--host &lt;host></code></td>
-		<td>set/override the @host</td>
-	      </tr>
-	      <tr>
-		<td><code>-p</code></td>
-		<td><code>--param &lt;name:value></code></td>
-		<td>set/override a parameter value (use : or =)</td>
-	      </tr>
-	      <tr>
-		<td><code>-s</code></td>
-		<td><code>--srcdir &lt;dir></code></td>
-		<td>set/override the @srcdir</td>
-	      </tr>
-	      <tr>
-		<td><code>-u</code></td>
-		<td><code>--user &lt;user></code></td>
-		<td>set/override the @user</td>
-	      </tr>
-	      <tr>
-		<td><code>-v</code></td>
-		<td><code>--verbose</code></td>
-		<td>verbose mode</td>
-	      </tr>
-	      <tr>
-		<td><code>-z</code></td>
-		<td><code>--password</code></td>
-		<td>ask for password interactively</td>
-	      </tr>
-	    </table>
-	    <p>
-	      The options <code>--help</code> and <code>--version</code> simply display
-	      the global help message or the version number, and exit.
-	    </p>
-	    <p>
-	      The option <code>--dry</code> enables <em>dry run</em>.  In dry run, no
-	      change is actually executed.  This allows one to double-check what would be
-	      the effect of running the command for real, before deciding to proceed or
-	      not, or maybe changing the command first.
-	    </p>
-	    <p>
-	      The option <code>--verbose</code> enable verbose output.  In particular, the
-	      requests to the Management API are shown on the screen.  Used in conjunction
-	      with <code>--dry</code>, this is an easy yet powerful way both to
-	      investigate when something goes wrong, and to learn the Management API.
-	    </p>
-	    <p>
-	      The options <code>--code</code>, <code>--host</code>, <code>--srcdir</code>,
-	      and <code>--user</code> set or override resp. the code, host, srcdir, and
-	      user values.  These values can be used in the environment files by using the
-	      substitution
-	      codes <code>@{code}</code>, <code>@{host}</code>, <code>@{srcdir}</code>,
-	      and <code>@{user}</code> respectively.
-	    </p>
-	    <p>
-	      The option <code>--password</code> allows to set the password to use for the
-	      connection to MarkLogic.  Unlike for <code>--host</code>
-	      and <code>--user</code>, the password is not passed on the command line
-	      itself, but it is asked interactively.  This is for obvious security
-	      reasons, e.g. to prevent the production password to end up in the shell
-	      history file.
-	    </p>
-	    <p>
-	      The option <code>--param</code> set or override a named parameter, which in
-	      turn can be used in the environment files by using the substitution
-	      syntax <code>${name}</code>.  The value of the option must be of the form
-	      <code>name=value</code>, to set the parameter <code>name</code> to
-	      <code>value</code> (you can use <code>=</code> or <code>:</code>
-	      indifferently).  This option is repeatable.
-	    </p>
-	    <p>
-	      The options <code>--environ</code> and <code>--file</code>, mutually
-	      exclusive, set the environment to act upon.  The value of the
-	      option <code>--file</code> is the path to an environment file.  The value of
-	      the option <code>--environ</code> is the name of an environment
-	      (corresponding to the name of a file in a specific sub-directory of the
-	      current directory).  For example, the option "<code>--environ dev</code>" is
-	      equivalent to "<code>--file xproject/mlenvs/dev.json</code>".
-	    </p>
+            <h3>Global options</h3>
+            <p>
+              The global options, those options to pass to <code>mlproj</code> itself,
+              before the command name, are:
+            </p>
+            <table class="table">
+              <tr>
+                <th>short</th>
+                <th>long</th>
+                <th>description</th>
+              </tr>
+              <tr>
+                <td><code>-h</code></td>
+                <td><code>--help</code></td>
+                <td>output usage information</td>
+              </tr>
+              <tr>
+                <td><code>-V</code></td>
+                <td><code>--version</code></td>
+                <td>output the version number</td>
+              </tr>
+              <tr>
+                <td><code>-c</code></td>
+                <td><code>--code &lt;code></code></td>
+                <td>set/override the @code</td>
+              </tr>
+              <tr>
+                <td><code>-d</code></td>
+                <td><code>--dry</code></td>
+                <td>dry run</td>
+              </tr>
+              <tr>
+                <td><code>-e</code></td>
+                <td><code>--environ &lt;name></code></td>
+                <td>environment name</td>
+              </tr>
+              <tr>
+                <td><code>-f</code></td>
+                <td><code>--file &lt;file></code></td>
+                <td>environment file</td>
+              </tr>
+              <tr>
+                <td><code>-h</code></td>
+                <td><code>--host &lt;host></code></td>
+                <td>set/override the @host</td>
+              </tr>
+              <tr>
+                <td><code>-p</code></td>
+                <td><code>--param &lt;name:value></code></td>
+                <td>set/override a parameter value (use : or =)</td>
+              </tr>
+              <tr>
+                <td><code>-s</code></td>
+                <td><code>--srcdir &lt;dir></code></td>
+                <td>set/override the @srcdir</td>
+              </tr>
+              <tr>
+                <td><code>-u</code></td>
+                <td><code>--user &lt;user></code></td>
+                <td>set/override the @user</td>
+              </tr>
+              <tr>
+                <td><code>-v</code></td>
+                <td><code>--verbose</code></td>
+                <td>verbose mode</td>
+              </tr>
+              <tr>
+                <td><code>-z</code></td>
+                <td><code>--password</code></td>
+                <td>ask for password interactively</td>
+              </tr>
+            </table>
+            <p>
+              The options <code>--help</code> and <code>--version</code> simply display
+              the global help message or the version number, and exit.
+            </p>
+            <p>
+              The option <code>--dry</code> enables <em>dry run</em>.  In dry run, no
+              change is actually executed.  This allows one to double-check what would be
+              the effect of running the command for real, before deciding to proceed or
+              not, or maybe changing the command first.
+            </p>
+            <p>
+              The option <code>--verbose</code> enable verbose output.  In particular, the
+              requests to the Management API are shown on the screen.  Used in conjunction
+              with <code>--dry</code>, this is an easy yet powerful way both to
+              investigate when something goes wrong, and to learn the Management API.
+            </p>
+            <p>
+              The options <code>--code</code>, <code>--host</code>, <code>--srcdir</code>,
+              and <code>--user</code> set or override resp. the code, host, srcdir, and
+              user values.  These values can be used in the environment files by using the
+              substitution
+              codes <code>@{code}</code>, <code>@{host}</code>, <code>@{srcdir}</code>,
+              and <code>@{user}</code> respectively.
+            </p>
+            <p>
+              The option <code>--password</code> allows to set the password to use for the
+              connection to MarkLogic.  Unlike for <code>--host</code>
+              and <code>--user</code>, the password is not passed on the command line
+              itself, but it is asked interactively.  This is for obvious security
+              reasons, e.g. to prevent the production password to end up in the shell
+              history file.
+            </p>
+            <p>
+              The option <code>--param</code> set or override a named parameter, which in
+              turn can be used in the environment files by using the substitution
+              syntax <code>${name}</code>.  The value of the option must be of the form
+              <code>name=value</code>, to set the parameter <code>name</code> to
+              <code>value</code> (you can use <code>=</code> or <code>:</code>
+              indifferently).  This option is repeatable.
+            </p>
+            <p>
+              The options <code>--environ</code> and <code>--file</code>, mutually
+              exclusive, set the environment to act upon.  The value of the
+              option <code>--file</code> is the path to an environment file.  The value of
+              the option <code>--environ</code> is the name of an environment
+              (corresponding to the name of a file in a specific sub-directory of the
+              current directory).  For example, the option "<code>--environ dev</code>" is
+              equivalent to "<code>--file xproject/mlenvs/dev.json</code>".
+            </p>
 
-	    <h3>help</h3>
-	    <p>
-	      Display help about another command.
-	    </p>
-	    <pre>
+            <h3>help</h3>
+            <p>
+              Display help about another command.
+            </p>
+            <pre>
    help [name]
 
    Display help about another command.
@@ -214,40 +214,40 @@
 
    Example:
       mlproj help deploy</pre>
-	    <p>
-	    </p>
-		
-	    <h3>new</h3>
-	    <p>
-	      Create a new project in an empty dir.
-	    </p>
-	    <pre>
+            <p>
+            </p>
+
+            <h3>new</h3>
+            <p>
+              Create a new project in an empty dir.
+            </p>
+            <pre>
    new
 
    Create a new project in the current directory.
    The directory must be empty.
    The command asks interactively questions about the project to create.</pre>
-	    <p>
-	    </p>
-		
-	    <h3>show</h3>
-	    <p>
-	       Display the environment.
-	    </p>
-	    <pre>
+            <p>
+            </p>
+
+            <h3>show</h3>
+            <p>
+               Display the environment.
+            </p>
+            <pre>
    show
 
    Display the details of the given environment.
    The environment is "resolved" before display (variables, dependencies
    are resolved, parameters are injected.)</pre>
-	    <p>
-	    </p>
-		
-	    <h3>setup</h3>
-	    <p>
-	      Setup the environment on MarkLogic.
-	    </p>
-	    <pre>
+            <p>
+            </p>
+
+            <h3>setup</h3>
+            <p>
+              Setup the environment on MarkLogic.
+            </p>
+            <pre>
    setup
 
    Create components in the given environment on MarkLogic.
@@ -255,29 +255,29 @@
    MarkLogic.
    If (some) components already exist, ensure they have the right
    properties and update them as needed.</pre>
-	    <p>
-	    </p>
-		
-	    <h3>deploy</h3>
-	    <p>
-	      Deploy modules to the modules database.
-	    </p>
-	    <pre>
+            <p>
+            </p>
+
+            <h3>deploy</h3>
+            <p>
+              Deploy modules to the modules database.
+            </p>
+            <pre>
    deploy
 
    Deploy the module sources to the modules database.
 
    TODO: Add an option to set/override the modules database from the
    command line.</pre>
-	    <p>
-	    </p>
+            <p>
+            </p>
 
 
-	    <h3>load</h3>
-	    <p>
-	      Load a document to the content database.
-	    </p>
-	    <pre>
+            <h3>load</h3>
+            <p>
+              Load a document to the content database.
+            </p>
+            <pre>
    load &lt;what> &lt;args...>
 
    Load a document to the content database.
@@ -289,14 +289,14 @@
    document with the URI /hello.xm:
 
        mlproj load doc data/hello.xml</pre>
-	    <p>
-	      This version of <code>load</code> is minimalistic.  This is only a first
-	      minimal version, that lets you update one document.  It is being improved to
-	      load directories, compute the URI, set the collections, permissions, etc.
-	    </p>
-	    <p>
-	    </p>
-		
+            <p>
+              This version of <code>load</code> is minimalistic.  This is only a first
+              minimal version, that lets you update one document.  It is being improved to
+              load directories, compute the URI, set the collections, permissions, etc.
+            </p>
+            <p>
+            </p>
+
           </div>
         </div>
       </div>
