@@ -28,7 +28,6 @@ Use `mlproj help` for an overview.  Go to http://mlproj.org/ for all details.
 
 ## TODO
 
-- document the environment file format on the website
 - allow command `new` to create projects with different scaffoldings
   - using "embedded" scaffoldings (empty, plain, complete, annotated, web, rest...)
   - using "remotes" ones (on Git repos?)
