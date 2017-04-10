@@ -146,7 +146,7 @@
             return chalk.bold(s);
         }
 
-        url(endpoint) {
+        url(api, url) {
             if ( ! this.space ) {
                 throw new Error('No space set on the platform for host');
             }
@@ -154,7 +154,10 @@
             if ( ! host ) {
                 throw new Error('No host in space');
             }
-            return 'http://' + host + ':' + endpoint.port + '/' + endpoint.api + endpoint.url;
+            var decl   = this.space.api(api);
+            var scheme = decl.ssl ? 'https' : 'http';
+            var root   = decl.root.length ? '/' + decl.root : decl.root;
+            return scheme + '://' + host + ':' + decl.port + root + url;
         }
 
         credentials() {
@@ -182,8 +185,8 @@
             }
         }
 
-        get(endpoint, error, success) {
-            var url   = this.url(endpoint);
+        get(api, url, error, success) {
+            var url   = this.url(api, url);
             var creds = this.credentials();
             request.get(
                 {
@@ -214,8 +217,8 @@
                 });
         }
 
-        post(endpoint, data, error, success) {
-            var url   = this.url(endpoint);
+        post(api, url, data, error, success) {
+            var url   = this.url(api, url);
             var creds = this.credentials();
             var options = {
                 url:  url,
@@ -247,8 +250,8 @@
             });
         }
 
-        put(endpoint, data, error, success, type) {
-            var url   = this.url(endpoint);
+        put(api, url, data, error, success, type) {
+            var url   = this.url(api, url);
             var creds = this.credentials();
             var options = {
                 url:  url,

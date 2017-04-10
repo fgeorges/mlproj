@@ -111,13 +111,13 @@
         bold(s) {
             throw new Error('Platform.bold is abstract');
         }
-        get(url, error, success) {
+        get(api, url, error, success) {
             throw new Error('Platform.get is abstract');
         }
-        post(url, data, error, success) {
+        post(api, url, data, error, success) {
             throw new Error('Platform.post is abstract');
         }
-        put(url, data, error, success) {
+        put(api, url, data, error, success) {
             throw new Error('Platform.put is abstract');
         }
         // return an array of strings, with the path of all files in the dir
@@ -261,9 +261,11 @@
         {
             var that = this;
             this._params    = json.params    || {};
+            this._apis      = json.apis      || {};
             this._databases = json.databases || [];
             this._servers   = json.servers   || [];
             this._imports   = [];
+            this._config    = json.config;
             // extract defined values from `obj` and put them in `this.param`
             var extract = function(obj, props) {
                 props.forEach(p => {
@@ -280,9 +282,6 @@
             if ( json.connect ) {
                 extract(json.connect, ['host', 'user', 'password']);
             }
-            if ( json.config ) {
-                this._config = json.config;
-            }
         }
 
         addImport(href, space)
@@ -291,6 +290,63 @@
                 href  : href,
                 space : space
             });
+        }
+
+        api(name)
+        {
+            // "flatten" the import graph in a single array
+            // most priority at index 0, least priority at the end
+            var imports = [];
+            var flatten = space => {
+                if ( ! imports.includes(space) ) {
+                    imports.push(space);
+                    space._imports.forEach(i => flatten(i.space));
+                }
+            };
+            flatten(this);
+
+            // the current value, at any time of walking the import graph
+            var current;
+
+            // the default value for `current`
+            if ( name === 'management' ) {
+                current = {
+                    root : 'manage/v2',
+                    port : 8002,
+                    ssl  : false
+                };
+            }
+            else if ( name === 'client' ) {
+                current = {
+                    root : 'v1',
+                    port : 8000,
+                    ssl  : false
+                };
+            }
+            else if ( name === 'xdbc' ) {
+                current = {
+                    root : '',
+                    port : 8000,
+                    ssl  : false
+                };
+            }
+            else {
+                throw new Error('Unknown API: ' + name);
+            }
+
+            // overrides lhs props with those in rhs, if any
+            var collapse = (lhs, rhs) => {
+                if ( rhs ) {
+                    Object.keys(rhs).forEach(k => lhs[k] = rhs[k]);
+                }
+            };
+
+            // walk the flatten import graph
+            while ( imports.length ) {
+                collapse(current, imports.pop()._apis[name]);
+            }
+
+            return current;
         }
 
         param(name, value)

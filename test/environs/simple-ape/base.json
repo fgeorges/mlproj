@@ -7,6 +7,22 @@
         "params": {
             "port": "7010"
         },
+        "apis": {
+            "management": {
+                "root": "manage/v2",
+                "port": 8002,
+                "ssl": false
+            },
+            "client": {
+                "root": "v1",
+                "port": 8000,
+                "ssl": false
+            },
+            "xdbc": {
+                "port": 8000,
+                "ssl": false
+            }
+        },
         "servers": [{
             "id": "server",
             "name": "@{code}",

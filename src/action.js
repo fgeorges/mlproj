@@ -9,13 +9,13 @@
      */
     class Action
     {
-        constructor(endpoint, msg, data)
+        constructor(api, url, verb, msg, data)
         {
-            // must have props: url, verb, api, port
-            // e.g.: { url: '/databases', verb: 'GET', api: 'manage/v2', port: 8002 }
-            this.endpoint = endpoint;
-            this.msg      = msg;
-            this.data     = data;
+            this.api  = api;
+            this.url  = url;
+            this.verb = verb;
+            this.msg  = msg;
+            this.data = data;
         }
 
         display(platform, indent)
@@ -27,7 +27,7 @@
         {
             if ( platform.verbose ) {
                 platform.warn('[' + platform.bold('verbose') + '] '
-                              + this.endpoint.verb + ' to ' + this.endpoint.url);
+                              + this.verb + ' to ' + this.url);
                 if ( this.data && ! this.type) {
                     platform.warn('[' + platform.bold('verbose') + '] Body:');
                     platform.warn(this.data);
@@ -38,7 +38,7 @@
                 success();
             }
             else {
-                this.send(platform, this.endpoint, this.data, error, success);
+                this.send(platform, this.api, this.url, this.data, error, success);
             }
         }
     }
@@ -50,16 +50,16 @@
      */
     class Get extends Action
     {
-        constructor(url, msg, api, port) {
-            super({ url: url, verb: 'GET', api: api, port: port }, msg);
+        constructor(api, url, msg) {
+            super(api, url, 'GET', msg);
         }
 
-        send(platform, endpoint, data, error, success) {
+        send(platform, api, url, data, error, success) {
             platform.warn(platform.yellow('→') + ' ' + this.msg);
             if ( data ) {
                 throw new Error('Data in a GET: ' + url + ', ' + data);
             }
-            platform.get(endpoint, error, success);
+            platform.get(api, url, error, success);
         }
     }
 
@@ -68,13 +68,13 @@
      */
     class Post extends Action
     {
-        constructor(url, data, msg, api, port) {
-            super({ url: url, verb: 'POST', api: api, port: port }, msg, data);
+        constructor(api, url, data, msg) {
+            super(api, url, 'POST', msg, data);
         }
 
-        send(platform, endpoint, data, error, success) {
+        send(platform, api, url, data, error, success) {
             platform.warn(platform.yellow('→') + ' ' + this.msg);
-            platform.post(endpoint, data, error, success, this.type);
+            platform.post(api, url, data, error, success, this.type);
         }
     }
 
@@ -83,13 +83,13 @@
      */
     class Put extends Action
     {
-        constructor(url, data, msg, api, port) {
-            super({ url: url, verb: 'PUT', api: api, port: port }, msg, data);
+        constructor(api, url, data, msg) {
+            super(api, url, 'POST', msg, data);
         }
 
-        send(platform, endpoint, data, error, success) {
+        send(platform, api, url, data, error, success) {
             platform.warn(platform.yellow('→') + ' ' + this.msg);
-            platform.put(endpoint, data, error, success, this.type);
+            platform.put(api, url, data, error, success, this.type);
         }
     }
 
@@ -101,7 +101,7 @@
     class ManageGet extends Get
     {
         constructor(url, msg) {
-            super(url, msg, 'manage/v2', 8002);
+            super('management', url, msg);
         }
     }
 
@@ -111,7 +111,7 @@
     class ManagePost extends Post
     {
         constructor(url, data, msg) {
-            super(url, data, msg, 'manage/v2', 8002);
+            super('management', url, data, msg);
         }
     }
 
@@ -121,7 +121,7 @@
     class ManagePut extends Put
     {
         constructor(url, data, msg) {
-            super(url, data, msg, 'manage/v2', 8002);
+            super('management', url, data, msg);
         }
     }
 
@@ -134,12 +134,12 @@
             super('/forests', 'Retrieve forests');
         }
 
-        send(platform, endpoint, data, error, success) {
+        send(platform, api, url, data, error, success) {
             if ( ForestList.cache ) {
                 success(ForestList.cache);
             }
             else {
-                super.send(platform, endpoint, data, error, body => {
+                super.send(platform, api, url, data, error, body => {
                     ForestList.cache = body;
                     success(body);
                 });
@@ -261,7 +261,7 @@
     class ClientGet extends Get
     {
         constructor(url, msg) {
-            super(url, msg, 'v1', 8000);
+            super('client', url, msg);
         }
     }
 
@@ -271,7 +271,7 @@
     class ClientPost extends Post
     {
         constructor(url, data, msg) {
-            super(url, data, msg, 'v1', 8000);
+            super('client', url, data, msg);
         }
     }
 
@@ -281,7 +281,7 @@
     class ClientPut extends Put
     {
         constructor(url, data, msg) {
-            super(url, data, msg, 'v1', 8000);
+            super('client', url, data, msg);
         }
     }
 
@@ -312,7 +312,7 @@
     class XdbcPut extends Put
     {
         constructor(url, data, msg) {
-            super(url, data, msg, '', 8000);
+            super('xdbc', url, data, msg);
         }
     }
 
