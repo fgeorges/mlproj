@@ -135,15 +135,9 @@
         }
 
         send(platform, api, url, data, error, success) {
-            if ( ForestList.cache ) {
-                success(ForestList.cache);
-            }
-            else {
-                super.send(platform, api, url, data, error, body => {
-                    ForestList.cache = body;
-                    success(body);
-                });
-            }
+            super.send(platform, api, url, data, error, body => {
+                success(body);
+            });
         }
     }
 

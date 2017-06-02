@@ -3,6 +3,7 @@
         "format": "0.1",
         "code": "simple-hen",
         "title": "Example with fast searches, and server output properties",
+        "srcdir": "/tmp/does/not/exist",
         "connect": {
             "host": "ml9ea4",
             "user": "admin",
@@ -27,11 +28,15 @@
         }],
         "servers": [{
             "name": "@{code}",
+            "type": "http",
+            "port": "${port}",
+            "content": {
+                "nameref": "@{code}-content"
+            },
             "output": {
                 "byte-order-mark"             : "no",
-                "cdata-section-localname"     : "...",
-                "cdata-section-namespace-uri" : "...",
-                ...
+                "cdata-section-localname"     : "code-snippet",
+                "cdata-section-namespace-uri" : "http://example.org/ns"
             }
         }]
     }
