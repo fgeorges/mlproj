@@ -45,20 +45,25 @@ function addDir(tests, dir) {
     });
 }
 
-var runner = {
-    reset       : function() {
-        this.calls       = null;
-        this.nextCallIdx = 0;
-        this.history     = [];
-    },
-    // `calls` must be set when running a scenario
-    calls       : null,
-    nextCallIdx : 0,
-    nextCall    : function() {
-        return this.calls[this.nextCallIdx++];
-    },
-    history     : [],
-    progress    : function(verb, api, url, data) {
+// TODO: Move the lib/scenario.js functions in this class.
+// Simplifies the interface of tests, they receive just the runner object.
+//
+class TestRunner
+{
+    constructor() {
+        this.nextIdx = 0;
+        this.history = [];
+    }
+
+    calls(calls) {
+        this.calls = calls;
+    }
+
+    nextCall() {
+        return this.calls[this.nextIdx++];
+    }
+
+    progress(verb, api, url, data) {
         // push this call in history
         var hist = {
             verb : verb,
@@ -74,8 +79,9 @@ var runner = {
         if ( false ) {
             console.log('Send ' + verb + ' on ' + api + ' at ' + url);
         }
-    },
-    fail        : function(call, msg) {
+    }
+
+    fail(call, msg) {
         console.log(chalk.red('FAIL') + ': ' + msg);
         console.dir(call);
         console.log('Call history so far:');
@@ -85,19 +91,17 @@ var runner = {
         err.actual   = this.history[this.history.length - 1];
         throw err;
     }
-};
+}
 
 var failures = [];
 tests.forEach(test => {
-    // TODO: Create a real new instance each time here, instead of "reset"...
-    runner.reset();
     console.log('** Running ' + test);
     try {
         var t = test;
         if ( t[0] !== '.' ) {
             t = './' + t;
         }
-        require(t).test(runner, scenario, cmd, './');
+        require(t).test(new TestRunner(), scenario, cmd, './');
     }
     catch ( err ) {
         // test failure
@@ -140,5 +144,3 @@ failures.forEach(f => {
     }
     console.log();
 });
-
-// TODO: For that, first make fail not to exit, and accumulate failures
