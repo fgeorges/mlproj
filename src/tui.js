@@ -162,30 +162,50 @@ var commands = [{
    If (some) components already exist, ensure they have the right
    properties and update them as needed.`
 }, {
-    clazz       : cmd.DeployCommand,
-    impl        : execWithProject,
-    name        : 'deploy',
-    command     : 'deploy',
-    description : 'deploy modules to the modules database',
-    help        : `Deploy the module sources to the modules database.
-
-   TODO: Add an option to set/override the modules database from the
-   command line.`
-}, {
     clazz       : cmd.LoadCommand,
     impl        : execWithProject,
     name        : 'load',
-    command     : 'load <what> <args...>',
-    description : 'load documents to the content database',
-    help        : `Load a document to the content database.
-   The parameters are the fixed string "doc", then the path of a file.
-   The path must be relative.  Its first part must be a directory.  This part
-   is got rid of, the rest becomes the URI of the document to insert.
+    command     : 'load [args...]',
+    description : 'load documents to a database',
+    help        : `Load documents to a database.
 
-   For instance, the following loads the content of data/hello.xml to the
-   document with the URI /hello.xm:
+       mlproj load [@as srv|@db db] [@dir|@doc] [<arg>]
 
-       mlproj load doc data/hello.xml`
+   Content.  The argument is the path of a directory.  Its default value is
+   "data/".  The option @dir is the default, and can be used explicitely.  The
+   option @doc can be used to point to a file instead.
+
+   Target.  The file(s) are loaded to a database.  It can be set explicitely
+   with @db.  The option @as gives the name of an application server.  Its
+   content database if used.  If no explicit target, if there is a single one
+   server, use it.  Or if there is only one database, use it.
+
+   For instance, the following loads files under data/ to the "content" db:
+
+       mlproj load @db content @dir data/
+
+   Which does the same as the following command (assuming there is exactly
+   one application server in the environment, with its content database being
+   "content"):
+
+       mlproj load
+
+   Reference: http://mlproj.org/commands#load`
+}, {
+    clazz       : cmd.DeployCommand,
+    impl        : execWithProject,
+    name        : 'deploy',
+    command     : 'deploy [args...]',
+    description : 'deploy modules to a database',
+    help        : `Deploy modules to a database.
+
+       mlproj deploy [@as srv|@db db] [@dir|@doc] [<arg>]
+
+   Works like the command load, with two exceptions: by default the argument
+   is "src/", and from an application server, it takes the modules database
+   as target.
+
+   Reference: http://mlproj.org/commands#deploy`
 }];
 
 // collect params from several `--param name:value` options

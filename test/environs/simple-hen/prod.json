@@ -13,6 +13,7 @@
             "port": "7080"
         },
         "databases": [{
+            "id": "content",
             "name": "@{code}-content",
             "searches": {
                 "fast": {
@@ -30,8 +31,12 @@
             "name": "@{code}",
             "type": "http",
             "port": "${port}",
+            "root": "/",
             "content": {
                 "nameref": "@{code}-content"
+            },
+            "modules": {
+                "name": "@{code}-modules"
             },
             "output": {
                 "byte-order-mark"             : "no",

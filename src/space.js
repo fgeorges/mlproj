@@ -121,7 +121,10 @@
             throw new Error('Platform.put is abstract');
         }
         // return an array of strings, with the path of all files in the dir
-        allFiles(dir) {
+        // if filter is passed, it must return true for a path to be returned
+        // ignored is called for each seuch ingnored path
+        // both take file path, then dir as parameters
+        allFiles(dir, filter, ignored) {
             throw new Error('Platform.allFiles is abstract');
         }
     }

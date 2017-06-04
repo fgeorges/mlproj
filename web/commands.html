@@ -62,12 +62,12 @@
             </p>
             <p>
               <ul>
-                <li><code>help</code> - display help about another command</li>
-                <li><code>new</code> - create a new project in an empty dir</li>
-                <li><code>show</code> - display the environment</li>
-                <li><code>setup</code> - setup the environment on MarkLogic</li>
-                <li><code>deploy</code> - deploy modules to the modules database</li>
-                <li><code>load</code> - load documents to the content database</li>
+                <li><a href="#help"><code>help</code></a> - display help about another command</li>
+                <li><a href="#new"><code>new</code></a> - create a new project in an empty dir</li>
+                <li><a href="#show"><code>show</code></a> - display the environment</li>
+                <li><a href="#setup"><code>setup</code></a> - setup the environment on MarkLogic</li>
+                <li><a href="#load"><code>load</code></a> - load documents to the content database</li>
+                <li><a href="#deploy"><code>deploy</code></a> - deploy modules to the modules database</li>
               </ul>
             </p>
             <p>
@@ -202,7 +202,7 @@
               equivalent to "<code>--file xproject/mlenvs/dev.json</code>".
             </p>
 
-            <h3>help</h3>
+            <h3 id="help">help</h3>
             <p>
               Display help about another command.
             </p>
@@ -217,7 +217,7 @@
             <p>
             </p>
 
-            <h3>new</h3>
+            <h3 id="new">new</h3>
             <p>
               Create a new project in an empty dir.
             </p>
@@ -230,7 +230,7 @@
             <p>
             </p>
 
-            <h3>show</h3>
+            <h3 id="show">show</h3>
             <p>
                Display the environment.
             </p>
@@ -243,7 +243,7 @@
             <p>
             </p>
 
-            <h3>setup</h3>
+            <h3 id="setup">setup</h3>
             <p>
               Setup the environment on MarkLogic.
             </p>
@@ -258,42 +258,57 @@
             <p>
             </p>
 
-            <h3>deploy</h3>
-            <p>
-              Deploy modules to the modules database.
-            </p>
-            <pre>
-   deploy
-
-   Deploy the module sources to the modules database.
-
-   TODO: Add an option to set/override the modules database from the
-   command line.</pre>
-            <p>
-            </p>
-
-
-            <h3>load</h3>
+            <h3 id="load">load</h3>
             <p>
               Load a document to the content database.
             </p>
             <pre>
-   load &lt;what> &lt;args...>
+   load [args...]
 
-   Load a document to the content database.
-   The parameters are the fixed string "doc", then the path of a file.
-   The path must be relative.  Its first part must be a directory.  This part
-   is got rid of, the rest becomes the URI of the document to insert.
+   Load documents to a database.
 
-   For instance, the following loads the content of data/hello.xml to the
-   document with the URI /hello.xm:
+       mlproj load [@as srv|@db db] [@dir|@doc] [&lt;arg&gt;]
 
-       mlproj load doc data/hello.xml</pre>
+   Content.  The argument is the path of a directory.  Its default value is
+   "data/".  The option @dir is the default, and can be used explicitely.  The
+   option @doc can be used to point to a file instead.
+
+   Target.  The file(s) are loaded to a database.  It can be set explicitely
+   with @db.  The option @as gives the name of an application server.  Its
+   content database if used.  If no explicit target, if there is a single one
+   server, use it.  Or if there is only one database, use it.
+
+   For instance, the following loads files under data/ to the "content" db:
+
+       mlproj load @db content @dir data/
+
+   Which does the same as the following command (assuming there is exactly
+   one application server in the environment, with its content database being
+   "content"):
+
+       mlproj load</pre>
             <p>
               This version of <code>load</code> is minimalistic.  This is only a first
-              minimal version, that lets you update one document.  It is being improved to
-              load directories, compute the URI, set the collections, permissions, etc.
+              minimal version, that lets you update documents.  It is being improved to
+              compute the target URIs, set the collections, permissions, etc.
             </p>
+            <p>
+            </p>
+
+            <h3 id="deploy">deploy</h3>
+            <p>
+              Deploy modules to a database.
+            </p>
+            <pre>
+   deploy [args...]
+
+   Deploy modules to a database.
+
+       mlproj deploy [@as srv|@db db] [@dir|@doc] [&lt;arg&gt;]
+
+   Works like the command load, with two exceptions: by default the argument
+   is "src/", and from an application server, it takes the modules database
+   as target.</pre>
             <p>
             </p>
 

@@ -38,6 +38,7 @@
             var pf = this.platform;
 
             // create `src/`
+            // TODO: Create `test/` as well, when supported.
             var srcdir = pf.resolve('src', this.dir);
             pf.mkdir(srcdir);
 
@@ -186,26 +187,176 @@
     }
 
     /*~
-     * Deploy sources in a modules database.
+     * Load documents to a database.
      */
-    class DeployCommand extends Command
+    class LoadCommand extends Command
     {
-        execute() {
+        isDeploy() {
+            return false;
+        }
+
+        execute(args) {
+            // "global" variables
             var pf    = this.project.platform;
             var space = this.project.space;
-            var db    = space.modulesDb();
-            var dir   = space.param('@srcdir');
-            var files = pf.allFiles(dir, f => {
-                return f.name[f.name.length - 1] !== '~';
-            }, f => {
-                // DEBUG: ...
-                pf.log('Ignored file: ' + f.path);
-            });
             this.actions = new act.ActionList(pf);
-            files.forEach(f => {
-                var uri = f.slice(dir.length - 1);
-                var doc = pf.read(f);
-                this.actions.add(new act.DocInsert(db, uri, doc));
+
+            // utility: return an named option value, and remove it from args
+            var option = function(args, name) {
+                var idx = args.findIndex(item => item === name );
+                if ( idx === -1 ) {
+                    return;
+                }
+                if ( idx === args.length - 1 ) {
+                    throw new Error('Option ' + name + ' does not have value');
+                }
+                var res = args[idx + 1];
+                args.splice(idx, 2);
+                return res;
+            };
+
+            // utility: resolve the target db from args
+            var target = function(args, isDeploy) {
+                var db = option(args, '@db');
+                var as = option(args, '@as');
+                // if no explicit target, try defaults
+                if ( ! db && ! as ) {
+                    var srvs = space.servers();
+                    if ( srvs.length === 1 ) {
+                        as = srvs[0];
+                    }
+                    else if ( isDeploy ) {
+                        throw new Error('Not exactly one server in the environ');
+                    }
+                    else {
+                        var dbs = space.databases();
+                        if ( dbs.length === 1 ) {
+                            db = dbs[0];
+                        }
+                        else {
+                            throw new Error('Not exactly one server or database in the environ');
+                        }
+                    }
+                }
+                // if both explicit
+                if ( db && as ) {
+                    throw new Error('Both target options @db and @as provided');
+                }
+                // resolve from server if set
+                else if ( as ) {
+                    db = isDeploy
+                        ? as.modules
+                        : as.content;
+                    if ( ! db ) {
+                        throw new Error('Server has no ' + (isDeploy ? 'modules' : 'content')
+                                        + ' database: ' + as.name);
+                    }
+                }
+                return db;
+            };
+
+            // TODO: It should be possible to attach a srcdir to a db as well
+            // (like data/ to content, schemas/ to schemas, src/ to modules...)
+            //
+            // So the commands "mlproj load schemas", "mlproj load @src schemas"
+            // and "mlproj load @db schemas" are all the same...
+            //
+            // And of course to be able to set an extension loader in JS...  See
+            // "invoker" for an example.
+            //
+            // utility: resolve the content source from args
+            var content = function(args, isDeploy) {
+                var src = option(args, '@src');
+                var dir = option(args, '@dir');
+                var doc = option(args, '@doc');
+                // if no explicit target, try defaults
+                if ( ! src && ! dir && ! doc ) {
+                    var arg = isDeploy ? 'src' : 'data'; // default value
+                    if ( args.length ) {
+                        arg = args[0];
+                        args.splice(0, 1);
+                    }
+                    // TODO: For now, if "@srcdir", simulate a srcdir with the
+                    // same value as dir, and "src" as name.  Must eventually
+                    // support multiple named srcdirs...
+                    //
+                    // TODO: In addition to a srcdir by name, what if we look if
+                    // there is a srcdir attached to a directory equal to "arg"?
+                    // Won't change the dir used, but might make a difference if
+                    // we use other props on the srcdir...
+                    //
+                    // src = space.srcdir(arg);
+                    // if ( ! src ) {
+                    //     dir = arg;
+                    // }
+                    if ( arg === 'src' && space.param('@srcdir') ) {
+                        src = 'src';
+                    }
+                    else {
+                        dir = arg;
+                    }
+                }
+                // all args must be consumed here
+                if ( args.length ) {
+                    throw new Error('Extra, unknown remaining args: ' + args);
+                }
+                // if two explicit at same time
+                if ( (src && dir) || (src && doc) || (dir && doc) ) {
+                    throw new Error('Content options @src, @dir and @doc ar mutually exclusive');
+                }
+                return src ? { src: src }
+                     : dir ? { dir: dir }
+                     :       { doc: doc };
+            }
+
+            // do it: the actual execute() implem
+            let db   = target(args, this.isDeploy());
+            let what = content(args, this.isDeploy());
+            let dir  = what.dir;
+            let doc  = what.doc;
+            if ( what.src ) {
+                // TODO: For now, the srcdir with name "src" is simulated with
+                // the value of the param "@srcdir".  Must eventually support
+                // multiple named srcdirs...
+                if ( what.src !== 'src' ) {
+                    throw new Error('Multiple srcdirs not supported yet, only "src": ' + src);
+                }
+                dir = space.param('@srcdir');
+            }
+
+            let paths = [];
+            if ( doc ) {
+                let idx = doc.indexOf('/');
+                if ( idx < 0 ) {
+                    throw new Error('Path in `load doc` must contain at least 1 parent dir');
+                }
+                let uri = doc.slice(idx);
+                paths.push({
+                    path : doc,
+                    uri  : uri
+                });
+            }
+            else {
+                pf.allFiles(dir).forEach(p => {
+                    let uri;
+                    if ( dir === '.' || dir === './' ) {
+                        uri = '/' + p;
+                    }
+                    else {
+                        let len = dir.endsWith('/') ? dir.length - 1 : dir.length;
+                        uri = p.slice(len);
+                    }
+                    paths.push({
+                        path : p,
+                        uri  : uri
+                    });
+                });
+            }
+
+            paths.forEach(p => {
+                // TODO: read() uses utf-8, cannot handle binary
+                this.actions.add(
+                    new act.DocInsert(db, p.uri, pf.read(p.path)));
             });
             this.actions.execute(() => {
                 this.actions.summary(true);
@@ -214,48 +365,12 @@
     }
 
     /*~
-     * Load document in a content database.
+     * Deploy modules to a database.
      */
-    class LoadCommand extends Command
+    class DeployCommand extends LoadCommand
     {
-        execute(what, args) {
-            var pf    = this.project.platform;
-            var space = this.project.space;
-            var db    = space.contentDb();
-            this.actions = new act.ActionList(pf);
-            if ( 'doc' === what ) {
-                this.loadDoc(pf, space, db, args);
-            }
-            else {
-                throw new Error('Unknown type of stuff to load: ' + what);
-            }
-            this.actions.execute(() => {
-                this.actions.summary(true);
-            });
-        }
-
-        loadDoc(pf, space, db, args) {
-            // "load doc data/foo/bar.xml"
-            if ( args.length === 1 ) {
-                // TODO; Validate it is relative...!
-                var path = args[0];
-                var idx  = path.indexOf('/');
-                if ( idx < 0 ) {
-                    throw new Error('The path in `load doc path` must start at a sub-directory');
-                }
-                var uri = path.slice(idx);
-                // TODO: read() uses utf-8, cannot handle binary
-                var doc = pf.read(path);
-                this.actions.add(new act.DocInsert(db, uri, doc));
-            }
-            // "load doc data /foo/bar.xml"
-            // "load doc data/foo/bar.xml urn:some:foo:bar.xml"
-            else if ( args.length === 2 ) {
-                throw new Error('TODO: Not implemented yet...');
-            }
-            else {
-                throw new Error('Wrong number of arguments to load doc: ' + args.length);
-            }
+        isDeploy() {
+            return true;
         }
     }
 
@@ -360,8 +475,8 @@
         NewCommand    : NewCommand,
         ShowCommand   : ShowCommand,
         SetupCommand  : SetupCommand,
-        DeployCommand : DeployCommand,
-        LoadCommand   : LoadCommand
+        LoadCommand   : LoadCommand,
+        DeployCommand : DeployCommand
     }
 }
 )();
