@@ -74,10 +74,10 @@
               Each command can get parameters and options, after its name.  Before its
               name, there can also be some <em>global options</em>.  In the following
               invocation, <code>-e</code> is a global option, with value <code>dev</code>,
-              <code>foo</code> is the name of an imaginary command, and <code>bar</code>
-              is a parameter of the command itself:
+              <code>load</code> is the name of the command, and <code>data</code> is a
+              parameter of the command itself:
             </p>
-            <pre>mlproj -e dev foo bar</pre>
+            <pre>mlproj -e dev load -d content data</pre>
             <p></p>
 
             <h3>Global options</h3>
@@ -185,8 +185,8 @@
               history file.
             </p>
             <p>
-              The option <code>--param</code> set or override a named parameter, which in
-              turn can be used in the environment files by using the substitution
+              The option <code>--param</code> sets or overrides a named parameter, which
+              in turn can be used in the environment files by using the substitution
               syntax <code>${name}</code>.  The value of the option must be of the form
               <code>name=value</code>, to set the parameter <code>name</code> to
               <code>value</code> (you can use <code>=</code> or <code>:</code>
@@ -267,7 +267,7 @@
 
    Load documents to a database.
 
-       mlproj load [@as srv|@db db] [@dir|@doc] [&lt;arg&gt;]
+       mlproj load [-a &lt;srv&gt;|-b &lt;db&gt;] [-/ &lt;dir&gt;|-1 &lt;doc&gt;|&lt;what&gt;]
 
    Content.  The argument is the path of a directory.  Its default value is
    "data/".  The option @dir is the default, and can be used explicitely.  The
@@ -280,7 +280,7 @@
 
    For instance, the following loads files under data/ to the "content" db:
 
-       mlproj load @db content @dir data/
+       mlproj load --db content --dir data/
 
    Which does the same as the following command (assuming there is exactly
    one application server in the environment, with its content database being
@@ -288,9 +288,9 @@
 
        mlproj load</pre>
             <p>
-              This version of <code>load</code> is minimalistic.  This is only a first
-              minimal version, that lets you update documents.  It is being improved to
-              compute the target URIs, set the collections, permissions, etc.
+              This version of <code>load</code> is simple.  This is only a first minimal
+              version, that lets you update documents.  It is being improved to compute
+              the target URIs, set the collections, permissions, etc.
             </p>
             <p>
             </p>
@@ -304,11 +304,11 @@
 
    Deploy modules to a database.
 
-       mlproj deploy [@as srv|@db db] [@dir|@doc] [&lt;arg&gt;]
+       mlproj deploy [-a &lt;srv&gt;|-b &lt;db&gt;] [-/ &lt;dir&gt;|-1 &lt;doc&gt;|&lt;what&gt;]
 
    Works like the command load, with two exceptions: by default the argument
-   is "src/", and from an application server, it takes the modules database
-   as target.</pre>
+   is "src/", and from an application server it takes the modules database
+   instead of the content database.</pre>
             <p>
             </p>
 
