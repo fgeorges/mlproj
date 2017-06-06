@@ -82,10 +82,12 @@ class TestRunner
     }
 
     fail(call, msg) {
-        console.log(chalk.red('FAIL') + ': ' + msg);
-        console.dir(call);
-        console.log('Call history so far:');
-        console.dir(this.history);
+        // TODO: Create a flag "verbose", or "info", or "debug"
+        //
+        // console.log(chalk.red('FAIL') + ': ' + msg);
+        // console.dir(call);
+        // console.log('Call history so far:');
+        // console.dir(this.history);
         var err = new Error(msg);
         err.expected = call;
         err.actual   = this.history[this.history.length - 1];
@@ -95,15 +97,16 @@ class TestRunner
 
 var failures = [];
 tests.forEach(test => {
-    console.log('** Running ' + test);
     try {
         var t = test;
         if ( t[0] !== '.' ) {
             t = './' + t;
         }
         require(t).test(new TestRunner(), scenario, cmd, './');
+        console.log(chalk.green('✔') + ' ' + test);
     }
     catch ( err ) {
+        console.log(chalk.red('✘') + ' ' + test);
         // test failure
         if ( err.expected ) {
             failures.push({
@@ -123,8 +126,6 @@ tests.forEach(test => {
     }
 });
 
-console.log();
-console.log('======= ' + chalk.bold('Summary') + ' ========');
 console.log();
 if ( failures.length ) {
     console.log('Some scenario failed.');

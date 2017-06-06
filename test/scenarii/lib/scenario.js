@@ -133,13 +133,13 @@
         if ( ! call.ignore ) {
             // assert values
             if ( call.verb !== verb ) {
-                runner.fail(call, 'Verb = ' + verb);
+                runner.fail(call, 'Verb is ' + verb + ', expected ' + call.verb);
             }
             if ( call.api !== api ) {
-                runner.fail(call, 'API = ' + api);
+                runner.fail(call, 'API is ' + api + ', expected ' + call.api);
             }
             if ( call.url !== url ) {
-                runner.fail(call, 'URL = ' + url);
+                runner.fail(call, 'URL is ' + url + ', expected ' + call.url);
             }
             if ( call.data && call.data !== ignore ) {
                 assertData(call, data);
