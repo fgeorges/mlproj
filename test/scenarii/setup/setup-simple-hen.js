@@ -10,6 +10,8 @@
             [
                 scenario.dbProps('simple-hen-content'),
                 scenario.forests([]),
+                scenario.dbProps('simple-hen-modules'),
+                scenario.forests([]),
                 scenario.asProps('simple-hen'),
                 scenario.createDb({
                     'database-name': 'simple-hen-content',
@@ -26,15 +28,23 @@
                     'forest-name': 'simple-hen-content-001',
                     'database': 'simple-hen-content'
                 }),
+                scenario.createDb({
+                    'database-name': 'simple-hen-modules'
+                }),
+                scenario.createForest({
+                    'forest-name': 'simple-hen-modules-001',
+                    'database': 'simple-hen-modules'
+                }),
                 scenario.createAs({
                     'server-name': 'simple-hen',
                     'content-database': 'simple-hen-content',
+                    'modules-database': 'simple-hen-modules',
                     'server-type': 'http',
                     'port': 7080,
                     'output-byte-order-mark': 'no',
                     'output-cdata-section-localname': 'code-snippet',
                     'output-cdata-section-namespace-uri': 'http://example.org/ns',
-                    'root': '/tmp/does/not/exist/'
+                    'root': '/'
                 })
             ]);
     }
