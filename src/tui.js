@@ -3,68 +3,100 @@
 "use strict";
 
 const fs      = require('fs');
-const program = require('commander');
 const read    = require('readline-sync');
-const cmd     = require('./commands');
 const node    = require('./node');
+const program = require('./program');
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * The command action implementations.
  */
 
 // start of plain commands, validate forbidden options and return platform object
-function plainCmdStart(program, command)
+function plainCmdStart(args)
 {
     // check forbidden options
     [ 'dry', 'environ', 'file', 'code', 'host', 'srcdir', 'user', 'password' ].forEach(name => {
-        if ( program[name] ) {
-            throw new Error('Option `--' + name + '` not supported for command `' + cmd.command + '`');
+        if ( args.global[name] ) {
+            throw new Error('Option `--' + name + '` not supported for command `' + args.cmd + '`');
         }
     });
 
     // the platform
-    var verbose = program.verbose ? true : false;
+    var verbose = args.global.verbose ? true : false;
     return new node.Node(false, verbose);
 }
 
 // implementation of the action for command `new`
-function execHelp(program, command, args)
+function execHelp(args, prg)
 {
     // the platform (and validate options)
-    var pf = plainCmdStart(program, command);
+    let pf = plainCmdStart(args);
 
     // the command
-    var name = args[0];
+    let name = args.local.cmd;
     if ( ! name ) {
-        program.help();
+
+        pf.log(`
+   Usage:
+
+       mlproj [options] <command> [options]
+
+   Commands:
+
+       help         display help about another command
+       new          create a new project in the current directory
+       show         display the environment
+       setup        setup the environment on MarkLogic
+       load         load documents to a database
+       deploy       deploy modules to a database
+
+   Global options:
+
+       -c, --code <code>          set/override the @code
+       -d, --dry, --dry-run       dry run
+       -e, --environ <name>       set the environment name
+       -f, --file <path>          set the environment file
+       -h, --host <host>          set/override the @host
+       -p, --param <name:value>   set/override a parameter value <name:value>
+       -u, --user <user>          set/override the @user
+       -v, --verbose              verbose mode
+       -z, --password             ask for password interactively
+
+   Command options:
+
+       See the help of individual commands, e.g. "mlproj help load".
+
+   Visit http://mlproj.org/ for all details.
+`);
     }
     else {
-        var cmd  = commands.find(c => c.name === name);
+        var cmd = prg.commands[name];
         if ( ! cmd ) {
             pf.log('Unknwon command: ' + name);
         }
         else {
             pf.log('');
-            if ( name === cmd.command ) {
-                pf.log('   ' + pf.bold(name));
-            }
-            else {
-                var idx  = cmd.command.indexOf(' ');
-                var args = cmd.command.slice(idx);
-                pf.log('   ' + pf.bold(name) + args);
-            }
+            pf.log('   ' + cmd.desc());
+            pf.log('');
+            pf.log('   Usage:');
+            pf.log('');
+            pf.log('       mlproj ' + pf.bold(name) + ' ' + cmd.usage());
             pf.log('');
             pf.log('   ' + cmd.help);
+            pf.log('');
+            pf.log('   Reference:');
+            pf.log('');
+            pf.log('       http://mlproj.org/commands#' + name);
             pf.log('');
         }
     }
 }
 
 // implementation of the action for command `new`
-function execNew(program, command)
+function execNew(args, cmd)
 {
     // the platform (and validate options)
-    var platform = plainCmdStart(program, command);
+    var platform = plainCmdStart(args);
     var dir      = platform.cwd();
 
     // Check the directory is empty...!
@@ -75,15 +107,18 @@ function execNew(program, command)
     // gather info by asking the user...
     platform.log('--- ' + platform.bold('Questions') + ' ---');
     var abbrev   = read.question('Project code    : ');
-    var title    = read.question('Title           : ');
     var dfltName = 'http://mlproj.org/example/' + abbrev;
-    var name     = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
-    var version  = read.question('Version  (0.1.0): ', { defaultInput: '0.1.0' });
-    var port     = read.question('Port     (8080) : ', { defaultInput: '8080' });
+    var cmdArgs  = {
+        dir     : dir,
+        abbrev  : abbrev,
+        title   : read.question('Title           : '),
+        name    : read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName }),
+        version : read.question('Version  (0.1.0): ', { defaultInput: '0.1.0' }),
+        port    : read.question('Port     (8080) : ', { defaultInput: '8080' })
+    };
 
     // execute the command
-    var cmd      = new command.clazz(platform, dir, abbrev, title, name, version, port);
-    var xpdir    = cmd.execute();
+    var xpdir = new (cmd.clazz())(platform, cmdArgs).execute();
 
     // summary
     platform.log('\n--- ' + platform.bold('Summary') + ' ---');
@@ -92,184 +127,45 @@ function execNew(program, command)
 }
 
 // implementation of the action for any command accepting a project/environment
-function execWithProject(program, cmd, args)
+function execWithProject(args, cmd)
 {
     // the platform
-    var dry      = program.dry     ? true : false;
-    var verbose  = program.verbose ? true : false;
+    var dry      = args.global.dry     ? true : false;
+    var verbose  = args.global.verbose ? true : false;
     var platform = new node.Node(dry, verbose);
     // the options
-    var env      = program.environ;
-    var path     = program.file;
-    var params   = program.param;
+    var env      = args.global.environ;
+    var path     = args.global.file;
+    var params   = args.global.param || {};
     var force    = {};
-    [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = program[name]);
-    if ( program.password ) {
+    [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = args.global[name]);
+    if ( args.global.password ) {
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
     // the project
     platform.project(env, path, params, force, project => {
         // execute the command
-        project.execute(cmd.clazz, args);
+        project.execute(args, cmd.clazz());
     });
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * The program itself, using `commander`
+ * The program itself
  */
 
-// the commands
-var commands = [{
-    impl        : execHelp,
-    name        : 'help',
-    command     : 'help [name]',
-    description : 'display help about another command',
-    help        : `Display help about another command.
-   Just give the command name as a parameter.
+let prg  = program.makeProgram();
+let args = prg.parse(process.argv.slice(2));
 
-   Example:
-      mlproj help deploy`
-}, {
-    clazz       : cmd.NewCommand,
-    impl        : execNew,
-    name        : 'new',
-    command     : 'new',
-    description : 'create a new project in an empty dir',
-    help        : `Create a new project in the current directory.
-   The directory must be empty.
-   The command asks interactively questions about the project to create.`
-}, {
-    clazz       : cmd.ShowCommand,
-    impl        : execWithProject,
-    name        : 'show',
-    command     : 'show',
-    description : 'display the environment',
-    help        : `Display the details of the given environment.
-   The environment is "resolved" before display (variables, dependencies
-   are resolved, parameters are injected.)`
-}, {
-    clazz       : cmd.SetupCommand,
-    impl        : execWithProject,
-    name        : 'setup',
-    command     : 'setup',
-    description : 'setup the environment on MarkLogic',
-    options     : [
-        // { option: '-d, --dry', label: 'dry run (do not execute, just display)' }
-    ],
-    help        : `Create components in the given environment on MarkLogic.
-   Use the connection details from the environment to connect to
-   MarkLogic.
-   If (some) components already exist, ensure they have the right
-   properties and update them as needed.`
-}, {
-    clazz       : cmd.LoadCommand,
-    impl        : execWithProject,
-    name        : 'load',
-    command     : 'load [args...]',
-    description : 'load documents to a database',
-    help        : `Load documents to a database.
-
-       mlproj load [@as srv|@db db] [@dir|@doc] [<arg>]
-
-   Content.  The argument is the path of a directory.  Its default value is
-   "data/".  The option @dir is the default, and can be used explicitely.  The
-   option @doc can be used to point to a file instead.
-
-   Target.  The file(s) are loaded to a database.  It can be set explicitely
-   with @db.  The option @as gives the name of an application server.  Its
-   content database if used.  If no explicit target, if there is a single one
-   server, use it.  Or if there is only one database, use it.
-
-   For instance, the following loads files under data/ to the "content" db:
-
-       mlproj load @db content @dir data/
-
-   Which does the same as the following command (assuming there is exactly
-   one application server in the environment, with its content database being
-   "content"):
-
-       mlproj load
-
-   Reference: http://mlproj.org/commands#load`
-}, {
-    clazz       : cmd.DeployCommand,
-    impl        : execWithProject,
-    name        : 'deploy',
-    command     : 'deploy [args...]',
-    description : 'deploy modules to a database',
-    help        : `Deploy modules to a database.
-
-       mlproj deploy [@as srv|@db db] [@dir|@doc] [<arg>]
-
-   Works like the command load, with two exceptions: by default the argument
-   is "src/", and from an application server, it takes the modules database
-   as target.
-
-   Reference: http://mlproj.org/commands#deploy`
-}];
-
-// collect params from several `--param name:value` options
-var params = (item, memo) => {
-    var idx = item.indexOf(':');
-    if ( idx < 0 ) {
-        idx = item.indexOf('=');
-    }
-    if ( idx < 0 ) {
-        throw new Error('Invalid parameter, must use : or = between name and value');
-    }
-    var name  = item.slice(0, idx);
-    var value = item.slice(idx + 1);
-    memo[name] = value;
-    return memo;
-};
-
-// the global options
-program
-    .version('0.22.0')
-    .option('-c, --code <code>',        'set/override the @code')
-    .option('-d, --dry',                'dry run')
-    .option('-e, --environ <name>',     'environment name')
-    .option('-f, --file <file>',        'environment file')
-    .option('-h, --host <host>',        'set/override the @host')
-    .option('-p, --param <name:value>', 'set/override a parameter value (use : or =)', params, {})
-    .option('-s, --srcdir <dir>',       'set/override the @srcdir')
-    .option('-u, --user <user>',        'set/override the @user')
-    .option('-v, --verbose',            'verbose mode')
-    .option('-z, --password',           'ask for password interactively');
-
-// marker to validate a command has been resolved
-var resolved = false;
-
-// setup the commands
-commands.forEach(cmd => {
-    var prg = program
-        .command(cmd.command)
-        .description(cmd.description);
-    if ( cmd.options ) {
-        cmd.options.forEach(opt => {
-            prg = prg.option(opt.option, opt.label);
-        });
-    }
-    // 'function()' needed for 'arguments', cannot use '() => ...' here
-    prg.action(function() {
-        resolved = true;
-        var args = Array.from(arguments);
-        args.pop();
-        cmd.impl(program, cmd, args);
-    });
-});
-
-// add to the default help message
-program.on('--help', () => {
-    console.log('  Visit http://mlproj.org/ for details.');
-    console.log();
-});
-
-// parse the command line and execute the command
-program.parse(process.argv);
-
-// has any command been resolved?
-if ( ! resolved ) {
-    // TODO: Add an error message ("no command or not correct, usage: ...")
-    program.help();
+if ( ! args.cmd || args.cmd === 'help' ) {
+    execHelp(args, prg);
+}
+else if ( args.cmd === 'new' ) {
+    execNew(
+        args,
+        prg.commands[args.cmd]);
+}
+else {
+    execWithProject(
+        args,
+        prg.commands[args.cmd]);
 }

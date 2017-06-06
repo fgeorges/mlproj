@@ -4,6 +4,7 @@
 
 const test    = require('../lib/unit-test').test;
 const program = require('../../../src/program');
+const cmd     = require('../../../src/commands');
 
 function fxLoadSimple()
 {
@@ -56,62 +57,7 @@ function fxLoadSimple()
 
 function fxRealApp()
 {
-    let prg = new program.Program();
-
-    prg
-        .version('0.23.0test')
-        .option('code',     '-c', '--code',             'set/override the @code')
-        .flag(  'dry',      '-d', '--dry', '--dry-run', 'dry run')
-        .option('host',     '-h', '--host',             'set/override the @host')
-        .map(   'param',    '-p', '--param',            'set/override a parameter value <name:value>')
-        .option('user',     '-u', '--user',             'set/override the @user')
-        .flag(  'verbose',  '-v', '--verbose',          'verbose mode')
-        .flag(  'password', '-z', '--password',         'ask for password interactively')
-        .or()
-            .option('environ', '-e', '--environ', 'environment name')
-            .option('file',    '-f', '--file',    'environment file')
-            .end();
-
-    prg
-        .command('help')
-        .arg('cmd');
-
-    prg
-        .command('new');
-
-    prg
-        .command('show');
-
-    prg
-        .command('setup');
-
-    prg
-        .command('load')
-        .or()
-            .option('server',   '-a', '--as', '--server',   'server, get its content database')
-            .option('database', '-b', '--db', '--database', 'target database')
-            .end()
-        .or()
-            //.option('sourceset', '-s', '--src', '--source-set', 'source set to load')
-            .option('directory', '-/', '--dir', '--directory',  'directory to load')
-            .option('documents', '-1', '--doc', '--document',   'file to load')
-            .arg('what')
-            .end();
-
-    prg
-        .command('deploy')
-        .or()
-            .option('server',   '-a', '--as', '--server',   'server, get its modules database')
-            .option('database', '-b', '--db', '--database', 'target database')
-            .end()
-        .or()
-            //.option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
-            .option('directory', '-/', '--dir', '--directory',  'directory to deploy')
-            .option('documents', '-1', '--doc', '--document',   'file to deploy')
-            .arg('what')
-            .end();
-
-    return prg;
+    return program.makeProgram();
 }
 
 test('Simple happy load', ass => {

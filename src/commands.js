@@ -23,15 +23,15 @@
      */
     class NewCommand extends Command
     {
-        constructor(platform, dir, abbrev, title, name, version, port) {
+        constructor(platform, args) {
             super();
             this.platform = platform;
-            this.dir      = dir;
-            this.abbrev   = abbrev;
-            this.title    = title;
-            this.name     = name;
-            this.version  = version;
-            this.port     = port;
+            this.dir      = args.dir;
+            this.abbrev   = args.abbrev;
+            this.title    = args.title;
+            this.name     = args.name;
+            this.version  = args.version;
+            this.port     = args.port;
         }
 
         execute() {
@@ -201,24 +201,10 @@
             var space = this.project.space;
             this.actions = new act.ActionList(pf);
 
-            // utility: return an named option value, and remove it from args
-            var option = function(args, name) {
-                var idx = args.findIndex(item => item === name );
-                if ( idx === -1 ) {
-                    return;
-                }
-                if ( idx === args.length - 1 ) {
-                    throw new Error('Option ' + name + ' does not have value');
-                }
-                var res = args[idx + 1];
-                args.splice(idx, 2);
-                return res;
-            };
-
             // utility: resolve the target db from args
             var target = function(args, isDeploy) {
-                var db = option(args, '@db');
-                var as = option(args, '@as');
+                var db = args.database;
+                var as = args.server;
                 // if no explicit target, try defaults
                 if ( ! db && ! as ) {
                     var srvs = space.servers();
@@ -266,15 +252,14 @@
             //
             // utility: resolve the content source from args
             var content = function(args, isDeploy) {
-                var src = option(args, '@src');
-                var dir = option(args, '@dir');
-                var doc = option(args, '@doc');
+                var src = args.sourceset;
+                var dir = args.directory;
+                var doc = args.document;
                 // if no explicit target, try defaults
                 if ( ! src && ! dir && ! doc ) {
                     var arg = isDeploy ? 'src' : 'data'; // default value
-                    if ( args.length ) {
-                        arg = args[0];
-                        args.splice(0, 1);
+                    if ( args.what ) {
+                        arg = args.what;
                     }
                     // TODO: For now, if "@srcdir", simulate a srcdir with the
                     // same value as dir, and "src" as name.  Must eventually
@@ -295,10 +280,6 @@
                     else {
                         dir = arg;
                     }
-                }
-                // all args must be consumed here
-                if ( args.length ) {
-                    throw new Error('Extra, unknown remaining args: ' + args);
                 }
                 // if two explicit at same time
                 if ( (src && dir) || (src && doc) || (dir && doc) ) {

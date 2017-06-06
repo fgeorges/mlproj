@@ -156,9 +156,9 @@
             });
         }
 
-        execute(command, args) {
-            var cmd = new command(this);
-            cmd.execute.apply(cmd, args);
+        execute(args, cmd) {
+            var cmd = new cmd(this);
+            cmd.execute(args.local);
         }
 
         // Precedence:

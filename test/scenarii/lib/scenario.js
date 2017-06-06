@@ -182,7 +182,7 @@
         };
         // launch processing
         platform.project(undefined, path, [], {}, project => {
-            project.execute(cmd);
+            project.execute({}, cmd);
         });
     }
 

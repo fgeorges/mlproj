@@ -2,10 +2,168 @@
 
 (function() {
 
+    const cmd = require('./commands');
+
+    function makeProgram() {
+
+        let prg = new Program();
+
+        prg
+            .version('0.23.0')
+            .option('code',     '-c', '--code',             'set/override the @code')
+            .flag(  'dry',      '-d', '--dry', '--dry-run', 'dry run')
+            .option('host',     '-h', '--host',             'set/override the @host')
+            .map(   'param',    '-p', '--param',            'set/override a parameter value <name:value>')
+            .option('user',     '-u', '--user',             'set/override the @user')
+            .flag(  'verbose',  '-v', '--verbose',          'verbose mode')
+            .flag(  'password', '-z', '--password',         'ask for password interactively')
+            .or()
+                .option('environ', '-e', '--environ', 'environment name')
+                .option('file',    '-f', '--file',    'environment file')
+                .end();
+
+        prg
+            .command('help')
+            .desc('Display help about another command.')
+            .usage('[cmd]')
+            .arg('cmd');
+
+        prg
+            .command('new')
+            .clazz(cmd.NewCommand)
+            .desc('Create a new project in the current directory.')
+            .usage('');
+
+        prg
+            .command('show')
+            .clazz(cmd.ShowCommand)
+            .desc('Display the environment.')
+            .usage('');
+
+        prg
+            .command('setup')
+            .clazz(cmd.SetupCommand)
+            .desc('Setup the environment on MarkLogic.')
+            .usage('');
+
+        prg
+            .command('load')
+            .clazz(cmd.LoadCommand)
+            .desc('Load documents to a database.')
+            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .or()
+                .option('server',   '-a', '--as', '--server',   'server, get its content database')
+                .option('database', '-b', '--db', '--database', 'target database')
+                .end()
+            .or()
+                //.option('sourceset', '-s', '--src', '--source-set', 'source set to load')
+                .option('directory', '-/', '--dir', '--directory',  'directory to load')
+                .option('documents', '-1', '--doc', '--document',   'file to load')
+                .arg('what')
+                .end();
+
+        prg
+            .command('deploy')
+            .clazz(cmd.DeployCommand)
+            .desc('Deploy modules to a database.')
+            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .or()
+                .option('server',   '-a', '--as', '--server',   'server, get its modules database')
+                .option('database', '-b', '--db', '--database', 'target database')
+                .end()
+            .or()
+                //.option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
+                .option('directory', '-/', '--dir', '--directory',  'directory to deploy')
+                .option('document',  '-1', '--doc', '--document',   'file to deploy')
+                .arg('what')
+                .end();
+
+        // help
+        prg.help('help',
+`Example:
+
+       mlproj help deploy`);
+
+        // new
+        prg.help('new',
+`The directory must be empty.  The command asks interactively questions about
+   the project to create.`);
+
+        // show
+        prg.help('show',
+`Display the details of the given environment.  The environment is "resolved"
+   before being displayed (variables, dependencies are resolved, parameters
+   are injected.)`);
+
+        // setup
+        prg.help('setup',
+`Create components in the given environment on MarkLogic.  Use the connection
+   details from the environment to connect to MarkLogic.  If (some) components
+   already exist, ensure they have the right properties and update them as
+   needed.`);
+
+        // load
+        prg.help('load',
+`Options:
+
+       -a, --as, --server <srv>         server, get its content database
+       -b, --db, --database <db>        target database
+       -/, --dir, --directory <dir>     directory to load
+       -1, --doc, --document <file>     file to load
+       <what>                           directory or file to load
+
+   Target:
+
+   The file(s) are loaded to a database.  It can be set explicitely with --db.
+   The option --as gives the name of an application server.  Its content
+   database if used.  If no explicit target, if there is a single one server,
+   use it.  Or if there is only one database, use it.  Servers and databases
+   can be referenced by name or by ID.
+
+   Options --as and --db are mutually exclusive.
+
+   Content:
+
+   The content to load is given either with --dir (points to a directory), or
+   with --doc (points to a file).  If none is given and <what> is used instead,
+   it must point to a directory.  If <what> is not given either, its default
+   value is "data/".
+
+   Options --dir and --doc, and argument <what> are mutually exclusive.
+
+   Examples:
+
+   The following loads files under data/ to the "content" db:
+
+       mlproj load --db content --dir data/
+
+   Which does the same as the following command (assuming there is exactly
+   one application server in the environment, with its content database being
+   "content"):
+
+       mlproj load`);
+
+        // deploy
+        prg.help('deploy',
+`Options:
+
+       -a, --as, --server <srv>         server, get its content database
+       -b, --db, --database <db>        target database
+       -/, --dir, --directory <dir>     directory to load
+       -1, --doc, --document <file>     file to load
+       <what>                           directory or file to load
+
+   Works like the command load, with two exceptions: the default value of
+   <what> is "src/", and it takes the modules database of a server instead
+   of its content database.`);
+
+        return prg;
+    }
+
     function _addArgument(prg, clazz, args) {
         let name = args.shift();
         let desc = args.pop();
-        let arg = new clazz(name, args, desc);
+        let arg  = new clazz(name, args, desc);
         args.forEach(f => {
             if ( prg.args[f] ) {
                 throw new Error('Flag ' + f + ' already given');
@@ -122,16 +280,18 @@
     {
         constructor(prg) {
             // program, or command
-            this.prg     = prg;
-            this.options = {};
-            this._arg    = null;
-            this.args    = [];
+            this.prg  = prg;
+            this.keys = {};
+            this.args = [];
         }
 
         arg(name) {
-            let arg = this.prg.arg(name);
-            this._arg = arg;
+            if ( this.prg.args['@unnamed@'] ) {
+                throw new Error('There is already an unnamed arg on command ' + this.prg.name);
+            }
+            let arg = _addArgument(this.prg, Arg, Array.from(arguments));
             arg.group = this;
+            this.prg.args['@unnamed@'] = arg;
             this.args.push(arg);
             return this;
         }
@@ -139,7 +299,7 @@
         option() {
             let arg = _addArgument(this.prg, Option, Array.from(arguments));
             arg.flags.forEach(f => {
-                this.options[f] = arg;
+                this.keys[f] = arg;
             });
             arg.group = this;
             this.args.push(arg);
@@ -158,6 +318,7 @@
         constructor() {
             this.args     = {};
             this.keys     = {};
+            this.list     = [];
             this.commands = {};
         }
 
@@ -167,22 +328,27 @@
         }
 
         flag() {
-            _addArgument(this, Flag, Array.from(arguments));
+            let arg = _addArgument(this, Flag, Array.from(arguments));
+            this.list.push(arg);
             return this;
         }
 
         map() {
-            _addArgument(this, Map, Array.from(arguments));
+            let arg = _addArgument(this, Map, Array.from(arguments));
+            this.list.push(arg);
             return this;
         }
 
         option() {
-            _addArgument(this, Option, Array.from(arguments));
+            let arg = _addArgument(this, Option, Array.from(arguments));
+            this.list.push(arg);
             return this;
         }
 
         or() {
-            return new ArgumentGroup(this);
+            let arg = new ArgumentGroup(this);
+            this.list.push(arg);
+            return arg;
         }
 
         command(name) {
@@ -190,6 +356,17 @@
             // TODO: Check does not exist yet...
             this.commands[name] = cmd;
             return cmd;
+        }
+
+        help(name, msg) {
+            let cmd = this.commands[name];
+            if ( ! cmd ) {
+                throw new Error('Command does not exist: ' + name);
+            }
+            if ( cmd.help ) {
+                throw new Error('Help already provided for command: ' + name);
+            }
+            cmd.help = msg;
         }
 
         parse(argv) {
@@ -220,8 +397,8 @@
                 if ( opt ) {
                     opt.found(res.local, arg, args);
                 }
-                else if ( cmd._arg ) {
-                    cmd._arg.found(res.local, arg, args);
+                else if ( cmd.args['@unnamed@'] ) {
+                    cmd.args['@unnamed@'].found(res.local, arg, args);
                 }
                 else {
                     throw new Error('No such command option: ' + arg);
@@ -237,30 +414,69 @@
             this.prg  = prg;
             this.name = name;
             this.args = {};
-            this._arg = null;
             this.keys = {};
+            this.list = [];
+        }
+
+        usage(u) {
+            if ( ! arguments.length ) {
+                return this._usage;
+            }
+            if ( this._usage ) {
+                throw new Error('Usage already provided for command ' + this.name);
+            }
+            this._usage = u;
+            return this;
+        }
+
+        desc(d) {
+            if ( ! arguments.length ) {
+                return this._desc;
+            }
+            if ( this._desc ) {
+                throw new Error('Description already provided for command ' + this.name);
+            }
+            this._desc = d;
+            return this;
+        }
+
+        clazz(c) {
+            if ( ! arguments.length ) {
+                return this._clazz;
+            }
+            if ( this._clazz ) {
+                throw new Error('Class already provided for command ' + this.name);
+            }
+            this._clazz = c;
+            return this;
         }
 
         option() {
-            _addArgument(this, Option, Array.from(arguments));
+            let arg = _addArgument(this, Option, Array.from(arguments));
+            this.list.push(arg);
             return this;
         }
 
         arg() {
-            if ( this._arg ) {
+            if ( this.args['@unnamed@'] ) {
                 throw new Error('There is already an unnamed arg on command ' + this.name);
             }
-            this._arg = _addArgument(this, Arg, Array.from(arguments));
+            let arg = _addArgument(this, Arg, Array.from(arguments));
+            this.args['@unnamed@'] = arg;
+            this.list.push(arg);
             return this;
         }
 
         or() {
-            return new ArgumentGroup(this);
+            let arg = new ArgumentGroup(this);
+            this.list.push(arg);
+            return arg;
         }
     }
 
     module.exports = {
-        Program : Program
+        Program     : Program,
+        makeProgram : makeProgram
     }
 }
 )();
