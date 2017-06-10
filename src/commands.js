@@ -3,6 +3,7 @@
 (function() {
 
     const act = require('./action');
+    const cmp = require('./components');
     const s   = require('./space');
 
     /*~
@@ -203,10 +204,11 @@
 
             // utility: resolve the target db from args
             var target = function(args, isDeploy) {
-                var db = args.database;
-                var as = args.server;
+                var as    = args.server;
+                var db    = args.database;
+                var force = args.forceDb;
                 // if no explicit target, try defaults
-                if ( ! db && ! as ) {
+                if ( ! as && ! db && ! force ) {
                     var srvs = space.servers();
                     if ( srvs.length === 1 ) {
                         as = srvs[0];
@@ -224,8 +226,8 @@
                         }
                     }
                 }
-                // if both explicit
-                if ( db && as ) {
+                // if more than one explicit
+                if ( (as && db) || (as && force) || (db && force) ) {
                     throw new Error('Both target options @db and @as provided');
                 }
                 // resolve from server if set
@@ -237,6 +239,14 @@
                         throw new Error('Server has no ' + (isDeploy ? 'modules' : 'content')
                                         + ' database: ' + as.name);
                     }
+                }
+                // resolve from defined databases
+                else if ( db ) {
+                    db = space.database(db);
+                }
+                // force the db name, e.g. for system databases
+                else {
+                    db = new cmp.SysDatabase(force);
                 }
                 return db;
             };

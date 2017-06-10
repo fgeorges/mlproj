@@ -402,6 +402,22 @@
             return this._allDbs;
         }
 
+        // ref is either ID or name
+        database(ref)
+        {
+            let res = this.databases().filter(db => db.id === ref || db.name === ref);
+            if ( ! res.length ) {
+                return;
+            }
+            else if ( res.length === 1 ) {
+                return res[0];
+            }
+            else {
+                let list = res.map(db => 'id:' + db.id + '/name:' + db.name).join(', ');
+                throw new Error('More than one DB with ID or name "' + ref + '": ' + list);
+            }
+        }
+
         servers()
         {
             return this._allSrvs;
@@ -461,6 +477,13 @@
             // its schema, security and triggers database if any to objects
             // already instantiated
             var instantiate = (json, res) => {
+                // is it a system db name?
+                if ( json.sysref ) {
+                    var db = new cmp.SysDatabase(json.sysref);
+                    res.list.push(db);
+                    res.names[json.sysref] = db;
+                    return db;
+                }
                 // resolve a schema, security or triggers DB from the current result list
                 var resolve = db => {
                     if ( ! db ) {
@@ -469,7 +492,8 @@
                     var end = ( db.name    && res.names[db.name]    )
                         ||    ( db.nameref && res.names[db.nameref] )
                         ||    ( db.id      && res.ids[db.id]        )
-                        ||    ( db.idref   && res.ids[db.idref]     );
+                        ||    ( db.idref   && res.ids[db.idref]     )
+                        ||    ( db.sysref  && res.names[db.sysref]  );
                     if ( end ) {
                         return end;
                     }
@@ -480,6 +504,10 @@
                     // is it self-referencing by name?
                     if ( db.nameref && db.nameref === json.name ) {
                         return 'self';
+                    }
+                    // is it a system db name?
+                    if ( db.sysref ) {
+                        return res.names[db.sysref] = new cmp.SysDatabase(db.sysref);
                     }
                 };
                 var schema   = resolve(json.schema);
@@ -519,6 +547,10 @@
                     // is a reference to a name that has been done
                     return true;
                 }
+                else if ( db.sysref && res.names[db.sysref] ) {
+                    // is a reference to a name that has been done
+                    return true;
+                }
                 else {
                     return false;
                 }
@@ -545,7 +577,7 @@
                 if ( ! db ) {
                     return false;
                 }
-                else if ( db.idref || db.nameref ) {
+                else if ( db.idref || db.nameref || db.sysref ) {
                     return true;
                 }
                 else {
@@ -569,6 +601,9 @@
                         return [ db ];
                     }
                     else if ( db.nameref && res.names[db.nameref] ) {
+                        return [ db ];
+                    }
+                    else if ( db.sysref ) {
                         return [ db ];
                     }
                     else {
@@ -652,7 +687,7 @@
                         return '{db ' + (c.id || '') + '|' + (c.name || '') + '}';
                     }
                     else {
-                        return '{dbref ' + (c.idref || '') + '|' + (c.nameref || '') + '}';
+                        return '{dbref ' + (c.idref || '') + '|' + (c.nameref || '') + '|' + (c.sysref || '') + '}';
                     }
                 });
                 throw new Error('Some components have unsolved database dependencies: ' + disp);
@@ -664,10 +699,17 @@
                     if ( ! db ) {
                         return;
                     }
-                    return ( db.name    && res.names[db.name]    )
-                        || ( db.nameref && res.names[db.nameref] )
-                        || ( db.id      && res.ids[db.id]        )
-                        || ( db.idref   && res.ids[db.idref]     );
+                    var cmp = ( db.name    && res.names[db.name]    )
+                           || ( db.nameref && res.names[db.nameref] )
+                           || ( db.id      && res.ids[db.id]        )
+                           || ( db.idref   && res.ids[db.idref]     )
+                           || ( db.sysref  && res.names[db.sysref]  );
+                    if ( cmp ) {
+                        return cmp;
+                    }
+                    if ( db.sysref ) {
+                        return res.names[db.sysref] = new cmp.SysDatabase(db.sysref);
+                    }
                 };
                 return new cmp.Server(srv, this, resolve(srv.content), resolve(srv.modules));
             });

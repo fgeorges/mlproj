@@ -52,6 +52,18 @@
     }
 
     /*~
+     * A system database.
+     */
+    class SysDatabase extends Component
+    {
+        constructor(name)
+        {
+            super();
+            this.name = name;
+        }
+    }
+
+    /*~
      * A database.
      */
     class Database extends Component
@@ -360,8 +372,9 @@
     }
 
     module.exports = {
-        Database : Database,
-        Server   : Server
+        SysDatabase : SysDatabase,
+        Database    : Database,
+        Server      : Server
     }
 }
 )();
