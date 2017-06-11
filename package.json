@@ -8,7 +8,7 @@
     "mlproj": "src/tui.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./test/run-tests.js"
   },
   "author": "Florent Georges",
   "license": "ISC",
