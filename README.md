@@ -28,10 +28,10 @@ Use `mlproj help` for an overview.  Go to http://mlproj.org/ for all details.
 
 ## TODO
 
+- maintain the file extensions (and their types) in the project file
 - allow command `new` to create projects with different scaffoldings
   - using "embedded" scaffoldings (empty, plain, complete, annotated, web, rest...)
   - using "remotes" ones (on Git repos?)
-- new command `load` to load data on databases
 - new command `add` to add components, indexes, etc. by answering few questions
 - new command `mlcp` to invoke MLCP with info from the environment files
 - new command `test` to run tests from command line
