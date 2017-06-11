@@ -9,13 +9,13 @@
     const read    = require('readline-sync');
     const request = require('request');
     const xml     = require('xml2js');
-    const s       = require('./space');
+    const core    = require('./index');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The platform implementation for Node.
      */
 
-    class Node extends s.Platform
+    class Node extends core.Platform
     {
         constructor(dry, verbose) {
             super(dry, verbose);
