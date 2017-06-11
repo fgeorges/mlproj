@@ -1,0 +1,288 @@
+{
+    "database-config": {
+        "config-properties": {
+            "assignment-policy": {
+                "assignment-policy-name": "bucket"
+            },
+            "attribute-value-positions": false,
+            "collection-lexicon": true,
+            "data-encryption": "off",
+            "database-backups": null,
+            "database-references": null,
+            "database-replication": null,
+            "default-rulesets": null,
+            "directory-creation": "manual",
+            "element-attribute-word-lexicons": null,
+            "element-value-positions": false,
+            "element-word-lexicons": null,
+            "element-word-positions": false,
+            "element-word-query-throughs": {
+                "element-word-query-through": [
+                    {
+                        "localname": "p",
+                        "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+                    },
+                    {
+                        "localname": "p",
+                        "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                    }
+                ]
+            },
+            "enabled": true,
+            "encryption-key-id": "",
+            "expunge-locks": "none",
+            "fast-case-sensitive-searches": true,
+            "fast-diacritic-sensitive-searches": true,
+            "fast-element-character-searches": false,
+            "fast-element-phrase-searches": true,
+            "fast-element-trailing-wildcard-searches": false,
+            "fast-element-word-searches": true,
+            "fast-phrase-searches": true,
+            "fast-reverse-searches": false,
+            "field-value-positions": false,
+            "field-value-searches": false,
+            "fields": null,
+            "format-compatibility": "automatic",
+            "fragment-parents": null,
+            "fragment-roots": null,
+            "geospatial-element-attribute-pair-indexes": null,
+            "geospatial-element-child-indexes": null,
+            "geospatial-element-indexes": null,
+            "geospatial-element-pair-indexes": null,
+            "geospatial-path-indexes": null,
+            "geospatial-region-path-indexes": null,
+            "in-memory-geospatial-region-index-size": 2,
+            "in-memory-limit": 32768,
+            "in-memory-list-size": 64,
+            "in-memory-range-index-size": 2,
+            "in-memory-reverse-index-size": 2,
+            "in-memory-tree-size": 16,
+            "in-memory-triple-index-size": 16,
+            "index-detection": "automatic",
+            "inherit-collections": false,
+            "inherit-permissions": false,
+            "inherit-quality": false,
+            "journal-count": 2,
+            "journal-size": 128,
+            "journaling": "fast",
+            "language": "en",
+            "large-size-threshold": 1024,
+            "locking": "fast",
+            "maintain-directory-last-modified": false,
+            "maintain-last-modified": false,
+            "merge-blackouts": null,
+            "merge-max-size": 49152,
+            "merge-min-ratio": 2,
+            "merge-min-size": 1024,
+            "merge-priority": "lower",
+            "merge-timestamp": 0,
+            "one-character-searches": false,
+            "path-namespaces": null,
+            "phrase-arounds": {
+                "phrase-around": [
+                    {
+                        "localname": [
+                            "delInstrText",
+                            "delText",
+                            "endnote",
+                            "footnote",
+                            "instrText",
+                            "pict",
+                            "rPr"
+                        ],
+                        "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+                    },
+                    {
+                        "localname": [
+                            "pPr",
+                            "rPr",
+                            "customXmlPr",
+                            "sdtPr",
+                            "commentReference",
+                            "del"
+                        ],
+                        "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                    }
+                ]
+            },
+            "phrase-throughs": {
+                "phrase-through": [
+                    {
+                        "localname": [
+                            "a",
+                            "abbr",
+                            "acronym",
+                            "b",
+                            "big",
+                            "br",
+                            "center",
+                            "cite",
+                            "code",
+                            "dfn",
+                            "em",
+                            "font",
+                            "i",
+                            "kbd",
+                            "q",
+                            "samp",
+                            "small",
+                            "span",
+                            "strong",
+                            "sub",
+                            "sup",
+                            "tt",
+                            "var"
+                        ],
+                        "namespace-uri": "http://www.w3.org/1999/xhtml"
+                    },
+                    {
+                        "localname": [
+                            "br",
+                            "cr",
+                            "fldChar",
+                            "fldData",
+                            "fldSimple",
+                            "hlink",
+                            "noBreakHyphen",
+                            "permEnd",
+                            "permStart",
+                            "pgNum",
+                            "proofErr",
+                            "r",
+                            "softHyphen",
+                            "sym",
+                            "t",
+                            "tab"
+                        ],
+                        "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+                    },
+                    {
+                        "localname": "t",
+                        "namespace-uri": "http://schemas.microsoft.com/office/word/2003/auxHint"
+                    },
+                    {
+                        "localname": [
+                            "r",
+                            "t",
+                            "endnoteReference",
+                            "footnoteReference",
+                            "customXml",
+                            "hyperlink",
+                            "sdt",
+                            "sdtContent",
+                            "commentRangeEnd",
+                            "commentRangeStart",
+                            "bookmarkStart",
+                            "bookmarkEnd",
+                            "fldSimple",
+                            "instrText",
+                            "smartTag",
+                            "ins",
+                            "proofErr"
+                        ],
+                        "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+                    },
+                    {
+                        "localname": [
+                            "person",
+                            "organization",
+                            "location",
+                            "gpe",
+                            "facility",
+                            "religion",
+                            "nationality",
+                            "credit-card-number",
+                            "email",
+                            "coordinate",
+                            "money",
+                            "percent",
+                            "id",
+                            "phone-number",
+                            "url",
+                            "utm",
+                            "date",
+                            "time"
+                        ],
+                        "namespace-uri": "http://marklogic.com/entity"
+                    }
+                ]
+            },
+            "positions-list-max-size": 256,
+            "preallocate-journals": false,
+            "preload-mapped-data": false,
+            "preload-replica-mapped-data": false,
+            "range-element-attribute-indexes": null,
+            "range-element-indexes": {
+                "range-element-index": [
+                    {
+                        "collation": "",
+                        "invalid-values": "reject",
+                        "localname": [
+                            "created",
+                            "replaced"
+                        ],
+                        "namespace-uri": "http://marklogic.com/xdmp/dls",
+                        "range-value-positions": false,
+                        "scalar-type": "dateTime"
+                    },
+                    {
+                        "collation": "",
+                        "invalid-values": "reject",
+                        "localname": "version-id",
+                        "namespace-uri": "http://marklogic.com/xdmp/dls",
+                        "range-value-positions": false,
+                        "scalar-type": "unsignedLong"
+                    }
+                ]
+            },
+            "range-field-indexes": null,
+            "range-index-optimize": "facet-time",
+            "range-path-indexes": null,
+            "rebalancer-enable": true,
+            "rebalancer-throttle": 5,
+            "reindexer-enable": true,
+            "reindexer-throttle": 5,
+            "reindexer-timestamp": 0,
+            "retain-until-backup": false,
+            "retired-forest-count": 0,
+            "stemmed-searches": "off",
+            "tf-normalization": "scaled-log",
+            "three-character-searches": false,
+            "three-character-word-positions": false,
+            "trailing-wildcard-searches": false,
+            "trailing-wildcard-word-positions": false,
+            "triple-index": true,
+            "triple-positions": false,
+            "two-character-searches": false,
+            "uri-lexicon": true,
+            "word-lexicons": null,
+            "word-positions": false,
+            "word-query": {
+                "excluded-elements": null,
+                "include-root": true,
+                "included-elements": null,
+                "tokenizer-overrides": null
+            },
+            "word-searches": true
+        },
+        "id": "13232076639406460580",
+        "meta": {
+            "current-time": "2017-02-20T19:34:03.179811+01:00",
+            "elapsed-time": {
+                "units": "sec",
+                "value": 0.013872
+            },
+            "uri": "/manage/v2/databases/foo-content?view=config"
+        },
+        "name": "foo-content",
+        "related-views": {
+            "related-view": [
+                {
+                    "view-name": "default",
+                    "view-type": "item",
+                    "view-uri": "/manage/v2/databases/foo-content"
+                }
+            ]
+        }
+    }
+}

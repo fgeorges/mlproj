@@ -1,0 +1,276 @@
+Some dev infos and notes.
+
+== Management API
+
+Some Management API endpoints and related notes.
+
+The example JSON documents (e.g. the result of the endpoints) have been passed
+through the [canonical-json](https://www.npmjs.com/package/canonical-json) tool,
+installed using `sudo npm install canonical-json -g`.  At least most of them
+have.
+
+=== Create database
+
+```
+http --auth-type digest -a admin:admin \
+    POST ml9ea4:8002/manage/v2/databases \
+    database-name=foo-content
+```
+
+=== Get database properties
+
+```
+http --auth-type digest -a admin:admin \
+    GET 'ml9ea4:8002/manage/v2/databases/foo-content/properties' \
+    Accept:application/json
+```
+
+The result is:
+
+```
+{
+    "assignment-policy": {
+        "assignment-policy-name": "bucket"
+    },
+    "attribute-value-positions": false,
+    "collection-lexicon": true,
+    "data-encryption": "off",
+    "database-name": "foo-content",
+    "database-replication": null,
+    "directory-creation": "manual",
+    "element-value-positions": false,
+    "element-word-positions": false,
+    "element-word-query-through": [
+        {
+            "localname": "p",
+            "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+        },
+        {
+            "localname": "p",
+            "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        }
+    ],
+    "enabled": true,
+    "encryption-key-id": "",
+    "expunge-locks": "none",
+    "fast-case-sensitive-searches": true,
+    "fast-diacritic-sensitive-searches": true,
+    "fast-element-character-searches": false,
+    "fast-element-phrase-searches": true,
+    "fast-element-trailing-wildcard-searches": false,
+    "fast-element-word-searches": true,
+    "fast-phrase-searches": true,
+    "fast-reverse-searches": false,
+    "field": [
+        {
+            "field-name": "",
+            "include-root": true
+        }
+    ],
+    "field-value-positions": false,
+    "field-value-searches": false,
+    "format-compatibility": "automatic",
+    "in-memory-geospatial-region-index-size": 2,
+    "in-memory-limit": 32768,
+    "in-memory-list-size": 64,
+    "in-memory-range-index-size": 2,
+    "in-memory-reverse-index-size": 2,
+    "in-memory-tree-size": 16,
+    "in-memory-triple-index-size": 16,
+    "index-detection": "automatic",
+    "inherit-collections": false,
+    "inherit-permissions": false,
+    "inherit-quality": false,
+    "journal-count": 2,
+    "journal-size": 128,
+    "journaling": "fast",
+    "language": "en",
+    "large-size-threshold": 1024,
+    "locking": "fast",
+    "maintain-directory-last-modified": false,
+    "maintain-last-modified": false,
+    "merge-max-size": 49152,
+    "merge-min-ratio": 2,
+    "merge-min-size": 1024,
+    "merge-priority": "lower",
+    "merge-timestamp": 0,
+    "one-character-searches": false,
+    "phrase-around": [
+        {
+            "localname": [
+                "delInstrText",
+                "delText",
+                "endnote",
+                "footnote",
+                "instrText",
+                "pict",
+                "rPr"
+            ],
+            "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+        },
+        {
+            "localname": [
+                "commentReference",
+                "customXmlPr",
+                "del",
+                "pPr",
+                "rPr",
+                "sdtPr"
+            ],
+            "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        }
+    ],
+    "phrase-through": [
+        {
+            "localname": [
+                "coordinate",
+                "credit-card-number",
+                "date",
+                "email",
+                "facility",
+                "gpe",
+                "id",
+                "location",
+                "money",
+                "nationality",
+                "organization",
+                "percent",
+                "person",
+                "phone-number",
+                "religion",
+                "time",
+                "url",
+                "utm"
+            ],
+            "namespace-uri": "http://marklogic.com/entity"
+        },
+        {
+            "localname": "t",
+            "namespace-uri": "http://schemas.microsoft.com/office/word/2003/auxHint"
+        },
+        {
+            "localname": [
+                "br",
+                "cr",
+                "fldChar",
+                "fldData",
+                "fldSimple",
+                "hlink",
+                "noBreakHyphen",
+                "permEnd",
+                "permStart",
+                "pgNum",
+                "proofErr",
+                "r",
+                "softHyphen",
+                "sym",
+                "t",
+                "tab"
+            ],
+            "namespace-uri": "http://schemas.microsoft.com/office/word/2003/wordml"
+        },
+        {
+            "localname": [
+                "bookmarkEnd",
+                "bookmarkStart",
+                "commentRangeEnd",
+                "commentRangeStart",
+                "customXml",
+                "endnoteReference",
+                "fldSimple",
+                "footnoteReference",
+                "hyperlink",
+                "ins",
+                "instrText",
+                "proofErr",
+                "r",
+                "sdt",
+                "sdtContent",
+                "smartTag",
+                "t"
+            ],
+            "namespace-uri": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        },
+        {
+            "localname": [
+                "a",
+                "abbr",
+                "acronym",
+                "b",
+                "big",
+                "br",
+                "center",
+                "cite",
+                "code",
+                "dfn",
+                "em",
+                "font",
+                "i",
+                "kbd",
+                "q",
+                "samp",
+                "small",
+                "span",
+                "strong",
+                "sub",
+                "sup",
+                "tt",
+                "var"
+            ],
+            "namespace-uri": "http://www.w3.org/1999/xhtml"
+        }
+    ],
+    "positions-list-max-size": 256,
+    "preallocate-journals": false,
+    "preload-mapped-data": false,
+    "preload-replica-mapped-data": false,
+    "range-element-index": [
+        {
+            "collation": "",
+            "invalid-values": "reject",
+            "localname": "created",
+            "namespace-uri": "http://marklogic.com/xdmp/dls",
+            "range-value-positions": false,
+            "scalar-type": "dateTime"
+        },
+        {
+            "collation": "",
+            "invalid-values": "reject",
+            "localname": "replaced",
+            "namespace-uri": "http://marklogic.com/xdmp/dls",
+            "range-value-positions": false,
+            "scalar-type": "dateTime"
+        },
+        {
+            "collation": "",
+            "invalid-values": "reject",
+            "localname": "version-id",
+            "namespace-uri": "http://marklogic.com/xdmp/dls",
+            "range-value-positions": false,
+            "scalar-type": "unsignedLong"
+        }
+    ],
+    "range-index-optimize": "facet-time",
+    "rebalancer-enable": true,
+    "rebalancer-throttle": 5,
+    "reindexer-enable": true,
+    "reindexer-throttle": 5,
+    "reindexer-timestamp": 0,
+    "retain-until-backup": false,
+    "retired-forest-count": 0,
+    "schema-database": "Schemas",
+    "security-database": "Security",
+    "stemmed-searches": "off",
+    "tf-normalization": "scaled-log",
+    "three-character-searches": false,
+    "three-character-word-positions": false,
+    "trailing-wildcard-searches": false,
+    "trailing-wildcard-word-positions": false,
+    "triple-index": true,
+    "triple-positions": false,
+    "two-character-searches": false,
+    "uri-lexicon": true,
+    "word-positions": false,
+    "word-searches": true
+}
+```
