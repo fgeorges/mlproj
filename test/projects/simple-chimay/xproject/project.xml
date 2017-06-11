@@ -1,0 +1,8 @@
+<project xmlns="http://expath.org/ns/project"
+         name="http://mlproj.org/example/simple-chimay"
+         abbrev="simple-chimay"
+         version="0.1.0">
+
+   <title>Some test.</title>
+
+</project>

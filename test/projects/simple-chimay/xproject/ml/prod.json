@@ -1,0 +1,21 @@
+{
+    "mlproj": {
+        "format": "0.1",
+        "import": "base.json",
+        "connect": {
+            "host": "prod.server",
+            "user": "admin"
+        },
+        "databases": [{
+            "id": "modules",
+            "name": "@{code}-modules"
+        }],
+        "servers": [{
+            "id": "app",
+            "modules": {
+                "idref": "modules"
+            },
+            "root": "/"
+        }]
+    }
+}
