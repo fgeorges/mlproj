@@ -8,7 +8,7 @@ function className(obj)
     var clazz = obj.constructor.toString();
     var res   = /^class\s+(\S+)\s+/.exec(clazz);
     if ( ! res ) {
-	throw new Error('Not an instance of a class: ' + obj);
+        throw new Error('Not an instance of a class: ' + obj);
     }
     return res[1];
 }
@@ -16,7 +16,7 @@ function className(obj)
 function byPath(res, path, name)
 {
     if ( ! res[path] ) {
-	res[path] = [];
+        res[path] = [];
     }
     res[path].push(name);
 }
@@ -24,7 +24,7 @@ function byPath(res, path, name)
 function byName(res, path, name)
 {
     if ( ! res[name] ) {
-	res[name] = [];
+        res[name] = [];
     }
     res[name].push(path);
 }
@@ -32,34 +32,34 @@ function byName(res, path, name)
 function accumulate(found, obj, path, res)
 {
     if ( ! res ) {
-	res = {};
+        res = {};
     }
     var clazz = className(obj);
     switch ( clazz ) {
     case 'ConfigObject':
-	Object.keys(obj.props).forEach(p => {
-	    accumulate(found, obj.props[p], (path ? path + '.' + p : p), res);
-	});
-	break;
+        Object.keys(obj.props).forEach(p => {
+            accumulate(found, obj.props[p], (path ? path + '.' + p : p), res);
+        });
+        break;
     case 'MultiArray':
-	obj.items.forEach(item => {
-	    accumulate(found, item.prop, path, res);
-	});
-	break;
+        obj.items.forEach(item => {
+            accumulate(found, item.prop, path, res);
+        });
+        break;
     case 'ObjectArray':
-	found(res, path + '[]', obj.name);
-	break;
+        found(res, path + '[]', obj.name);
+        break;
     case 'Boolean':
     case 'Enum':
     case 'Integer':
     case 'String':
-	found(res, path, obj.name);
-	break;
+        found(res, path, obj.name);
+        break;
     case 'Ignore':
-	// nothing
-	break;
+        // nothing
+        break;
     default:
-	throw new Error('Unknown class: ' + clazz);
+        throw new Error('Unknown class: ' + clazz);
     }
     return res;
 }
@@ -70,12 +70,12 @@ function exportText()
     const padding = '                                   '; // 35 whitespaces
 
     const display = (found, obj) => {
-	var res = accumulate(found, obj);
-	Object.keys(res).sort().forEach(p => {
-	    var left = p + ': ';
-	    var pad  = padding.slice(left.length);
-	    console.log(left + pad + res[p]);
-	});
+        var res = accumulate(found, obj);
+        Object.keys(res).sort().forEach(p => {
+            var left = p + ': ';
+            var pad  = padding.slice(left.length);
+            console.log(left + pad + res[p]);
+        });
     };
 
     console.log('# db props');
@@ -93,31 +93,32 @@ function exportText()
 function exportTable(ignore)
 {
     const display = (obj, all) => {
-	console.log('<table class="table">');
-	console.log('<thead>');
-	console.log('<tr><th>name</th><th>path</th></tr>');
-	console.log('</thead>');
-	console.log('<tbody>');
-	var res = accumulate(byName, obj);
-	// quick hack
-	res['database-name']     = [ 'name' ];
-	res['forest']            = [ 'forests' ];
-	res['schema-database']   = [ 'schema' ];
-	res['security-database'] = [ 'security' ];
-	res['triggers-database'] = [ 'triggers' ];
-	res['server-name']       = [ 'name' ];
-	// TODO: Detect `res` props that are not in `all`, and generate an error
-	// for unknown property...
-	all.forEach(p => {
-	    if ( ! ignore ) {
-		console.log('<tr>'
-			    + '<td>' + p + '</td>'
-			    + '<td>' + (res[p] ? res[p] : '✗') + '</td>'
-			    + '</tr>');
-	    }
-	});
-	console.log('</tbody>');
-	console.log('</table>');
+        console.log('<table class="table">');
+        console.log('<thead>');
+        console.log('<tr><th>name</th><th>path</th></tr>');
+        console.log('</thead>');
+        console.log('<tbody>');
+        var res = accumulate(byName, obj);
+        // quick hack
+        res['database-name']     = [ 'name' ];
+        res['forest']            = [ 'forests' ];
+        res['schema-database']   = [ 'schema' ];
+        res['security-database'] = [ 'security' ];
+        res['triggers-database'] = [ 'triggers' ];
+        res['server-name']       = [ 'name' ];
+        // TODO: Detect `res` props that are not in `all`, and generate an error
+        // for unknown property...
+        all.forEach(p => {
+            if ( ! ignore ) {
+                console.log(
+                    '<tr>'
+                    + '<td>' + p + '</td>'
+                    + '<td>' + (res[p] ? res[p] : '✗') + '</td>'
+                    + '</tr>');
+            }
+        });
+        console.log('</tbody>');
+        console.log('</table>');
     };
 
     console.log('<h4>Database properties</h4>');
