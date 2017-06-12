@@ -107,14 +107,6 @@
             return fs.readFileSync(path, 'utf8');
         }
 
-        json(path, validate) {
-            var json = JSON.parse(this.read(path));
-            if ( validate ) {
-                return this.validateJson(json);
-            }
-            return json;
-        }
-
         xml(path, callback) {
             var parser  = new xml.Parser();
             var content = this.read(path);
