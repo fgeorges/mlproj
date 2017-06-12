@@ -2,7 +2,7 @@
 
 (function() {
 
-    const core = require('./index');
+    const core = require('mlproj-core');
 
     function makeProgram() {
 

@@ -4,7 +4,6 @@
 
 const test    = require('../lib/unit-test').test;
 const program = require('../../../src/program');
-const cmd     = require('../../../src/commands');
 
 function fxLoadSimple()
 {

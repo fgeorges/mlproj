@@ -2,10 +2,18 @@
 
 "use strict";
 
+const mockery = require('mockery');
+mockery.enable({
+    warnOnUnregistered: false
+});
+// requires mlproj-core to be cloned next to mlproj...
+mockery.registerSubstitute('mlproj-core', '../../mlproj-core/index.js');
+
 const chalk    = require('chalk');
 const fs       = require('fs');
 const scenario = require('./lib/scenario');
-const cmd      = require('../../src/commands');
+//const cmd      = require('../../src/commands');
+const core     = require('mlproj-core');
 
 var tests = [];
 if ( process.argv.length === 2 ) {
@@ -102,7 +110,8 @@ tests.forEach(test => {
         if ( t[0] !== '.' ) {
             t = './' + t;
         }
-        require(t).test(new TestRunner(), scenario, cmd, './');
+        // require(t).test(new TestRunner(), scenario, cmd, './');
+        require(t).test(new TestRunner(), scenario, core, './');
         console.log(chalk.green('✔') + ' ' + test);
     }
     catch ( err ) {

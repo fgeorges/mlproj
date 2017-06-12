@@ -9,7 +9,7 @@
     const read    = require('readline-sync');
     const request = require('request');
     const xml     = require('xml2js');
-    const core    = require('./index');
+    const core    = require('mlproj-core');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The platform implementation for Node.

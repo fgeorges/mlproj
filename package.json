@@ -18,5 +18,8 @@
     "readline-sync": "^1.4.6",
     "request": "^2.79.0",
     "xml2js": "^0.4.17"
+  },
+  "devDependencies": {
+    "mockery": "^2.0.0"
   }
 }
