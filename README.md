@@ -4,8 +4,6 @@ Project and environment manager for MarkLogic.
 
 All details on: http://mlproj.org/.
 
-![Animated intro](dev/mlproj-intro.gif)
-
 ## Install
 
 Use the following:
