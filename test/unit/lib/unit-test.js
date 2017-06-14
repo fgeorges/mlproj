@@ -2,6 +2,13 @@
 
 (function() {
 
+    const mockery = require('mockery');
+    mockery.enable({
+        warnOnUnregistered: false
+    });
+    // requires mlproj-core to be cloned next to mlproj...
+    mockery.registerSubstitute('mlproj-core', '../../mlproj-core/index.js');
+
     const chalk = require('chalk');
 
     function success(msg) {
