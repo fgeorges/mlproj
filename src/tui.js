@@ -136,6 +136,7 @@ function execWithProject(args, cmd)
     // the options
     var env      = args.global.environ;
     var path     = args.global.file;
+    var base     = platform.cwd();
     var params   = args.global.param || {};
     var force    = {};
     [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = args.global[name]);
@@ -143,7 +144,7 @@ function execWithProject(args, cmd)
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
     // the project
-    platform.project(env, path, params, force, project => {
+    platform.project(env, path, base, params, force, project => {
         // execute the command
         project.execute(args, cmd.clazz());
     });

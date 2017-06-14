@@ -2,6 +2,8 @@
 
 "use strict";
 
+// TODO: This script is duplicated in mlproj-core, do we want to change that?
+
 var chproc = require('child_process');
 var proc   = require('process');
 
@@ -49,8 +51,6 @@ function run(tests, callback)
 proc.chdir('./test/');
 
 run([
-    { msg: 'Run test scenarii', cwd: './scenarii/' },
-    { script: './run-scenario.js' },
-    { msg: 'Run unit tests', cwd: '../unit/' },
+    { msg: 'Run unit tests', cwd: './unit/' },
     { script: './tui/parse-options.js' }
 ]);

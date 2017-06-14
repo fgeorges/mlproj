@@ -2,7 +2,7 @@
 
 (function() {
 
-    const cmd = require('./commands');
+    const core = require('mlproj-core');
 
     function makeProgram() {
 
@@ -30,25 +30,25 @@
 
         prg
             .command('new')
-            .clazz(cmd.NewCommand)
+            .clazz(core.NewCommand)
             .desc('Create a new project in the current directory.')
             .usage('');
 
         prg
             .command('show')
-            .clazz(cmd.ShowCommand)
+            .clazz(core.ShowCommand)
             .desc('Display the environment.')
             .usage('');
 
         prg
             .command('setup')
-            .clazz(cmd.SetupCommand)
+            .clazz(core.SetupCommand)
             .desc('Setup the environment on MarkLogic.')
             .usage('');
 
         prg
             .command('load')
-            .clazz(cmd.LoadCommand)
+            .clazz(core.LoadCommand)
             .desc('Load documents to a database.')
             .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
             .or()
@@ -65,7 +65,7 @@
 
         prg
             .command('deploy')
-            .clazz(cmd.DeployCommand)
+            .clazz(core.DeployCommand)
             .desc('Deploy modules to a database.')
             .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
             .or()
