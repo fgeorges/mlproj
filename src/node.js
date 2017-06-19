@@ -107,14 +107,26 @@
             return fs.readFileSync(path, 'utf8');
         }
 
-        xml(path, callback) {
+        projectXml(path, callback) {
             var parser  = new xml.Parser();
             var content = this.read(path);
             parser.parseString(content, (err, result) => {
                 if ( err ) {
                     throw new Error('Error parsing XML: ' + err + ', at ' + path);
                 }
-                callback(result);
+                if ( ! result || ! result.project ) {
+                    throw new Error('Bad project.xml, no document or no project element: ' + path);
+                }
+                if ( ! result.project['$'] || ! result.project['$'].abbrev ) {
+                    throw new Error('Bad project.xml, no abbrev: ' + path);
+                }
+                let p = result.project;
+                let project = {};
+                if ( p['$'].abbrev  ) project.abbrev  = p['$'].abbrev;
+                if ( p['$'].name    ) project.name    = p['$'].name;
+                if ( p['$'].version ) project.version = p['$'].version;
+                if ( p.title        ) project.title   = p.title[0];
+                callback(project);
             });
         }
 
