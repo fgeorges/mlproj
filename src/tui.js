@@ -144,10 +144,9 @@ function execWithProject(args, cmd)
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
     // the project
-    platform.project(env, path, base, params, force, project => {
-        // execute the command
-        project.execute(args, cmd.clazz());
-    });
+    var project = platform.project(env, path, base, params, force);
+    // execute the command
+    project.execute(args, cmd.clazz());
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

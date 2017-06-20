@@ -7,7 +7,7 @@
     const path    = require('path');
     const chalk   = require('chalk');
     const read    = require('readline-sync');
-    const request = require('request');
+    const request = require('sync-request');
     const xml     = require('xml2js');
     const core    = require('mlproj-core');
 
@@ -106,6 +106,7 @@
         projectXml(path, callback) {
             var parser  = new xml.Parser();
             var content = this.read(path);
+            var p;
             parser.parseString(content, (err, result) => {
                 if ( err ) {
                     throw new Error('Error parsing XML: ' + err + ', at ' + path);
@@ -116,14 +117,20 @@
                 if ( ! result.project['$'] || ! result.project['$'].abbrev ) {
                     throw new Error('Bad project.xml, no abbrev: ' + path);
                 }
-                let p = result.project;
-                let project = {};
-                if ( p['$'].abbrev  ) project.abbrev  = p['$'].abbrev;
-                if ( p['$'].name    ) project.name    = p['$'].name;
-                if ( p['$'].version ) project.version = p['$'].version;
-                if ( p.title        ) project.title   = p.title[0];
-                callback(project);
+                p = result.project;
             });
+            if ( ! p ) {
+                // the following makes it clear it is not async, just using a
+                // callback, synchronously:
+                // https://github.com/Leonidas-from-XIV/node-xml2js/issues/159#issuecomment-248599477
+                throw new Error('Internal error.  Has xml2js become async?  Please report this.');
+            }
+            let project = {};
+            if ( p['$'].abbrev  ) project.abbrev  = p['$'].abbrev;
+            if ( p['$'].name    ) project.name    = p['$'].name;
+            if ( p['$'].version ) project.version = p['$'].version;
+            if ( p.title        ) project.title   = p.title[0];
+            return project;
         }
 
         write(path, content) {
@@ -185,43 +192,38 @@
             }
         }
 
-        get(api, url, error, success) {
+        get(api, url) {
             var url   = this.url(api, url);
             var creds = this.credentials();
-            request.get(
-                {
-                    url:     url,
-                    headers: {
-                        Accept: 'application/json'
-                    },
-                    auth:    {
-                        user: creds[0],
-                        pass: creds[1],
-                        sendImmediately: false
-                    }
+            // TODO: Do we want request-sync, or actually deal directly with a sub-process...?
+            var resp  = request('GET', url, {
+                headers: {
+                    Accept: 'application/json'
                 },
-                (err, http, body) => {
-                    if ( err ) {
-                        error(err);
-                    }
-                    else if ( http.statusCode === 200 ) {
-                        success(JSON.parse(body));
-                    }
-                    else if ( http.statusCode === 404 ) {
-                        success();
-                    }
-                    else {
-                        this.verboseHttp(http, body);
-                        error('Error retrieving entity: ' + body.errorResponse.message);
-                    }
-                });
+                auth:    {
+                    user: creds[0],
+                    pass: creds[1],
+                    sendImmediately: false
+                }
+            });
+            if ( resp.statusCode === 200 ) {
+                return JSON.parse(resp.getBody());
+            }
+            else if ( resp.statusCode === 404 ) {
+                return;
+            }
+            else {
+                // TODO: Adapt verboseHttp()...
+                // this.verboseHttp(http, body);
+                // What about resp.body.errorresponse.message?
+                throw new Error('Error retrieving entity: ' + resp.body);
+            }
         }
 
-        post(api, url, data, error, success) {
-            var url   = this.url(api, url);
-            var creds = this.credentials();
+        post(api, url, data) {
+            var url     = this.url(api, url);
+            var creds   = this.credentials();
             var options = {
-                url:  url,
                 auth: {
                     user: creds[0],
                     pass: creds[1],
@@ -236,25 +238,22 @@
                     "Content-Type": 'application/x-www-form-urlencoded'
                 };
             }
-            request.post(options, (err, http, body) => {
-                if ( err ) {
-                    error(err);
-                }
-                else if ( http.statusCode !== (data ? 201 : 200) ) {
-                    this.verboseHttp(http, body);
-                    error('Entity not created: ' + body.errorResponse.message);
-                }
-                else {
-                    success();
-                }
-            });
+            var resp  = request('POST', url, options);
+            if ( resp.statusCode === (data ? 201 : 200) ) {
+                return;
+            }
+            else {
+                // TODO: Adapt verboseHttp()...
+                // this.verboseHttp(http, body);
+                // What about resp.body.errorresponse.message?
+                throw new Error('Entity not created: ' + resp.body);
+            }
         }
 
-        put(api, url, data, error, success, type) {
-            var url   = this.url(api, url);
-            var creds = this.credentials();
+        put(api, url, data, type) {
+            var url     = this.url(api, url);
+            var creds   = this.credentials();
             var options = {
-                url:  url,
                 auth: {
                     user: creds[0],
                     pass: creds[1],
@@ -275,21 +274,17 @@
                     "Content-Type": 'application/x-www-form-urlencoded'
                 };
             }
-            request.put(options, (err, http, body) => {
-                if ( err ) {
-                    error(err);
-                }
-                // XDBC PUT /insert returns 200
-                else if ( http.statusCode !== 200 && http.statusCode !== 201 && http.statusCode !== 204 ) {
-                    this.verboseHttp(http, body);
-                    error('Entity not updated: ' + ( body.errorResponse
-                                                     ? body.errorResponse.message
-                                                     : body ));
-                }
-                else {
-                    success();
-                }
-            });
+            var resp  = request('PUT', url, options);
+            // XDBC PUT /insert returns 200
+            if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
+                return;
+            }
+            else {
+                // TODO: Adapt verboseHttp()...
+                // this.verboseHttp(http, body);
+                // What about resp.body.errorresponse.message?
+                throw new Error('Entity not updated: ' + resp.body);
+            }
         }
 
         allFiles(dir, filter, ignored)

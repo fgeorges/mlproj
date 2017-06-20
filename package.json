@@ -17,6 +17,7 @@
     "mlproj-core": "^0.1.0",
     "readline-sync": "^1.4.6",
     "request": "^2.79.0",
+    "sync-request": "^4.1.0",
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
