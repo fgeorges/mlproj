@@ -8,6 +8,7 @@
     const chalk   = require('chalk');
     const read    = require('readline-sync');
     const request = require('sync-request');
+    const crypto  = require('crypto');
     const xml     = require('xml2js');
     const core    = require('mlproj-core');
 
@@ -192,20 +193,104 @@
             }
         }
 
-        get(api, url) {
-            var url   = this.url(api, url);
+        requestAuth(method, url, options) {
+            const md5 = (name, str) => {
+                let res = crypto.createHash('md5').update(str).digest('hex');
+                return res;
+            };
+            const parseDigest = header => {
+                if ( ! header || header.slice(0, 7) !== 'Digest ' ) {
+                    throw new Error('Expect WWW-Authenticate for digest, got: ' + header);
+                }
+                return header.substring(7).split(/,\s+/).reduce((obj, s) => {
+                    var parts = s.split('=')
+                    obj[parts[0]] = parts[1].replace(/"/g, '')
+                    return obj
+                }, {});
+            };
+            const renderDigest = params => {
+                const attr = (key, quote) => {
+                    if ( params[key] ) {
+                        attrs.push(key + '=' + quote + params[key] + quote);
+                    }
+                };
+                var attrs = [];
+                attr('username',  '"');
+                attr('realm',     '"');
+                attr('nonce',     '"');
+                attr('uri',       '"');
+                attr('algorithm', '');
+                attr('response',  '"');
+                attr('opaque',    '"');
+                attr('qop',       '');
+                attr('nc',        '');
+                attr('cnonce',    '"');
+                return 'Digest ' + attrs.join(', ');
+            };
+            const auth = header => {
+                var params = parseDigest(header);
+                if ( ! params.qop ) {
+                    throw new Error('Not supported: qop is unspecified');
+                }
+                else if ( params.qop === 'auth-int' ) {
+                    throw new Error('Not supported: qop is auth-int');
+                }
+                else if ( params.qop === 'auth' ) {
+                    // keep going...
+                }
+                else {
+                    if ( params.qop.split(/,/).includes('auth') ) {
+                        // keep going...
+                        params.qop = 'auth';
+                    }
+                    else {
+                        throw new Error('Not supported: qop is ' + params.qop);
+                    }
+                }
+                // TODO: Handle NC and CNONCE
+                var nc     = '00000001';
+                var cnonce = '4f1ab28fcd820bc5';
+                var ha1    = md5('ha1', creds[0] + ':' + params.realm + ':' + creds[1]);
+                var ha2    = md5('ha2', method + ':' + path);
+                var resp   = md5('response', [ha1, params.nonce, nc, cnonce, params.qop, ha2].join(':'));
+                var auth   = {
+                    username:  creds[0],
+                    realm:     params.realm,
+                    nonce:     params.nonce,
+                    uri:       path,
+                    qop:       params.qop,
+                    response:  resp,
+                    nc:        nc,
+                    cnonce:    cnonce,
+                    opaque:    params.opaque,
+                    algorithm: params.algorithm
+                };
+                return renderDigest(auth);
+            };
+            var resp  = request(method, url, options);
+            var i     = 0;
             var creds = this.credentials();
-            // TODO: Do we want request-sync, or actually deal directly with a sub-process...?
-            var resp  = request('GET', url, {
+            while ( resp.statusCode === 401 ) {
+                if ( ++i > 3 ) {
+                    throw new Error('Too many authentications failed: ' + url);
+                }
+                if ( ! options.headers ) {
+                    options.headers = {};
+                }
+                options.headers.authorization = auth(resp.headers['www-authenticate']);
+                resp = request(method, url, options);
+            }
+            return resp;
+        }
+
+        get(api, url) {
+            var url     = this.url(api, url);
+            var options = {
                 headers: {
                     Accept: 'application/json'
-                },
-                auth:    {
-                    user: creds[0],
-                    pass: creds[1],
-                    sendImmediately: false
                 }
-            });
+            };
+            var resp = this.requestAuth('GET', url, options);
             if ( resp.statusCode === 200 ) {
                 return JSON.parse(resp.getBody());
             }
@@ -215,21 +300,14 @@
             else {
                 // TODO: Adapt verboseHttp()...
                 // this.verboseHttp(http, body);
-                // What about resp.body.errorresponse.message?
-                throw new Error('Error retrieving entity: ' + resp.body);
+                throw new Error('Error retrieving entity: ' + (resp.body.errorResponse
+                                ? resp.body.errorResponse.message : resp.body));
             }
         }
 
         post(api, url, data) {
             var url     = this.url(api, url);
-            var creds   = this.credentials();
-            var options = {
-                auth: {
-                    user: creds[0],
-                    pass: creds[1],
-                    sendImmediately: false
-                }
-            };
+            var options = {};
             if ( data ) {
                 options.json = data;
             }
@@ -238,28 +316,21 @@
                     "Content-Type": 'application/x-www-form-urlencoded'
                 };
             }
-            var resp  = request('POST', url, options);
+            var resp = this.requestAuth('POST', url, options);
             if ( resp.statusCode === (data ? 201 : 200) ) {
                 return;
             }
             else {
                 // TODO: Adapt verboseHttp()...
                 // this.verboseHttp(http, body);
-                // What about resp.body.errorresponse.message?
-                throw new Error('Entity not created: ' + resp.body);
+                throw new Error('Entity not created: ' + (resp.body.errorResponse
+                                ? resp.body.errorResponse.message : resp.body));
             }
         }
 
         put(api, url, data, type) {
             var url     = this.url(api, url);
-            var creds   = this.credentials();
-            var options = {
-                auth: {
-                    user: creds[0],
-                    pass: creds[1],
-                    sendImmediately: false
-                }
-            };
+            var options = {};
             if ( data ) {
                 if ( type ) {
                     options.headers = { "Content-Type": type };
@@ -274,7 +345,7 @@
                     "Content-Type": 'application/x-www-form-urlencoded'
                 };
             }
-            var resp  = request('PUT', url, options);
+            var resp = this.requestAuth('PUT', url, options);
             // XDBC PUT /insert returns 200
             if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
                 return;
@@ -282,8 +353,8 @@
             else {
                 // TODO: Adapt verboseHttp()...
                 // this.verboseHttp(http, body);
-                // What about resp.body.errorresponse.message?
-                throw new Error('Entity not updated: ' + resp.body);
+                throw new Error('Entity not updated: ' + (resp.body.errorResponse
+                                ? resp.body.errorResponse.message : resp.body));
             }
         }
 
