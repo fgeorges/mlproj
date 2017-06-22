@@ -531,6 +531,28 @@
             log('');
         }
 
+        environ(envipath, title, desc, host, user, password, srcdir, mods, params, imports) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
+            title    && line(1, 'title',       title);
+            desc     && line(1, 'desc',        desc);
+            host     && line(1, 'host',        host);
+            user     && line(1, 'user',        user);
+            password && line(1, 'password',    '*****');
+            srcdir   && line(1, 'sources dir', srcdir);
+            mods     && line(1, 'modules DB',  mods);
+            if ( params.length ) {
+                line(1, 'parameters:');
+                params.forEach(p => line(2, p.name, p.value));
+            }
+            if ( imports.length ) {
+                line(1, 'import graph:');
+                imports.forEach(i => line(i.level + 1, '-> ' + i.href));
+            }
+            pf.log('');
+        }
+
         check(indent, msg, arg) {
             Display.action(indent, '• ' + chalk.yellow('checking') + ' ' + msg, arg);
         }
