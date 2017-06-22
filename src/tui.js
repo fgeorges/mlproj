@@ -132,7 +132,9 @@ function execWithProject(args, cmd)
     // the platform
     var dry      = args.global.dry     ? true : false;
     var verbose  = args.global.verbose ? true : false;
-    var platform = new node.Node(dry, verbose);
+    // TODO: Pass verbose to display instead?
+    var platform = new node.Platform(dry, verbose);
+    var display  = new node.Display();
     // the options
     var env      = args.global.environ;
     var path     = args.global.file;
@@ -143,10 +145,11 @@ function execWithProject(args, cmd)
     if ( args.global.password ) {
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
-    // the project
+    // the project & command
     var project = platform.project(env, path, base, params, force);
+    var command = new (cmd.clazz())(args.global, args.local, platform, display, project);
     // execute the command
-    project.execute(args, cmd.clazz());
+    command.execute();
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

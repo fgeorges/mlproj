@@ -16,7 +16,7 @@
      * The platform implementation for Node.
      */
 
-    class Node extends core.Platform
+    class Platform extends core.Platform
     {
         constructor(dry, verbose) {
             super(dry, verbose);
@@ -67,6 +67,7 @@
             console.log('DEBUG: ' + msg);
         }
 
+        // TODO: To remove...
         log(msg) {
             console.log(msg);
         }
@@ -81,6 +82,7 @@
             console.warn(msg);
         }
 
+        // TODO: To remove...
         line(indent, name, value) {
             var s = '';
             while ( indent-- ) {
@@ -142,6 +144,7 @@
             return chalk.green(s);
         }
 
+        // TODO: To remove...
         yellow(s) {
             return chalk.yellow(s);
         }
@@ -150,6 +153,7 @@
             return chalk.red(s);
         }
 
+        // TODO: To remove...
         bold(s) {
             return chalk.bold(s);
         }
@@ -440,7 +444,7 @@
         }
     }
 
-    Node.userJson = (pf, name) => {
+    Platform.userJson = (pf, name) => {
         try {
             var path = pf.resolve(name, os.homedir());
             return pf.json(path, true);
@@ -451,10 +455,69 @@
                 throw err;
             }
         }
+    };
+
+    class Display extends core.Display
+    {
+        database(name, id, schema, security, triggers, forests, props) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Database') + ': ' + chalk.bold(chalk.yellow(name)));
+            id       && line(1, 'id',          id);
+            schema   && line(1, 'schema DB',   schema.name);
+            security && line(1, 'security DB', security.name);
+            triggers && line(1, 'triggers DB', triggers.name);
+            var forests = Object.keys(forests);
+            if ( forests.length ) {
+                line(1, 'forests:');
+                forests.sort().forEach(f => line(2, f));
+            }
+            Object.keys(props).forEach(p => this.property(props[p]));
+        }
+
+        server(name, id, group, content, modules, props) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Server') + ': ' + chalk.bold(chalk.yellow(name)));
+            line(1, 'group', group);
+            id      && line(1, 'id',         id);
+            content && line(1, 'content DB', content.name);
+            modules && line(1, 'modules DB', modules.name);
+            // explicit list of properties, to guarantee the order they are displayed
+            [ 'type', 'port', 'root', 'rewriter', 'handler' ].forEach(p => {
+                if ( props[p] !== undefined ) {
+                    this.property(props[p]);
+                }
+            });
+        }
+
+        property(prop) {
+            throw new Error('Implement me...');
+        }
     }
 
+    Display.log = msg => {
+        console.log(msg);
+    };
+
+    Display.line = (indent, name, value) => {
+        var s = '';
+        while ( indent-- ) {
+            s += '   ';
+        }
+        s += name;
+        if ( value !== undefined ) {
+            const PAD = '                        '; // 24 spaces
+            s += ': ';
+            s += PAD.slice(s.length);
+            s += value;
+        }
+        console.log(s);
+    };
+
     module.exports = {
-        Node : Node
+        Platform : Platform,
+        Display  : Display
     }
 }
 )();
