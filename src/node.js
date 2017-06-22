@@ -512,6 +512,7 @@
         project(code, configs, title, name, version) {
             const log  = Display.log;
             const line = Display.line;
+            log('');
             log(chalk.bold('Project') + ': ' + chalk.bold(chalk.yellow(code)));
             title   && line(1, 'title',   title);
             name    && line(1, 'name',    name);
