@@ -23,7 +23,7 @@ function plainCmdStart(args)
 
     // the platform
     var verbose = args.global.verbose ? true : false;
-    return new node.Node(false, verbose);
+    return new node.Platform(false, verbose);
 }
 
 // implementation of the action for command `new`

@@ -21,14 +21,14 @@
         constructor(dry, verbose) {
             super(dry, verbose);
             // try one...
-            var proj = Node.userJson(this, '.mlproj.json');
+            var proj = Platform.userJson(this, '.mlproj.json');
             if ( proj ) {
                 this._config  = proj.config;
                 this._connect = proj.connect;
             }
             else {
                 // ...or the other
-                proj = Node.userJson(this, 'mlproj.json');
+                proj = Platform.userJson(this, 'mlproj.json');
                 if ( proj ) {
                     this._config  = proj.config;
                     this._connect = proj.connect;
@@ -473,6 +473,7 @@
                 forests.sort().forEach(f => line(2, f));
             }
             Object.keys(props).forEach(p => this.property(props[p]));
+            log('');
         }
 
         server(name, id, group, content, modules, props) {
@@ -489,10 +490,57 @@
                     this.property(props[p]);
                 }
             });
+            log('');
         }
 
-        property(prop) {
-            throw new Error('Implement me...');
+        property(prop, level) {
+            const line = Display.line;
+            if ( ! level ) {
+                level = 1;
+            }
+            if ( Array.isArray(prop.value) ) {
+                prop.value.forEach(v => {
+                    line(level, prop.prop.label);
+                    Object.keys(v).forEach(n => this.property(v[n], level + 1));
+                });
+            }
+            else {
+                line(level, prop.prop.label, prop.value);
+            }
+        }
+
+        project(code, configs, title, name, version) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Project') + ': ' + chalk.bold(chalk.yellow(code)));
+            title   && line(1, 'title',   title);
+            name    && line(1, 'name',    name);
+            version && line(1, 'version', version);
+            // display the config parameters applicable
+            configs.forEach(cfg => {
+                if ( 'object' === typeof cfg.value ) {
+                    line(1, 'cfg.' + cfg.name);
+                    Object.keys(cfg.value).forEach(n => {
+                        line(2, n, cfg.value[n]);
+                    });
+                }
+                else {
+                    line(1, 'cfg.' + cfg.name, cfg.value);
+                }
+            });
+            log('');
+        }
+
+        check(indent, msg, arg) {
+            Display.action(indent, '• ' + chalk.yellow('checking') + ' ' + msg, arg);
+        }
+
+        add(indent, verb, msg, arg) {
+            Display.action(indent, '  need to ' + chalk.green(verb) + ' ' + msg, arg);
+        }
+
+        remove(indent, verb, msg, arg) {
+            Display.action(indent, '  need to ' + chalk.red(verb) + ' ' + msg, arg);
         }
     }
 
@@ -500,19 +548,31 @@
         console.log(msg);
     };
 
-    Display.line = (indent, name, value) => {
+    Display.indent = level => {
         var s = '';
-        while ( indent-- ) {
+        while ( level-- ) {
             s += '   ';
         }
+        return s;
+    };
+
+    Display.line = (indent, name, value) => {
+        var s = Display.indent(indent);
         s += name;
         if ( value !== undefined ) {
             const PAD = '                        '; // 24 spaces
-            s += ': ';
-            s += PAD.slice(s.length);
-            s += value;
+            s += ': ' + PAD.slice(s.length) + value;
         }
-        console.log(s);
+        Display.log(s);
+    };
+
+    Display.action = (indent, msg, arg) => {
+        var s = Display.indent(indent);
+        s += msg;
+        if ( arg ) {
+            s += ': \t' + arg;
+        }
+        Display.log(s);
     };
 
     module.exports = {
