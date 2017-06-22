@@ -550,7 +550,7 @@
                 line(1, 'import graph:');
                 imports.forEach(i => line(i.level + 1, '-> ' + i.href));
             }
-            pf.log('');
+            log('');
         }
 
         check(indent, msg, arg) {
