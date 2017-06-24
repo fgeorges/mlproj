@@ -467,12 +467,11 @@
             schema   && line(1, 'schema DB',   schema.name);
             security && line(1, 'security DB', security.name);
             triggers && line(1, 'triggers DB', triggers.name);
-            var forests = Object.keys(forests);
             if ( forests.length ) {
                 line(1, 'forests:');
-                forests.sort().forEach(f => line(2, f));
+                forests.forEach(f => line(2, f));
             }
-            Object.keys(props).forEach(p => this.property(props[p]));
+            Object.keys(props).forEach(p => this._property(props[p]));
             log('');
         }
 
@@ -487,13 +486,13 @@
             // explicit list of properties, to guarantee the order they are displayed
             [ 'type', 'port', 'root', 'rewriter', 'handler' ].forEach(p => {
                 if ( props[p] !== undefined ) {
-                    this.property(props[p]);
+                    this._property(props[p]);
                 }
             });
             log('');
         }
 
-        property(prop, level) {
+        _property(prop, level) {
             const line = Display.line;
             if ( ! level ) {
                 level = 1;
@@ -501,7 +500,7 @@
             if ( Array.isArray(prop.value) ) {
                 prop.value.forEach(v => {
                     line(level, prop.prop.label);
-                    Object.keys(v).forEach(n => this.property(v[n], level + 1));
+                    Object.keys(v).forEach(n => this._property(v[n], level + 1));
                 });
             }
             else {
