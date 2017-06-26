@@ -10,6 +10,7 @@
     const request = require('sync-request');
     const crypto  = require('crypto');
     const xml     = require('xml2js');
+    const sleep   = require('sleep');
     const core    = require('mlproj-core');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -332,13 +333,42 @@
             }
         }
 
+        restart(last) {
+            var ping;
+            var num = 1;
+            do {
+                sleep.sleep(1);
+                if ( ! (num % 3) ) {
+                    // TODO: Says "Still waiting...", somehow?
+                }
+                try {
+                    ping = this.requestAuth('GET', this.url('admin', '/timestamp'), {});
+                }
+                catch ( err ) {
+                    ping = err;
+                }
+            }
+            while ( ++num < 10 && (ping.statusCode === 503 || ping.code === 'ECONNRESET' || ping.code === 'ECONNREFUSED') );
+            if ( ping.statusCode !== 200 ) {
+                throw new Error('Error waiting for server restart: ' + num + ' - ' + ping);
+            }
+            var now = Date.parse(ping.body);
+            if ( last >= now ) {
+                throw new Error('Error waiting for server restart: ' + last + ' - ' + now);
+            }
+        }
+
         put(api, url, data, type) {
             var url     = this.url(api, url);
-            var options = {};
+            var options = {
+                headers: {
+                    Accept: 'application/json'
+                }
+            };
             if ( data ) {
                 if ( type ) {
-                    options.headers = { "Content-Type": type };
-                    options.body    = data;
+                    options.headers['Content-Type'] = type;
+                    options.body                    = data;
                 }
                 else {
                     options.json = data;
@@ -353,6 +383,14 @@
             // XDBC PUT /insert returns 200
             if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
                 return;
+            }
+            // when operation needs a server restart
+            else if ( resp.statusCode === 202 ) {
+                var body = JSON.parse(resp.body).restart;
+                if ( ! body ) {
+                    throw new Error('202 returned NOT for a restart reason?!?');
+                }
+                return Date.parse(body['last-startup'][0].value);
             }
             else {
                 // TODO: Adapt verboseHttp()...

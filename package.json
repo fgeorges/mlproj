@@ -14,8 +14,9 @@
   "license": "ISC",
   "dependencies": {
     "chalk": "^1.1.3",
-    "mlproj-core": "^0.6.7",
+    "mlproj-core": "^0.7.0",
     "readline-sync": "^1.4.6",
+    "sleep": "^5.1.1",
     "sync-request": "^4.1.0",
     "xml2js": "^0.4.17"
   },
