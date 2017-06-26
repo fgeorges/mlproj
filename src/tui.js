@@ -96,6 +96,7 @@ function execHelp(args, prg)
 function execNew(args, cmd)
 {
     // the platform (and validate options)
+    var display  = new node.Display();
     var platform = plainCmdStart(args);
     var dir      = platform.cwd();
 
@@ -118,7 +119,7 @@ function execNew(args, cmd)
     };
 
     // execute the command
-    var xpdir = new (cmd.clazz())(platform, cmdArgs).execute();
+    var xpdir = new (cmd.clazz())({}, cmdArgs, platform, display).execute();
 
     // summary
     platform.log('\n--- ' + platform.bold('Summary') + ' ---');
