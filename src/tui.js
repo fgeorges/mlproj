@@ -119,7 +119,9 @@ function execNew(args, cmd)
     };
 
     // execute the command
-    var xpdir = new (cmd.clazz())({}, cmdArgs, platform, display).execute();
+    var command = new (cmd.clazz())({}, cmdArgs, platform, display);
+    var actions = command.prepare();
+    var xpdir   = command.execute(actions);
 
     // summary
     platform.log('\n--- ' + platform.bold('Summary') + ' ---');
@@ -150,7 +152,8 @@ function execWithProject(args, cmd)
     var project = platform.project(env, path, base, params, force);
     var command = new (cmd.clazz())(args.global, args.local, platform, display, project);
     // execute the command
-    command.execute();
+    var actions = command.prepare();
+    command.execute(actions);
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
