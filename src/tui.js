@@ -106,27 +106,24 @@ function execNew(args, cmd)
     }
 
     // gather info by asking the user...
-    platform.log('--- ' + platform.bold('Questions') + ' ---');
-    var abbrev   = read.question('Project code    : ');
-    var dfltName = 'http://mlproj.org/example/' + abbrev;
-    var cmdArgs  = {
-        dir     : dir,
-        abbrev  : abbrev,
-        title   : read.question('Title           : '),
-        name    : read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName }),
-        version : read.question('Version  (0.1.0): ', { defaultInput: '0.1.0' }),
-        port    : read.question('Port     (8080) : ', { defaultInput: '8080' })
+    var cmdArgs  = () => {
+        var abbrev   = read.question('Project code     : ');
+        var dfltName = 'http://mlproj.org/example/' + abbrev;
+        var args     = {
+            dir     : dir,
+            abbrev  : abbrev,
+            title   : read.question('Title            : '),
+            name    : read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName }),
+            version : read.question('Version  (0.1.0) : ', { defaultInput: '0.1.0' }),
+            port    : read.question('Port     (8080)  : ', { defaultInput: '8080' })
+        };
+        return args;
     };
 
     // execute the command
     var command = new (cmd.clazz())({}, cmdArgs, platform, display);
     var actions = command.prepare();
-    var xpdir   = command.execute(actions);
-
-    // summary
-    platform.log('\n--- ' + platform.bold('Summary') + ' ---');
-    platform.log(platform.green('✓') + ' Project created: \t' + abbrev);
-    platform.log(platform.green('→') + ' Check/edit files in: \t' + xpdir);
+    command.execute(actions);
 }
 
 // implementation of the action for any command accepting a project/environment
