@@ -6,6 +6,7 @@ const fs      = require('fs');
 const read    = require('readline-sync');
 const node    = require('./node');
 const program = require('./program');
+const pkg     = require('../package.json');
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * The command action implementations.
@@ -37,6 +38,8 @@ function execHelp(args, prg)
     if ( ! name ) {
 
         pf.log(`
+   This is mlproj, version ` + pkg.version + `
+
    Usage:
 
        mlproj [options] <command> [options]
