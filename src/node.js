@@ -319,6 +319,46 @@
             }
         }
 
+        put(api, url, data, type) {
+            var url     = this.url(api, url);
+            var options = {
+                headers: {
+                    Accept: 'application/json'
+                }
+            };
+            if ( data ) {
+                if ( type ) {
+                    options.headers['Content-Type'] = type;
+                    options.body                    = data;
+                }
+                else {
+                    options.json = data;
+                }
+            }
+            else {
+                options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
+            var resp = this.requestAuth('PUT', url, options);
+            // XDBC PUT /insert returns 200
+            if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
+                return;
+            }
+            // when operation needs a server restart
+            else if ( resp.statusCode === 202 ) {
+                var body = JSON.parse(resp.body).restart;
+                if ( ! body ) {
+                    throw new Error('202 returned NOT for a restart reason?!?');
+                }
+                return Date.parse(body['last-startup'][0].value);
+            }
+            else {
+                // TODO: Adapt verboseHttp()...
+                // this.verboseHttp(http, body);
+                throw new Error('Entity not updated: ' + (resp.body.errorResponse
+                                ? resp.body.errorResponse.message : resp.body));
+            }
+        }
+
         restart(last) {
             var ping;
             var num = 1;
@@ -341,48 +381,6 @@
             var now = Date.parse(ping.body);
             if ( last >= now ) {
                 throw new Error('Error waiting for server restart: ' + last + ' - ' + now);
-            }
-        }
-
-        put(api, url, data, type) {
-            var url     = this.url(api, url);
-            var options = {
-                headers: {
-                    Accept: 'application/json'
-                }
-            };
-            if ( data ) {
-                if ( type ) {
-                    options.headers['Content-Type'] = type;
-                    options.body                    = data;
-                }
-                else {
-                    options.json = data;
-                }
-            }
-            else {
-                options.headers = {
-                    "Content-Type": 'application/x-www-form-urlencoded'
-                };
-            }
-            var resp = this.requestAuth('PUT', url, options);
-            // XDBC PUT /insert returns 200
-            if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
-                return;
-            }
-            // when operation needs a server restart
-            else if ( resp.statusCode === 202 ) {
-                var body = JSON.parse(resp.body).restart;
-                if ( ! body ) {
-                    throw new Error('202 returned NOT for a restart reason?!?');
-                }
-                return Date.parse(body['last-startup'][0].value);
-            }
-            else {
-                // TODO: Adapt verboseHttp()...
-                // this.verboseHttp(http, body);
-                throw new Error('Entity not updated: ' + (resp.body.errorResponse
-                                ? resp.body.errorResponse.message : resp.body));
             }
         }
 
