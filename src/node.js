@@ -51,17 +51,18 @@
             return process.cwd();
         }
 
-        mkdir(path) {
-            // For now, this function throws an error if the directory already
-            // exists.  If this has to be changed, just catch errors with the
-            // code `EEXISTS`:
-            //
-            // try { fs.mkdirSync(path); }
-            // catch ( err ) {
-            //     if ( err.code === 'EEXIST' ) { /* ignore */ }
-            //     else { throw err; }
-            // }
-            fs.mkdirSync(path);
+        mkdir(path, force) {
+            try {
+                fs.mkdirSync(path);
+            }
+            catch ( err ) {
+                if ( force && err.code === 'EEXIST' ) {
+                    // ignore
+                }
+                else {
+                    throw err;
+                }
+            }
         }
 
         debug(msg) {
@@ -137,7 +138,19 @@
             return project;
         }
 
-        write(path, content) {
+        write(path, content, force) {
+            if ( ! force ) {
+                try {
+                    // just to detect if file exists
+                    fs.statSync(path);
+                }
+                catch (err) {
+                    // ignore ENOENT, file does not exist
+                    if ( err.code !== 'ENOENT' ) {
+                        throw err;
+                    }
+                }
+            }
             fs.writeFileSync(path, content, 'utf8');
         }
 

@@ -32,7 +32,8 @@
             .command('new')
             .clazz(core.NewCommand)
             .desc('Create a new project in the current directory.')
-            .usage('');
+            .usage('[-f]')
+            .flag('force', '-f', '--force', 'force overwriting files');
 
         prg
             .command('show')
@@ -450,6 +451,12 @@
                 throw new Error('Class already provided for command ' + this.name);
             }
             this._clazz = c;
+            return this;
+        }
+
+        flag() {
+            let arg = _addArgument(this, Flag, Array.from(arguments));
+            this.list.push(arg);
             return this;
         }
 

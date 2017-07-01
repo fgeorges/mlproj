@@ -104,26 +104,33 @@ function execNew(args, cmd, display)
 
     // Check the directory is empty...!
     if ( fs.readdirSync(dir).length ) {
-        throw new Error('Directory is not empty: ' + dir);
+        if ( ! read.keyInYNStrict('Directory is not empty, do you want to continue?') ) {
+            return;
+        }
     }
 
     // gather info by asking the user...
     var cmdArgs  = () => {
-        var abbrev   = read.question('Project code     : ');
+        var loc      = args.local;
+        var abbrev   = loc.abbrev || read.question('Project code     : ');
         var dfltName = 'http://mlproj.org/example/' + abbrev;
-        var args     = {
-            dir     : dir,
-            abbrev  : abbrev,
-            title   : read.question('Title            : '),
-            name    : read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName }),
-            version : read.question('Version  (0.1.0) : ', { defaultInput: '0.1.0' }),
-            port    : read.question('Port     (8080)  : ', { defaultInput: '8080' })
-        };
-        return args;
+        if ( ! loc.dir )
+            loc.dir = dir;
+        if ( ! loc.abbrev )
+            loc.abbrev = abbrev;
+        if ( ! loc.title )
+            loc.title = read.question('Title            : ');
+        if ( ! loc.name )
+            loc.name = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
+        if ( ! loc.version )
+            loc.version = read.question('Version  (0.1.0) : ', { defaultInput: '0.1.0' });
+        if ( ! loc.port )
+            loc.port = read.question('Port     (8080)  : ', { defaultInput: '8080' });
+        return loc;
     };
 
     // execute the command
-    var command = new (cmd.clazz())({}, cmdArgs, platform, display);
+    var command = new (cmd.clazz())(args.global, cmdArgs, platform, display);
     var actions = command.prepare();
     command.execute(actions);
 }
