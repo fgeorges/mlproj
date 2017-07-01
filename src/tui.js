@@ -96,10 +96,9 @@ function execHelp(args, prg)
 }
 
 // implementation of the action for command `new`
-function execNew(args, cmd)
+function execNew(args, cmd, display)
 {
     // the platform (and validate options)
-    var display  = new node.Display();
     var platform = plainCmdStart(args);
     var dir      = platform.cwd();
 
@@ -130,14 +129,13 @@ function execNew(args, cmd)
 }
 
 // implementation of the action for any command accepting a project/environment
-function execWithProject(args, cmd)
+function execWithProject(args, cmd, display)
 {
     // the platform
     var dry      = args.global.dry     ? true : false;
     var verbose  = args.global.verbose ? true : false;
     // TODO: Pass verbose to display instead?
     var platform = new node.Platform(dry, verbose);
-    var display  = new node.Display();
     // the options
     var env      = args.global.environ;
     var path     = args.global.file;
@@ -160,19 +158,31 @@ function execWithProject(args, cmd)
  * The program itself
  */
 
-let prg  = program.makeProgram();
-let args = prg.parse(process.argv.slice(2));
+function main(argv, display)
+{
+    let prg  = program.makeProgram();
+    let args = prg.parse(argv);
+    if ( ! args.cmd || args.cmd === 'help' ) {
+        execHelp(args, prg);
+    }
+    else if ( args.cmd === 'new' ) {
+        execNew(
+            args,
+            prg.commands[args.cmd],
+            display);
+    }
+    else {
+        execWithProject(
+            args,
+            prg.commands[args.cmd],
+            display);
+    }
+}
 
-if ( ! args.cmd || args.cmd === 'help' ) {
-    execHelp(args, prg);
+var display = new node.Display();
+try {
+    main(process.argv.slice(2), display);
 }
-else if ( args.cmd === 'new' ) {
-    execNew(
-        args,
-        prg.commands[args.cmd]);
-}
-else {
-    execWithProject(
-        args,
-        prg.commands[args.cmd]);
+catch (err) {
+    display.error(err);
 }

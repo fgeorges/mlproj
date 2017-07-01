@@ -592,9 +592,11 @@
             case 'server-no-content':
                 Display.log(chalk.red('Error') + ': The server ' + e.server + ' has no content DB.');
                 Display.log('Are you sure you want to load documents on it?  Check your environ file.');
+                break;
             case 'server-no-modules':
                 Display.log(chalk.red('Error') + ': The server ' + e.server + ' has no modules DB.');
                 Display.log('There is no need to deploy when server modules are on the filesystem.');
+                break;
             default:
                 Display.log(chalk.red('Error') + ': ' + e.message);
             }
