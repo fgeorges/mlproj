@@ -34,14 +34,6 @@ In commands.js:
 // - Use different sub-dirs for different scaffoldings.
 // ************
 
-// ************
-Redesign the actions, return the list on prepare(), then pass it to
-execute(), which will be unique on Command.execute() (all the info of
-the processing is captured by the action list.)
-The Console then not execute it directly, it rather display it then
-execute each in sequence with a vidual feedback.
-// ************
-
 - maintain the file extensions (and their types) in the project file
 - allow command `new` to create projects with different scaffoldings
   - using "embedded" scaffoldings (empty, plain, complete, annotated, web, rest...)
@@ -56,11 +48,7 @@ execute each in sequence with a vidual feedback.
 - new command to install a XAR/XAW from CXAN
 - new command to publish to CXAN
 - edit environment files from the Console
-  - move website in `mlproj-web` repo
-  - move core libs in `mlproj-core` package
-  - use `mlproj-core` in the Console
 - word lexicons
-- allow changing a server port, as it restarts the instance
 - add support for triggers in space files
 
 Support the following scenario (e.g. for the EXPath ML Console):
