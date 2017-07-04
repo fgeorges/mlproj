@@ -400,7 +400,7 @@
                 if ( opt ) {
                     opt.found(res.local, arg, args);
                 }
-                else if ( cmd.args['@unnamed@'] ) {
+                else if ( cmd.args['@unnamed@'] && ! arg.startsWith('-') ) {
                     cmd.args['@unnamed@'].found(res.local, arg, args);
                 }
                 else {

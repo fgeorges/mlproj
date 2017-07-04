@@ -148,3 +148,32 @@ test('Real app examples', ass => {
         }
     );
 });
+
+test('Verbose dir load', ass => {
+    ass.jsonObject(
+        'Verbose flag, load dir',
+        fxRealApp().parse(['-v', 'load', '-/', 'data']),
+        {
+            global: {
+                verbose: '-v'
+            },
+            cmd: 'load',
+            local: {
+                directory: 'data'
+            }
+        }
+    );
+    ass.jsonObject(
+        'Verbose flag, load what',
+        fxRealApp().parse(['-v', 'load', 'data']),
+        {
+            global: {
+                verbose: '-v'
+            },
+            cmd: 'load',
+            local: {
+                what: 'data'
+            }
+        }
+    );
+});
