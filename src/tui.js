@@ -2,6 +2,7 @@
 
 "use strict";
 
+const chalk   = require('chalk');
 const fs      = require('fs');
 const read    = require('readline-sync');
 const node    = require('./node');
@@ -83,7 +84,7 @@ function execHelp(args, prg)
             pf.log('');
             pf.log('   Usage:');
             pf.log('');
-            pf.log('       mlproj ' + pf.bold(name) + ' ' + cmd.usage());
+            pf.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
             pf.log('');
             pf.log('   ' + cmd.help);
             pf.log('');
@@ -110,29 +111,52 @@ function execNew(args, cmd, display)
     }
 
     // gather info by asking the user...
-    var cmdArgs  = () => {
-        var loc      = args.local;
-        var abbrev   = loc.abbrev || read.question('Project code     : ');
-        var dfltName = 'http://mlproj.org/example/' + abbrev;
-        if ( ! loc.dir )
-            loc.dir = dir;
-        if ( ! loc.abbrev )
-            loc.abbrev = abbrev;
-        if ( ! loc.title )
-            loc.title = read.question('Title            : ');
-        if ( ! loc.name )
-            loc.name = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
-        if ( ! loc.version )
-            loc.version = read.question('Version  (0.1.0) : ', { defaultInput: '0.1.0' });
-        if ( ! loc.port )
-            loc.port = read.question('Port     (8080)  : ', { defaultInput: '8080' });
-        return loc;
-    };
+    platform.log('--- ' + chalk.bold('Questions') + ' ---');
+    var loc      = args.local;
+    var abbrev   = loc.abbrev || read.question('Project code     : ');
+    var dfltName = 'http://mlproj.org/example/' + abbrev;
+    if ( ! loc.dir )
+        loc.dir = dir;
+    if ( ! loc.abbrev )
+        loc.abbrev = abbrev;
+    if ( ! loc.title )
+        loc.title = read.question('Title            : ');
+    if ( ! loc.name )
+        loc.name = read.question('Name URI (' + dfltName + '): ', { defaultInput: dfltName });
+    if ( ! loc.version )
+        loc.version = read.question('Version  (0.1.0) : ', { defaultInput: '0.1.0' });
+    if ( ! loc.port )
+        loc.port = read.question('Port     (8080)  : ', { defaultInput: '8080' });
 
     // execute the command
-    var command = new (cmd.clazz())(args.global, cmdArgs, platform, display);
+    var command = new (cmd.clazz())(args.global, args.local, platform, display);
     var actions = command.prepare();
-    command.execute(actions);
+    platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+           + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    actions.execute();
+    platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+           + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    if ( actions.done.length ) {
+        platform.log(chalk.green('Done') + ':');
+        platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
+        platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].xpdir);
+    }
+    if ( actions.error ) {
+        platform.log(chalk.red('Error') + ':');
+        platform.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
+        platform.log(actions.error.message);
+        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
+            platform.log(actions.error.error.stack);
+        }
+    }
+    if ( actions.todo.length ) {
+        platform.log(chalk.yellow('Not done') + ':');
+        platform.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
+        platform.log(actions.error.message);
+        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
+            platform.log(actions.error.error.stack);
+        }
+    }
 }
 
 // implementation of the action for any command accepting a project/environment
@@ -156,9 +180,43 @@ function execWithProject(args, cmd, display)
     // the project & command
     var project = platform.project(env, path, base, params, force);
     var command = new (cmd.clazz())(args.global, args.local, platform, display, project);
-    // execute the command
+    // prepare the command
+    if ( args.cmd !== 'show' ) {
+        platform.log('--- ' + chalk.bold('Prepare') + ' ---');
+    }
     var actions = command.prepare();
-    command.execute(actions);
+    // execute the actions
+    if ( args.cmd !== 'show' ) {
+        platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+               + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    }
+    actions.execute();
+    // display summary and/or error
+    if ( args.cmd !== 'show' ) {
+        platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+               + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+        if ( actions.done.length ) {
+            platform.log(chalk.green('Done') + ':');
+            actions.done.forEach(a => a.display(platform, 'done'));
+        }
+    }
+    if ( actions.error ) {
+        platform.log(chalk.red('Error') + ':');
+        actions.error.action.display(platform, 'error');
+        platform.log(actions.error.message);
+        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
+            platform.log(actions.error.error.stack);
+        }
+    }
+    if ( args.cmd !== 'show' ) {
+        if ( actions.todo.length ) {
+            platform.log(chalk.yellow('Not done') + ':');
+            actions.todo.forEach(a => a.display(platform, 'todo'));
+        }
+        if ( ! actions.done.length && ! actions.error && ! actions.todo.length ) {
+            platform.log('Nothing to do.');
+        }
+    }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,20 +227,25 @@ function main(argv, display)
 {
     let prg  = program.makeProgram();
     let args = prg.parse(argv);
-    if ( ! args.cmd || args.cmd === 'help' ) {
-        execHelp(args, prg);
+    try {
+        if ( ! args.cmd || args.cmd === 'help' ) {
+            execHelp(args, prg);
+        }
+        else if ( args.cmd === 'new' ) {
+            execNew(
+                args,
+                prg.commands[args.cmd],
+                display);
+        }
+        else {
+            execWithProject(
+                args,
+                prg.commands[args.cmd],
+                display);
+        }
     }
-    else if ( args.cmd === 'new' ) {
-        execNew(
-            args,
-            prg.commands[args.cmd],
-            display);
-    }
-    else {
-        execWithProject(
-            args,
-            prg.commands[args.cmd],
-            display);
+    catch (err) {
+        display.error(err, args.global.verbose);
     }
 }
 
@@ -191,5 +254,6 @@ try {
     main(process.argv.slice(2), display);
 }
 catch (err) {
-    display.error(err);
+    // here, I think we should always be verbose... (unexpected error)
+    display.error(err, true);
 }
