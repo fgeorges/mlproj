@@ -101,6 +101,9 @@
         }
 
         resolve(href, base) {
+            if ( ! base ) {
+                base = '.';
+            }
             return path.resolve(base, href);
         }
 
