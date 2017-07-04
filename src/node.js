@@ -421,7 +421,17 @@
         }
 
         isDirectory(path) {
-            return fs.statSync(path).isDirectory();
+            try {
+                return fs.statSync(path).isDirectory();
+            }
+            catch (err) {
+                if ( err.code === 'ENOENT' ) {
+                    throw core.error.noSuchFile(path);
+                }
+                else {
+                    throw err;
+                }
+            }
         }
     }
 
