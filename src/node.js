@@ -182,7 +182,17 @@
         }
 
         read(path) {
-            return fs.readFileSync(path, 'utf8');
+            try {
+                return fs.readFileSync(path, 'utf8');
+            }
+            catch (err) {
+                if ( err.code === 'ENOENT' ) {
+                    throw core.error.noSuchFile(path);
+                }
+                else {
+                    throw err;
+                }
+            }
         }
 
         projectXml(path, callback) {
