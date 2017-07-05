@@ -3,6 +3,7 @@
 (function() {
 
     const core = require('mlproj-core');
+    const node = require('./node');
 
     function makeProgram() {
 
@@ -68,6 +69,23 @@
             .command('deploy')
             .clazz(core.DeployCommand)
             .desc('Deploy modules to a database.')
+            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .or()
+                .option('server',   '-a', '--as',       '--server',         'server, get its modules database')
+                .option('database', '-b', '--db',       '--database',       'target database')
+                .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
+                .end()
+            .or()
+                //.option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
+                .option('directory', '-/', '--dir', '--directory',  'directory to deploy')
+                .option('document',  '-1', '--doc', '--document',   'file to deploy')
+                .arg('what')
+                .end();
+
+        prg
+            .command('watch')
+            .clazz(node.WatchCommand)
+            .desc('Watch modules, deploy them as soon as modified.')
             .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
             .or()
                 .option('server',   '-a', '--as',       '--server',         'server, get its modules database')
@@ -150,15 +168,28 @@
         prg.help('deploy',
 `Options:
 
-       -a, --as, --server <srv>         server, get its content database
+       -a, --as, --server <srv>         server, get its modules database
        -b, --db, --database <db>        target database
-       -/, --dir, --directory <dir>     directory to load
-       -1, --doc, --document <file>     file to load
-       <what>                           directory or file to load
+       -/, --dir, --directory <dir>     directory to deploy
+       -1, --doc, --document <file>     file to deploy
+       <what>                           directory or file to deploy
 
    Works like the command load, with two exceptions: the default value of
    <what> is "src/", and it takes the modules database of a server instead
    of its content database.`);
+
+        // watch
+        prg.help('watch',
+`Options:
+
+       -a, --as, --server <srv>         server, get its modules database
+       -b, --db, --database <db>        target database
+       -/, --dir, --directory <dir>     directory to watch
+       -1, --doc, --document <file>     file to watch
+       <what>                           directory or file to watch
+
+   Works like the command deploy, except it watches the given file or directory
+   for changes, and deploy them each when they change on the filesystem.`);
 
         return prg;
     }

@@ -53,6 +53,7 @@ function execHelp(args, prg)
        setup        setup the environment on MarkLogic
        load         load documents to a database
        deploy       deploy modules to a database
+       watch        deploy modules as soon as modified
 
    Global options:
 

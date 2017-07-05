@@ -2,16 +2,90 @@
 
 (function() {
 
-    const fs      = require('fs');
-    const os      = require('os');
-    const path    = require('path');
-    const chalk   = require('chalk');
-    const read    = require('readline-sync');
-    const request = require('sync-request');
-    const crypto  = require('crypto');
-    const xml     = require('xml2js');
-    const sleep   = require('sleep');
-    const core    = require('mlproj-core');
+    const fs       = require('fs');
+    const os       = require('os');
+    const path     = require('path');
+    const chalk    = require('chalk');
+    const read     = require('readline-sync');
+    const request  = require('sync-request');
+    const crypto   = require('crypto');
+    const xml      = require('xml2js');
+    const sleep    = require('sleep');
+    const chokidar = require('chokidar');
+    const core     = require('mlproj-core');
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The watch command, specific to the Node frontend.
+     */
+
+    class WatchCommand extends core.LoadCommand
+    {
+        isDeploy() {
+            return true;
+        }
+
+        populateActions(actions, db, doc, dir) {
+            var path      = dir;
+            var recursive = true;
+            var msg       = 'Watch source directory';
+            if ( doc ) {
+                path      = doc;
+                recursive = false;
+                msg       = 'Watch source file';
+            }
+            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => this.uri(d, p)));
+        }
+    }
+
+    class WatchAction extends core.actions.Action
+    {
+        constructor(msg, db, path, recursive, uri) {
+            super(msg);
+            this.db        = db;
+            this.path      = path;
+            this.recursive = recursive;
+            this.uri       = uri;
+        }
+
+        // TODO: Apply the same filtering logic here as in DeployCommand (and
+        // share the mecanism with LoadCommand as well), once implemented...
+        execute(platform) {
+            platform.warn(platform.yellow('→') + ' ' + this.msg + ': \t' + this.path);
+            chokidar.watch(this.path, {
+                ignored: /(^|[\/\\])\../,
+                persistent: true,
+                ignoreInitial: true
+            })
+                .on('add', path => {
+                    this.insert(path, platform);
+                })
+                .on('change', path => {
+                    this.insert(path, platform);
+                })
+                .on('unlink', path => {
+                    platform.log(`TODO: File ${path} has been removed, delete it!`);
+                })
+                .on('error', error => {
+                    platform.log('Watcher error: ' + error.filename);
+                })
+                .on('ready', () => {
+                    platform.warn(
+                        platform.green('✓')
+                        + ' Watching for changes, target is ' + this.db.name + '...');
+                })
+                // raw event details, for debugging...
+                // .on('raw', (event, path, details) => {
+                //     platform.log(`Raw event info: ${event}, ${path}, ${details}`);
+                // })
+            ;
+        }
+
+        insert(path, platform) {
+            var uri = this.uri(this.path, path);
+            var act = new core.actions.DocInsert(this.db, uri, path);
+            act.execute(platform);
+        }
+    }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The platform implementation for Node.
@@ -403,6 +477,7 @@
         dirChildren(dir) {
             var res = [];
             fs.readdirSync(dir).forEach(child => {
+                const p = this.resolve(child, dir);
                 const s = fs.statSync(p);
                 // TODO: Do something with `s.isSymbolicLink()`?
                 if ( s.isBlockDevice() || s.isCharacterDevice() || s.isFIFO() || s.isSocket() ) {
@@ -447,6 +522,10 @@
             }
         }
     };
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The display implementation for Node.
+     */
 
     class Display extends core.Display
     {
@@ -608,8 +687,9 @@
     };
 
     module.exports = {
-        Platform : Platform,
-        Display  : Display
+        Platform     : Platform,
+        Display      : Display,
+        WatchCommand : WatchCommand
     }
 }
 )();
