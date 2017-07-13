@@ -95,19 +95,22 @@
     {
         constructor(dry, verbose) {
             super(dry, verbose);
-            // try one...
-            var proj = Platform.userJson(this, '.mlproj.json');
+            const json = f => {
+                try {
+                    return Platform.userJson(this, f);
+                }
+                catch (err) {
+                    // just ignore when the file does not exust
+                    if ( err.name !== 'no-such-file' ) {
+                        throw err;
+                    }
+                }
+            };
+            // try one or the other
+            var proj = json('.mlproj.json') || json('mlproj.json');
             if ( proj ) {
                 this._config  = proj.config;
                 this._connect = proj.connect;
-            }
-            else {
-                // ...or the other
-                proj = Platform.userJson(this, 'mlproj.json');
-                if ( proj ) {
-                    this._config  = proj.config;
-                    this._connect = proj.connect;
-                }
             }
         }
 
