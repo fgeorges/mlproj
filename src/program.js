@@ -101,14 +101,27 @@
 
         // help
         prg.help('help',
-`Example:
+`Options:
+
+       <cmd>         the name of the command to display the help of
+
+   Display help about another command.  Just give the command name as a
+   parameter.  With no parameter, display the global help message.
+
+   Example:
 
        mlproj help deploy`);
 
         // new
         prg.help('new',
-`The directory must be empty.  The command asks interactively questions about
-   the project to create.`);
+`Options:
+
+       -f, --force         force overriding existing files
+
+   The command asks interactively questions about the project to create.  If
+   the current directory is not empty, asks confirmatino before going any
+   further.  Trying to write a file that already exists results in an error,
+   except if the flag --force has been set.`);
 
         // show
         prg.help('show',
@@ -154,7 +167,7 @@
 
    Examples:
 
-   The following loads files under data/ to the "content" db:
+   The following loads files under "data/" to the "content" db:
 
        mlproj load --db content --dir data/
 
@@ -175,8 +188,8 @@
        <what>                           directory or file to deploy
 
    Works like the command load, with two exceptions: the default value of
-   <what> is "src/", and it takes the modules database of a server instead
-   of its content database.`);
+   <what> is "src/" instead of "data/", and when given a server, it takes its
+   modules database instead of its content database.`);
 
         // watch
         prg.help('watch',

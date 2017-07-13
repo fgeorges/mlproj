@@ -49,7 +49,7 @@ In commands.js:
 - new command to publish to CXAN
 - edit environment files from the Console
 - word lexicons
-- add support for triggers in space files
+- add support for triggers in environs
 
 Support the following scenario (e.g. for the EXPath ML Console):
 
