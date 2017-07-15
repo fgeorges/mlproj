@@ -580,11 +580,14 @@
             if ( ! level ) {
                 level = 1;
             }
-            if ( Array.isArray(prop.value) ) {
+            if ( prop.prop.multiline ) {
                 prop.value.forEach(v => {
                     line(level, prop.prop.label);
                     Object.keys(v).forEach(n => this._property(v[n], level + 1));
                 });
+            }
+            else if ( Array.isArray(prop.value) ) {
+                line(level, prop.prop.label, prop.value.join(', '));
             }
             else {
                 line(level, prop.prop.label, prop.value);
