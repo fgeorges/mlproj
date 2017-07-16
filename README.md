@@ -26,6 +26,19 @@ Use `mlproj help` for an overview.  Go to http://mlproj.org/ for all details.
 
 ## TODO
 
+**SOURCES**
+
+- support sources as is (only includes/excludes), in new and load
+- wrap file path list generation (filtering, all that)
+- add support for garbage (w/ default value)
+- add support for @defaults
+- test @defaults in xproject/mlproj.json and ~/.mlproj.json
+- link sources to databases and servers
+- add support for filter
+- add support for feeder
+- add URI calculation support (decl. (root, prefix...) + function)
+- add way to link to a JS file + function name (for filter, feeder, and uri)
+
 In commands.js:
 // ************
 // - Move these NEW_*() to files in a sub-dir, and load them.
