@@ -59,7 +59,7 @@
                 .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
                 .end()
             .or()
-                //.option('sourceset', '-s', '--src', '--source-set', 'source set to load')
+                .option('sourceset', '-s', '--src', '--source-set', 'source set to load')
                 .option('directory', '-/', '--dir', '--directory',  'directory to load')
                 .option('documents', '-1', '--doc', '--document',   'file to load')
                 .arg('what')
@@ -76,7 +76,7 @@
                 .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
                 .end()
             .or()
-                //.option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
+                .option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
                 .option('directory', '-/', '--dir', '--directory',  'directory to deploy')
                 .option('document',  '-1', '--doc', '--document',   'file to deploy')
                 .arg('what')
@@ -93,7 +93,7 @@
                 .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
                 .end()
             .or()
-                //.option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
+                .option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
                 .option('directory', '-/', '--dir', '--directory',  'directory to deploy')
                 .option('document',  '-1', '--doc', '--document',   'file to deploy')
                 .arg('what')
@@ -142,6 +142,7 @@
 
        -a, --as, --server <srv>         server, get its content database
        -b, --db, --database <db>        target database
+       -s, --src, --source-set <dir>    source set to load
        -/, --dir, --directory <dir>     directory to load
        -1, --doc, --document <file>     file to load
        <what>                           directory or file to load
@@ -158,12 +159,13 @@
 
    Content:
 
-   The content to load is given either with --dir (points to a directory), or
-   with --doc (points to a file).  If none is given and <what> is used instead,
-   it must point to a directory.  If <what> is not given either, its default
-   value is "data/".
+   The content to load is given either with --src (the name of a source set), or
+   with with --dir (points to a directory), or with --doc (points to a file).
+   If none is given and <what> is used instead, it must be the name of an
+   existing source set, or point to an existing directory.  If <what> is not
+   given either, its default value is "data".
 
-   Options --dir and --doc, and argument <what> are mutually exclusive.
+   Options --src, --dir and --doc, and argument <what> are mutually exclusive.
 
    Examples:
 
@@ -173,7 +175,7 @@
 
    Which does the same as the following command (assuming there is exactly
    one application server in the environment, with its content database being
-   "content"):
+   "content", and there is a source set with name "data" and dir "data/"):
 
        mlproj load`);
 
@@ -183,6 +185,7 @@
 
        -a, --as, --server <srv>         server, get its modules database
        -b, --db, --database <db>        target database
+       -s, --src, --source-set <dir>    source set to deploy
        -/, --dir, --directory <dir>     directory to deploy
        -1, --doc, --document <file>     file to deploy
        <what>                           directory or file to deploy
@@ -197,6 +200,7 @@
 
        -a, --as, --server <srv>         server, get its modules database
        -b, --db, --database <db>        target database
+       -s, --src, --source-set <dir>    source set to watch
        -/, --dir, --directory <dir>     directory to watch
        -1, --doc, --document <file>     file to watch
        <what>                           directory or file to watch
