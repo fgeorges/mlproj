@@ -24,8 +24,8 @@
             return true;
         }
 
-        populateActions(actions, db, doc, dir) {
-            var path      = dir;
+        populateActions(actions, db, doc, src) {
+            var path      = src.prop('dir').value;
             var recursive = true;
             var msg       = 'Watch source directory';
             if ( doc ) {
