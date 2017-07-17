@@ -24,16 +24,16 @@
             return true;
         }
 
-        populateActions(actions, db, doc, src) {
-            var path      = src.prop('dir').value;
-            var recursive = true;
-            var msg       = 'Watch source directory';
-            if ( doc ) {
-                path      = doc;
-                recursive = false;
-                msg       = 'Watch source file';
+        populateActions(actions, db, src) {
+            var path      = src.doc;
+            var recursive = false;
+            var msg       = 'Watch source file';
+            if ( ! path ) {
+                path      = src.prop('dir').value;
+                recursive = true;
+                msg       = 'Watch source directory';
             }
-            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => this.uri(d, p)));
+            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => src.uri(d, p)));
         }
     }
 

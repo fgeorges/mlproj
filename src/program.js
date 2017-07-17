@@ -61,7 +61,7 @@
             .or()
                 .option('sourceset', '-s', '--src', '--source-set', 'source set to load')
                 .option('directory', '-/', '--dir', '--directory',  'directory to load')
-                .option('documents', '-1', '--doc', '--document',   'file to load')
+                .option('document',  '-1', '--doc', '--document',   'file to load')
                 .arg('what')
                 .end();
 
