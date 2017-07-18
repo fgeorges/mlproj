@@ -29,7 +29,7 @@
             var recursive = false;
             var msg       = 'Watch source file';
             if ( ! path ) {
-                path      = src.prop('dir').value;
+                path      = src.prop('dir');
                 recursive = true;
                 msg       = 'Watch source directory';
             }
