@@ -42,7 +42,7 @@
         constructor(msg, db, path, recursive, uri) {
             super(msg);
             this.db        = db;
-            this.path      = path;
+            this.path      = path.replace(/\\/g, '/');
             this.recursive = recursive;
             this.uri       = uri;
         }
@@ -81,7 +81,7 @@
         }
 
         insert(path, platform) {
-            var uri = this.uri(this.path, path);
+            var uri = this.uri(this.path, path.replace(/\\/g, '/'));
             var act = new core.actions.DocInsert(this.db, uri, path);
             act.execute(platform);
         }
