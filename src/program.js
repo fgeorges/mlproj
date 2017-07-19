@@ -56,6 +56,7 @@
             .or()
                 .option('server',   '-a', '--as',       '--server',         'server, get its content database')
                 .option('database', '-b', '--db',       '--database',       'target database')
+                // TODO: --force-db is not documented...
                 .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
                 .end()
             .or()

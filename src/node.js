@@ -625,7 +625,7 @@
             log('');
         }
 
-        environ(envipath, title, desc, host, user, password, srcdir, mods, params, imports) {
+        environ(envipath, title, desc, host, user, password, mods, params, imports) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
@@ -634,7 +634,6 @@
             host     && line(1, 'host',        host);
             user     && line(1, 'user',        user);
             password && line(1, 'password',    '*****');
-            srcdir   && line(1, 'sources dir', srcdir);
             mods     && line(1, 'modules DB',  mods);
             if ( params.length ) {
                 line(1, 'parameters:');

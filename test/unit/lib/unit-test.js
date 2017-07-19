@@ -1,5 +1,7 @@
 "use strict";
 
+// TODO: This lib is (almost) duplicated in mlproj-core, do we want to change that?
+
 (function() {
 
     const mockery = require('mockery');

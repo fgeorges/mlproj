@@ -17,7 +17,7 @@ const pkg     = require('../package.json');
 function plainCmdStart(args)
 {
     // check forbidden options
-    [ 'dry', 'environ', 'file', 'code', 'host', 'srcdir', 'user', 'password' ].forEach(name => {
+    [ 'dry', 'environ', 'file', 'code', 'host', 'user', 'password' ].forEach(name => {
         if ( args.global[name] ) {
             throw new Error('Option `--' + name + '` not supported for command `' + args.cmd + '`');
         }
@@ -174,7 +174,7 @@ function execWithProject(args, cmd, display)
     var base     = platform.cwd();
     var params   = args.global.param || {};
     var force    = {};
-    [ 'code', 'host', 'srcdir', 'user' ].forEach(name => force[name] = args.global[name]);
+    [ 'code', 'host', 'user' ].forEach(name => force[name] = args.global[name]);
     if ( args.global.password ) {
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
