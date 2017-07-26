@@ -5,6 +5,7 @@
 const chalk   = require('chalk');
 const fs      = require('fs');
 const read    = require('readline-sync');
+const core    = require('mlproj-core');
 const node    = require('./node');
 const program = require('./program');
 const pkg     = require('../package.json');
@@ -13,7 +14,7 @@ const pkg     = require('../package.json');
  * The command action implementations.
  */
 
-// start of plain commands, validate forbidden options and return platform object
+// start of plain commands, validate forbidden options
 function plainCmdStart(args)
 {
     // check forbidden options
@@ -22,23 +23,19 @@ function plainCmdStart(args)
             throw new Error('Option `--' + name + '` not supported for command `' + args.cmd + '`');
         }
     });
-
-    // the platform
-    var verbose = args.global.verbose ? true : false;
-    return new node.Platform(false, verbose);
 }
 
 // implementation of the action for command `new`
-function execHelp(args, prg)
+function execHelp(ctxt, args, prg)
 {
-    // the platform (and validate options)
-    let pf = plainCmdStart(args);
+    // validate options
+    plainCmdStart(args);
 
     // the command
     let name = args.local.cmd;
     if ( ! name ) {
 
-        pf.log(`
+        ctxt.platform.log(`
    This is mlproj, version ` + pkg.version + `
 
    Usage:
@@ -77,32 +74,32 @@ function execHelp(args, prg)
     else {
         var cmd = prg.commands[name];
         if ( ! cmd ) {
-            pf.log('Unknwon command: ' + name);
+            ctxt.platform.log('Unknwon command: ' + name);
         }
         else {
-            pf.log('');
-            pf.log('   ' + cmd.desc());
-            pf.log('');
-            pf.log('   Usage:');
-            pf.log('');
-            pf.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
-            pf.log('');
-            pf.log('   ' + cmd.help);
-            pf.log('');
-            pf.log('   Reference:');
-            pf.log('');
-            pf.log('       http://mlproj.org/commands#' + name);
-            pf.log('');
+            ctxt.platform.log('');
+            ctxt.platform.log('   ' + cmd.desc());
+            ctxt.platform.log('');
+            ctxt.platform.log('   Usage:');
+            ctxt.platform.log('');
+            ctxt.platform.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
+            ctxt.platform.log('');
+            ctxt.platform.log('   ' + cmd.help);
+            ctxt.platform.log('');
+            ctxt.platform.log('   Reference:');
+            ctxt.platform.log('');
+            ctxt.platform.log('       http://mlproj.org/commands#' + name);
+            ctxt.platform.log('');
         }
     }
 }
 
 // implementation of the action for command `new`
-function execNew(args, cmd, display)
+function execNew(ctxt, args, cmd, display)
 {
-    // the platform (and validate options)
-    var platform = plainCmdStart(args);
-    var dir      = platform.cwd();
+    // validate options
+    plainCmdStart(args);
+    var dir = ctxt.platform.cwd;
 
     // Check the directory is empty...!
     if ( fs.readdirSync(dir).length ) {
@@ -112,7 +109,7 @@ function execNew(args, cmd, display)
     }
 
     // gather info by asking the user...
-    platform.log('--- ' + chalk.bold('Questions') + ' ---');
+    ctxt.platform.log('--- ' + chalk.bold('Questions') + ' ---');
     var loc      = args.local;
     var abbrev   = loc.abbrev || read.question('Project code     : ');
     var dfltName = 'http://mlproj.org/example/' + abbrev;
@@ -130,48 +127,63 @@ function execNew(args, cmd, display)
         loc.port = read.question('Port     (8080)  : ', { defaultInput: '8080' });
 
     // execute the command
-    var command = new (cmd.clazz())(args.global, args.local, platform, display);
+    var command = new (cmd.clazz())(args.global, args.local, ctxt);
     var actions = command.prepare();
-    platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
-           + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     actions.execute();
-    platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
-           + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     if ( actions.done.length ) {
-        platform.log(chalk.green('Done') + ':');
-        platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
-        platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].xpdir);
+        ctxt.platform.log(chalk.green('Done') + ':');
+        ctxt.platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
+        ctxt.platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].xpdir);
     }
     if ( actions.error ) {
-        platform.log(chalk.red('Error') + ':');
-        platform.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
-        platform.log(actions.error.message);
-        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
-            platform.log(actions.error.error.stack);
+        ctxt.platform.log(chalk.red('Error') + ':');
+        ctxt.platform.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
+        ctxt.platform.log(actions.error.message);
+        if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
+            ctxt.platform.log(actions.error.error.stack);
         }
     }
     if ( actions.todo.length ) {
-        platform.log(chalk.yellow('Not done') + ':');
-        platform.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
-        platform.log(actions.error.message);
-        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
-            platform.log(actions.error.error.stack);
+        ctxt.platform.log(chalk.yellow('Not done') + ':');
+        ctxt.platform.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
+        ctxt.platform.log(actions.error.message);
+        if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
+            ctxt.platform.log(actions.error.error.stack);
         }
     }
 }
 
-// implementation of the action for any command accepting a project/environment
-function execWithProject(args, cmd, display)
+function makeEnviron(ctxt, env, path, params, force)
 {
-    // the platform
-    var dry      = args.global.dry     ? true : false;
-    var verbose  = args.global.verbose ? true : false;
-    // TODO: Pass verbose to display instead?
-    var platform = new node.Platform(dry, verbose);
+    // invalid and default values
+    if ( env && path ) {
+        throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
+    }
+    if ( ! env && ! path ) {
+        env = 'default';
+    }
+    // do it (either env or file)
+    if ( env ) {
+        let proj = new core.Project(ctxt, ctxt.platform.cwd);
+        return proj.environ(env, params, force);
+    }
+    else {
+        let res = new core.Environ(ctxt, path);
+        res.compile(params, force);
+        return res;
+    }
+}
+
+// implementation of the action for any command accepting a project/environment
+function execWithProject(ctxt, args, cmd, display)
+{
     // the options
     var env      = args.global.environ;
     var path     = args.global.file;
-    var base     = platform.cwd();
     var params   = args.global.param || {};
     var force    = {};
     [ 'code', 'host', 'user' ].forEach(name => force[name] = args.global[name]);
@@ -179,43 +191,43 @@ function execWithProject(args, cmd, display)
         force.password = read.question('Password: ', { hideEchoBack: true });
     }
     // the project & command
-    var project = platform.project(env, path, base, params, force);
-    var command = new (cmd.clazz())(args.global, args.local, platform, display, project);
+    var environ = makeEnviron(ctxt, env, path, params, force);
+    var command = new (cmd.clazz())(args.global, args.local, ctxt, environ);
     // prepare the command
     if ( args.cmd !== 'show' ) {
-        platform.log('--- ' + chalk.bold('Prepare') + ' ---');
+        ctxt.platform.log('--- ' + chalk.bold('Prepare') + ' ---');
     }
     var actions = command.prepare();
     // execute the actions
     if ( args.cmd !== 'show' ) {
-        platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
-               + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+        ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+               + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     }
     actions.execute();
     // display summary and/or error
     if ( args.cmd !== 'show' ) {
-        platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
-               + (platform.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+        ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+               + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
         if ( actions.done.length ) {
-            platform.log(chalk.green('Done') + ':');
-            actions.done.forEach(a => a.display(platform, 'done'));
+            ctxt.platform.log(chalk.green('Done') + ':');
+            actions.done.forEach(a => a.display(ctxt.platform, 'done'));
         }
     }
     if ( actions.error ) {
-        platform.log(chalk.red('Error') + ':');
-        actions.error.action.display(platform, 'error');
-        platform.log(actions.error.message);
-        if ( platform.verbose && actions.error.error && actions.error.error.stack ) {
-            platform.log(actions.error.error.stack);
+        ctxt.platform.log(chalk.red('Error') + ':');
+        actions.error.action.display(ctxt.platform, 'error');
+        ctxt.platform.log(actions.error.message);
+        if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
+            ctxt.platform.log(actions.error.error.stack);
         }
     }
     if ( args.cmd !== 'show' ) {
         if ( actions.todo.length ) {
-            platform.log(chalk.yellow('Not done') + ':');
-            actions.todo.forEach(a => a.display(platform, 'todo'));
+            ctxt.platform.log(chalk.yellow('Not done') + ':');
+            actions.todo.forEach(a => a.display(ctxt.platform, 'todo'));
         }
         if ( ! actions.done.length && ! actions.error && ! actions.todo.length ) {
-            platform.log('Nothing to do.');
+            ctxt.platform.log('Nothing to do.');
         }
     }
 }
@@ -226,35 +238,42 @@ function execWithProject(args, cmd, display)
 
 function main(argv, display)
 {
-    let prg  = program.makeProgram();
-    let args = prg.parse(argv);
+    let prg     = program.makeProgram();
+    let args    = prg.parse(argv);
+    let dry     = args.global.dry     ? true : false;
+    let verbose = args.global.verbose ? true : false;
+    let ctxt    = new node.Context(dry, verbose);
+    ctxt.platform.log('');
     try {
         if ( ! args.cmd || args.cmd === 'help' ) {
-            execHelp(args, prg);
+            execHelp(ctxt, args, prg);
         }
         else if ( args.cmd === 'new' ) {
             execNew(
+                ctxt,
                 args,
                 prg.commands[args.cmd],
                 display);
         }
         else {
             execWithProject(
+                ctxt,
                 args,
                 prg.commands[args.cmd],
                 display);
         }
     }
     catch (err) {
-        display.error(err, args.global.verbose);
+        ctxt.display.error(err, args.global.verbose);
     }
 }
 
-var display = new node.Display();
 try {
-    main(process.argv.slice(2), display);
+    main(process.argv.slice(2));
 }
 catch (err) {
     // here, I think we should always be verbose... (unexpected error)
-    display.error(err, true);
+    // TODO: ...
+    throw err;
+    //display.error(err, true);
 }

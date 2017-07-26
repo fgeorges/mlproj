@@ -91,13 +91,12 @@
      * The platform implementation for Node.
      */
 
-    class Platform extends core.Platform
+    class Context extends core.Context
     {
         constructor(dry, verbose) {
-            super(dry, verbose);
             const json = f => {
                 try {
-                    return Platform.userJson(this, f);
+                    return Platform.userJson(f);
                 }
                 catch (err) {
                     // just ignore when the file does not exust
@@ -106,26 +105,17 @@
                     }
                 }
             };
-            // try one or the other
-            var proj = json('.mlproj.json') || json('mlproj.json');
-            if ( proj ) {
-                this._config  = proj.config;
-                this._connect = proj.connect;
-            }
+            // try one config file or the other
+            var conf = json('.mlproj.json') || json('mlproj.json');
+            // instantiate the base object
+            super(new Display(verbose), new Platform(), conf, dry, verbose);
         }
+    }
 
-        config(name) {
-            if ( this._config ) {
-                return this._config[name];
-            }
-        }
-
-        configs() {
-            return this._config ? Object.keys(this._config) : [];
-        }
-
-        cwd() {
-            return process.cwd();
+    class Platform extends core.Platform
+    {
+        constructor() {
+            super(process.cwd());
         }
 
         mkdir(path, force) {
@@ -151,12 +141,6 @@
             console.log(msg);
         }
 
-        info(msg) {
-            if ( this.verbose ) {
-                console.log(this.yellow('Info') + ': ' + msg);
-            }
-        }
-
         warn(msg) {
             console.warn(msg);
         }
@@ -178,10 +162,7 @@
         }
 
         resolve(href, base) {
-            if ( ! base ) {
-                base = '.';
-            }
-            return path.resolve(base, href);
+            return Platform.staticResolve(href, base);
         }
 
         read(path) {
@@ -198,7 +179,7 @@
             }
         }
 
-        projectXml(path, callback) {
+        projectXml(path) {
             var parser  = new xml.Parser();
             var content = this.read(path);
             var p;
@@ -215,8 +196,8 @@
                 p = result.project;
             });
             if ( ! p ) {
-                // the following makes it clear it is not async, just using a
-                // callback, synchronously:
+                // the following page makes it clear it is not async, just using
+                // a callback, synchronously:
                 // https://github.com/Leonidas-from-XIV/node-xml2js/issues/159#issuecomment-248599477
                 throw new Error('Internal error.  Has xml2js become async?  Please report this.');
             }
@@ -244,6 +225,7 @@
             fs.writeFileSync(path, content, 'utf8');
         }
 
+        // TODO: To remove...
         green(s) {
             return chalk.green(s);
         }
@@ -253,44 +235,32 @@
             return chalk.yellow(s);
         }
 
-        red(s) {
-            return chalk.red(s);
-        }
-
         // TODO: To remove...
         bold(s) {
             return chalk.bold(s);
         }
 
         credentials() {
-            if ( ! this.space ) {
-                throw new Error('No space set on the platform for credentials');
+            // set in Environ ctor, find a nicer way to pass the info
+            if ( ! this.environ ) {
+                throw new Error('No environ set on the platform for credentials');
             }
-            var user = this.space.param('@user');
-            var pwd  = this.space.param('@password');
+            var user = this.environ.param('@user');
+            var pwd  = this.environ.param('@password');
             if ( ! user ) {
-                throw new Error('No user in space');
+                throw new Error('No user in environ');
             }
             if ( ! pwd ) {
                 // ask for password interactively first time it is used
                 pwd = read.question('Password: ', { hideEchoBack: true });
-                this.space.param('@password', pwd);
+                this.environ.param('@password', pwd);
             }
             return [ user, pwd ];
         }
 
-        verboseHttp(http, body) {
-            if ( this.verbose ) {
-                this.warn('[' + this.bold('verbose') + '] Return status: ' + http.statusCode);
-                this.warn('[' + this.bold('verbose') + '] Body:');
-                this.log(body);
-            }
-        }
-
         requestAuth(method, url, options) {
             const md5 = (name, str) => {
-                let res = crypto.createHash('md5').update(str).digest('hex');
-                return res;
+                return crypto.createHash('md5').update(str).digest('hex');
             };
             const parseDigest = header => {
                 if ( ! header || header.slice(0, 7) !== 'Digest ' ) {
@@ -345,6 +315,11 @@
                 var nc     = '00000001';
                 var cnonce = '4f1ab28fcd820bc5';
                 var ha1    = md5('ha1', creds[0] + ':' + params.realm + ':' + creds[1]);
+
+                // TODO: `path` not properly provisionned?!?
+                // How could it work?!? (path refers to require('path'), here)
+                // Get it from `url`? (from and after first '/'..., or 3d, because of http://...?)
+
                 var ha2    = md5('ha2', method + ':' + path);
                 var resp   = md5('response', [ha1, params.nonce, nc, cnonce, params.qop, ha2].join(':'));
                 var auth   = {
@@ -392,8 +367,6 @@
                 return;
             }
             else {
-                // TODO: Adapt verboseHttp()...
-                // this.verboseHttp(http, body);
                 throw new Error('Error retrieving entity: ' + (resp.body.errorResponse
                                 ? resp.body.errorResponse.message : resp.body));
             }
@@ -415,8 +388,6 @@
                 return;
             }
             else {
-                // TODO: Adapt verboseHttp()...
-                // this.verboseHttp(http, body);
                 throw new Error('Entity not created: ' + (resp.body.errorResponse
                                 ? resp.body.errorResponse.message : resp.body));
             }
@@ -455,8 +426,6 @@
                 return Date.parse(body['last-startup'][0].value);
             }
             else {
-                // TODO: Adapt verboseHttp()...
-                // this.verboseHttp(http, body);
                 throw new Error('Entity not updated: ' + (resp.body.errorResponse
                                 ? resp.body.errorResponse.message : resp.body));
             }
@@ -521,20 +490,29 @@
                 }
             }
         }
-    }
 
-    Platform.userJson = (pf, name) => {
-        try {
-            var path = pf.resolve(name, os.homedir());
-            return pf.json(path, true);
+        static staticResolve(href, base) {
+            if ( ! base ) {
+                base = '.';
+            }
+            return path.resolve(base, href);
         }
-        catch (err) {
-            // ignore ENOENT, file does not exist
-            if ( err.code !== 'ENOENT' ) {
-                throw err;
+
+        static userJson(name) {
+            try {
+                let path = Platform.staticResolve(name, os.homedir());
+                let text = fs.readFileSync(path, 'utf8');
+                let json = JSON.parse(text);
+                return json.mlproj;
+            }
+            catch (err) {
+                // ignore ENOENT, file does not exist
+                if ( err.code !== 'ENOENT' ) {
+                    throw err;
+                }
             }
         }
-    };
+    }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The display implementation for Node.
@@ -542,6 +520,17 @@
 
     class Display extends core.Display
     {
+        constructor(verbose) {
+            super(verbose);
+        }
+
+        // TODO: FIXME: ...
+        info(msg) {
+            if ( this.verbose ) {
+                console.log(chalk.yellow('Info') + ': ' + msg);
+            }
+        }
+
         database(name, id, schema, security, triggers, forests, props) {
             const log  = Display.log;
             const line = Display.line;
@@ -602,11 +591,10 @@
             }
         }
 
-        project(code, configs, title, name, version) {
+        project(abbrev, configs, title, name, version) {
             const log  = Display.log;
             const line = Display.line;
-            log('');
-            log(chalk.bold('Project') + ': ' + chalk.bold(chalk.yellow(code)));
+            log(chalk.bold('Project') + ': ' + chalk.bold(chalk.yellow(abbrev)));
             title   && line(1, 'title',   title);
             name    && line(1, 'name',    name);
             version && line(1, 'version', version);
@@ -625,7 +613,7 @@
             log('');
         }
 
-        environ(envipath, title, desc, host, user, password, mods, params, imports) {
+        environ(envipath, title, desc, host, user, password, params, imports) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
@@ -634,7 +622,6 @@
             host     && line(1, 'host',        host);
             user     && line(1, 'user',        user);
             password && line(1, 'password',    '*****');
-            mods     && line(1, 'modules DB',  mods);
             if ( params.length ) {
                 line(1, 'parameters:');
                 params.forEach(p => line(2, p.name, p.value));
@@ -710,8 +697,9 @@
     };
 
     module.exports = {
-        Platform     : Platform,
+        Context      : Context,
         Display      : Display,
+        Platform     : Platform,
         WatchCommand : WatchCommand
     }
 }
