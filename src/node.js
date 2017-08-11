@@ -652,6 +652,14 @@
             log('');
         }
 
+        mimetype(name, props) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('MIME type') + ': ' + chalk.bold(chalk.yellow(name)));
+            Object.keys(props).forEach(p => this._property(props[p]));
+            log('');
+        }
+
         _property(prop, level) {
             const line = Display.line;
             if ( ! level ) {
