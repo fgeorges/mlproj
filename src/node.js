@@ -8,6 +8,7 @@
     const chalk    = require('chalk');
     const read     = require('readline-sync');
     const request  = require('sync-request');
+    const uuid     = require('uuid');
     const crypto   = require('crypto');
     const xml      = require('xml2js');
     const sleep    = require('sleep');
@@ -165,9 +166,9 @@
             return Platform.staticResolve(href, base);
         }
 
-        read(path) {
+        read(path, encoding) {
             try {
-                return fs.readFileSync(path, 'utf8');
+                return fs.readFileSync(path, encoding);
             }
             catch (err) {
                 if ( err.code === 'ENOENT' ) {
@@ -233,6 +234,11 @@
         // TODO: To remove...
         yellow(s) {
             return chalk.yellow(s);
+        }
+
+        // TODO: To remove...
+        red(s) {
+            return chalk.red(s);
         }
 
         // TODO: To remove...
@@ -372,11 +378,17 @@
             }
         }
 
-        post(api, url, data) {
+        post(api, url, data, type) {
             var url     = this.url(api, url);
             var options = {};
-            if ( data ) {
+            if ( data && ! type ) {
                 options.json = data;
+            }
+            else if ( data ) {
+                options.body = data;
+                options.headers = {
+                    "Content-Type": type
+                };
             }
             else {
                 options.headers = {
@@ -384,7 +396,7 @@
                 };
             }
             var resp = this.requestAuth('POST', url, options);
-            if ( resp.statusCode === (data ? 201 : 200) ) {
+            if ( resp.statusCode === ((data && ! type) ? 201 : 200) ) {
                 return;
             }
             else {
@@ -431,13 +443,27 @@
             }
         }
 
+        boundary() {
+            return uuid();
+        }
+
+        multipart(boundary, parts) {
+            let mp = new Multipart(boundary);
+            parts.forEach(part => {
+                //mp.header('Content-Type', 'foo/bar');
+                mp.header('Content-Disposition', 'attachment; filename="' + part.uri + '"');
+                mp.body(this.read(part.path));
+            });
+            return mp.payload();
+        }
+
         restart(last) {
             var ping;
             var num = 1;
             do {
                 sleep.sleep(1);
                 if ( ! (num % 3) ) {
-                    // TODO: Says "Still waiting...", somehow?
+                    // TODO: Say "Still waiting...", somehow?
                 }
                 try {
                     ping = this.requestAuth('GET', this.url('admin', '/timestamp'), {});
@@ -471,6 +497,7 @@
                 };
                 if ( s.isDirectory() ) {
                     f.files = [];
+                    f.isdir = true;
                 }
                 res.push(f);
             });
@@ -511,6 +538,59 @@
                     throw err;
                 }
             }
+        }
+    }
+
+    // Private variable for Multipart.
+    const NL = '\r\n';
+
+    // Private class for Platform.multipart().
+    class Multipart
+    {
+        constructor(boundary) {
+            this.boundary = boundary;
+            // parts is an array of { headers: string, body: string-or-buffer }
+            this.parts    = [];
+            this.headers  = [];
+        }
+
+        contentType() {
+            return 'multipart/mixed; boundary=' + this.boundary;
+        }
+
+        header(name, value) {
+            this.headers.push(name + ': ' + value);
+        }
+
+        body(content) {
+            let preamble =
+                '--' + this.boundary + NL
+                + this.headers.reduce((res, h) => res + h + NL, '')
+                + NL;
+            this.parts.push({ headers: preamble, body: content });
+            this.headers = [];
+        }
+
+        payload() {
+            let end ='--' + this.boundary + '--' + NL;
+            let len =
+                this.parts.reduce((res, p) => {
+                    let hlen = Buffer.byteLength(p.headers);
+                    let blen = Buffer.byteLength(p.body);
+                    return res + hlen + blen + 2;
+                }, 0)
+                + Buffer.byteLength(end);
+            let buf = new Buffer(len);
+            let pos = 0;
+            this.parts.forEach(p => {
+                pos += buf.write(p.headers, pos);
+                pos += Buffer.isBuffer(p.body)
+                    ? p.body.copy(buf, pos)
+                    : buf.write(p.body, pos);
+                pos += buf.write(NL, pos);
+            });
+            buf.write(end, pos);
+            return buf;
         }
     }
 
