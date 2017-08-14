@@ -89,7 +89,7 @@
     }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The platform implementation for Node.
+     * The context implementation for Node.
      */
 
     class Context extends core.Context
@@ -112,6 +112,10 @@
             super(new Display(verbose), new Platform(), conf, dry, verbose);
         }
     }
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The platform implementation for Node.
+     */
 
     class Platform extends core.Platform
     {
@@ -381,14 +385,14 @@
         post(api, url, data, type) {
             var url     = this.url(api, url);
             var options = {};
-            if ( data && ! type ) {
-                options.json = data;
-            }
-            else if ( data ) {
-                options.body = data;
+            if ( data && type ) {
+                options.body    = data;
                 options.headers = {
                     "Content-Type": type
                 };
+            }
+            else if ( data ) {
+                options.json = data;
             }
             else {
                 options.headers = {
@@ -412,14 +416,12 @@
                     Accept: 'application/json'
                 }
             };
-            if ( data ) {
-                if ( type ) {
-                    options.headers['Content-Type'] = type;
-                    options.body                    = data;
-                }
-                else {
-                    options.json = data;
-                }
+            if ( data && type ) {
+                options.headers['Content-Type'] = type;
+                options.body                    = data;
+            }
+            else if ( data ) {
+                options.json = data;
             }
             else {
                 options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
