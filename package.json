@@ -15,7 +15,7 @@
   "dependencies": {
     "chalk": "^1.1.3",
     "chokidar": "^1.7.0",
-    "mlproj-core": "^0.20.0",
+    "mlproj-core": "^0.21.0",
     "readline-sync": "^1.4.6",
     "sleep": "^5.1.1",
     "sync-request": "^4.1.0",

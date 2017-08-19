@@ -703,7 +703,7 @@
             log('');
         }
 
-        environ(envipath, title, desc, host, user, password, params, imports) {
+        environ(envipath, title, desc, host, user, password, params, apis, imports) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
@@ -715,6 +715,14 @@
             if ( params.length ) {
                 line(1, 'parameters:');
                 params.forEach(p => line(2, p.name, p.value));
+            }
+            if ( Object.keys(apis).length ) {
+                line(1, 'apis:');
+                Object.keys(apis).forEach(name => {
+                    line(2, name + ':');
+                    let api = apis[name];
+                    Object.keys(api).forEach(p => line(3, p, api[p]));
+                });
             }
             if ( imports.length ) {
                 line(1, 'import graph:');
@@ -749,6 +757,7 @@
                 Display.log(chalk.red('Error') + ': ' + e.message);
             }
             if ( verbose ) {
+                Display.log();
                 Display.log(chalk.bold('Stacktrace') + ':');
                 Display.log(e.stack);
             }
@@ -756,7 +765,12 @@
     }
 
     Display.log = msg => {
-        console.log(msg);
+        if ( msg === undefined ) {
+            console.log();
+        }
+        else {
+            console.log(msg);
+        }
     };
 
     Display.indent = level => {
