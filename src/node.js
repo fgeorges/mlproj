@@ -50,33 +50,34 @@
 
         // TODO: Apply the same filtering logic here as in DeployCommand (and
         // share the mecanism with LoadCommand as well), once implemented...
-        execute(platform) {
-            platform.warn(platform.yellow('→') + ' ' + this.msg + ': \t' + this.path);
+        execute(ctxt) {
+            const pf = ctxt.platform;
+            pf.warn(pf.yellow('→') + ' ' + this.msg + ': \t' + this.path);
             chokidar.watch(this.path, {
                 ignored: /(^|[\/\\])\../,
                 persistent: true,
                 ignoreInitial: true
             })
                 .on('add', path => {
-                    this.insert(path, platform);
+                    this.insert(path, pf);
                 })
                 .on('change', path => {
-                    this.insert(path, platform);
+                    this.insert(path, pf);
                 })
                 .on('unlink', path => {
-                    platform.log(`TODO: File ${path} has been removed, delete it!`);
+                    pf.log(`TODO: File ${path} has been removed, delete it!`);
                 })
                 .on('error', error => {
-                    platform.log('Watcher error: ' + error.filename);
+                    pf.log('Watcher error: ' + error.filename);
                 })
                 .on('ready', () => {
-                    platform.warn(
-                        platform.green('✓')
+                    pf.warn(
+                        pf.green('✓')
                         + ' Watching for changes, target is ' + this.db.name + '...');
                 })
                 // raw event details, for debugging...
                 // .on('raw', (event, path, details) => {
-                //     platform.log(`Raw event info: ${event}, ${path}, ${details}`);
+                //     pf.log(`Raw event info: ${event}, ${path}, ${details}`);
                 // })
             ;
         }
@@ -521,10 +522,7 @@
         }
 
         static staticResolve(href, base) {
-            if ( ! base ) {
-                base = '.';
-            }
-            return path.resolve(base, href);
+            return path.resolve(base || '.', href);
         }
 
         static userJson(name) {
