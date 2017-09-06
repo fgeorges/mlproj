@@ -11,7 +11,6 @@
     const uuid     = require('uuid');
     const crypto   = require('crypto');
     const xml      = require('xml2js');
-    const sleep    = require('sleep');
     const chokidar = require('chokidar');
     const core     = require('mlproj-core');
 
@@ -476,13 +475,12 @@
         }
 
         restart(last) {
-            var ping;
-            var num = 1;
+            const maxNum  =  2500;
+            const maxWait = 60000; // in ms = 1 min
+            let ping;
+            let num = 1;
+            let start = new Date();
             do {
-                sleep.sleep(1);
-                if ( ! (num % 3) ) {
-                    // TODO: Say "Still waiting...", somehow?
-                }
                 try {
                     ping = this.requestAuth('GET', this.url({ api: 'admin' }, '/timestamp'), {});
                 }
@@ -490,13 +488,19 @@
                     ping = err;
                 }
             }
-            while ( ++num < 10 && (ping.statusCode === 503 || ping.code === 'ECONNRESET' || ping.code === 'ECONNREFUSED') );
+            while ( ++num < maxNum
+                    && ((new Date() - start) < maxWait)
+                    && (ping.statusCode === 503
+                        || ping.code === 'ECONNRESET'
+                        || ping.code === 'ECONNREFUSED') );
             if ( ping.statusCode !== 200 ) {
-                throw new Error('Error waiting for server restart: ' + num + ' - ' + ping);
+                throw new Error('Error waiting for server restart, not OK: ' + num + ' - ' + ping
+                                + ' (tried ' + num + ' times in ' + (new Date() - start) + ' ms)');
             }
             var now = Date.parse(ping.body);
             if ( last >= now ) {
-                throw new Error('Error waiting for server restart: ' + last + ' - ' + now);
+                throw new Error('Error waiting for server restart, wrong times: ' + last + ' - ' + now
+                                + ' (tried ' + num + ' times in ' + (new Date() - start) + ' ms)');
             }
         }
 
