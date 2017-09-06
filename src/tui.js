@@ -95,7 +95,7 @@ function execHelp(ctxt, args, prg)
 }
 
 // implementation of the action for command `new`
-function execNew(ctxt, args, cmd, display)
+function execNew(ctxt, args, cmd)
 {
     // validate options
     plainCmdStart(args);
@@ -127,7 +127,7 @@ function execNew(ctxt, args, cmd, display)
         loc.port = read.question('Port     (8080)  : ', { defaultInput: '8080' });
 
     // execute the command
-    var command = new (cmd.clazz())(args.global, args.local, ctxt);
+    var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt);
     var actions = command.prepare();
     ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
            + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
@@ -179,7 +179,7 @@ function makeEnviron(ctxt, env, path, params, force)
 }
 
 // implementation of the action for any command accepting a project/environment
-function execWithProject(ctxt, args, cmd, display)
+function execWithProject(ctxt, args, cmd)
 {
     // the options
     var env      = args.global.environ;
@@ -192,7 +192,7 @@ function execWithProject(ctxt, args, cmd, display)
     }
     // the project & command
     var environ = makeEnviron(ctxt, env, path, params, force);
-    var command = new (cmd.clazz())(args.global, args.local, ctxt, environ);
+    var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt, environ);
     // prepare the command
     if ( args.cmd !== 'show' ) {
         ctxt.platform.log('--- ' + chalk.bold('Prepare') + ' ---');
@@ -252,15 +252,13 @@ function main(argv, display)
             execNew(
                 ctxt,
                 args,
-                prg.commands[args.cmd],
-                display);
+                prg.commands[args.cmd]);
         }
         else {
             execWithProject(
                 ctxt,
                 args,
-                prg.commands[args.cmd],
-                display);
+                prg.commands[args.cmd]);
         }
     }
     catch (err) {

@@ -713,7 +713,7 @@
             log('');
         }
 
-        environ(envipath, title, desc, host, user, password, params, apis, imports) {
+        environ(envipath, title, desc, host, user, password, params, apis, commands, imports) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
@@ -733,6 +733,10 @@
                     let api = apis[name];
                     Object.keys(api).forEach(p => line(3, p, api[p]));
                 });
+            }
+            if ( commands.length ) {
+                line(1, 'commands:');
+                commands.forEach(c => line(2, c));
             }
             if ( imports.length ) {
                 line(1, 'import graph:');

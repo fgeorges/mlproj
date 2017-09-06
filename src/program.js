@@ -435,6 +435,17 @@
                 if ( opt ) {
                     opt.found(res.global, arg, args);
                 }
+                else if ( arg.includes(':') ) {
+                    this.command(arg)
+                        .clazz(core.UserCommand)
+                        .desc('User command ' + arg + '.')
+                    cmd = this.commands[arg];
+                    res.local = [];
+                    while ( args.length ) {
+                        res.local.push(args.shift());
+                    }
+                    res.cmd = arg;
+                }
                 else {
                     cmd = this.commands[arg];
                     if ( ! cmd ) {
