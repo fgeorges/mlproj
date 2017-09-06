@@ -363,87 +363,111 @@
             return resp;
         }
 
-        get(api, url) {
-            var url     = this.url(api, url);
-            var options = {
-                headers: {
-                    Accept: 'application/json'
-                }
+        get(params, path) {
+            let url     = this.url(params, path);
+            let options = {};
+            options.headers = params.headers || {};
+            if ( options.headers.accept === undefined ) {
+                options.headers.accept = 'application/json';
+            }
+            let resp = this.requestAuth('GET', url, options);
+            let body = resp.body;
+            if ( resp.headers
+                 && resp.headers['content-type']
+                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
+                 && resp.headers['content-type'].startsWith('application/json') ) {
+                body = JSON.parse(body);
+            }
+            // console.log(resp);
+            // console.log(resp.body + '');
+            return {
+                status  : resp.statusCode,
+                headers : resp.headers,
+                body    : body
             };
-            var resp = this.requestAuth('GET', url, options);
-            if ( resp.statusCode === 200 ) {
-                return JSON.parse(resp.getBody());
-            }
-            else if ( resp.statusCode === 404 ) {
-                return;
-            }
-            else {
-                throw new Error('Error retrieving entity: ' + (resp.body.errorResponse
-                                ? resp.body.errorResponse.message : resp.body));
-            }
         }
 
-        post(api, url, data, type) {
-            var url     = this.url(api, url);
-            var options = {};
-            if ( data && type ) {
-                options.body    = data;
-                options.headers = {
-                    "Content-Type": type
-                };
+        post(params, path, data, mime) {
+            let url     = this.url(params, path);
+            let body    = data || params.body;
+            let type    = mime || params.type;
+            let options = {};
+            options.headers = params.headers || {};
+            if ( ! options.headers.accept ) {
+                options.headers.accept = 'application/json';
             }
-            else if ( data ) {
-                options.json = data;
+            if ( body && type ) {
+                options.headers['content-type'] = type;
+                options.body                    = body;
             }
-            else {
-                options.headers = {
-                    "Content-Type": 'application/x-www-form-urlencoded'
-                };
-            }
-            var resp = this.requestAuth('POST', url, options);
-            if ( resp.statusCode === ((data && ! type) ? 201 : 200) ) {
-                return;
+            else if ( body ) {
+                options.json = body;
             }
             else {
-                throw new Error('Entity not created: ' + (resp.body.errorResponse
-                                ? resp.body.errorResponse.message : resp.body));
+                options.headers['content-type'] = 'application/x-www-form-urlencoded';
             }
+            let resp    = this.requestAuth('POST', url, options);
+            let content = resp.body;
+            // console.log(resp);
+            // console.log(resp.body + '');
+            if ( resp.headers
+                 && content.length
+                 && resp.headers['content-type']
+                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
+                 && resp.headers['content-type'].startsWith('application/json') ) {
+                content = JSON.parse(content);
+            }
+            return {
+                status  : resp.statusCode,
+                headers : resp.headers,
+                body    : content
+            };
         }
 
-        put(api, url, data, type) {
-            var url     = this.url(api, url);
-            var options = {
-                headers: {
-                    Accept: 'application/json'
-                }
+        put(params, path, data, mime) {
+            let url     = this.url(params, path);
+            let body    = data || params.body;
+            let type    = mime || params.type;
+            let options = {};
+            options.headers = params.headers || {};
+            if ( ! options.headers.accept ) {
+                options.headers.accept = 'application/json';
+            }
+            if ( body && type ) {
+                options.headers['content-type'] = type;
+                options.body                    = body;
+            }
+            else if ( body ) {
+                options.json = body;
+            }
+            else {
+                options.headers['content-type'] = 'application/x-www-form-urlencoded';
+            }
+            // DEBUG: Left for debug purposes...
+            //
+            // TODO: Create a proper debug level selection mechanism, with the
+            // ability to say, on the command line: "log the HTTP requests, log
+            // the responses, log the URLs, the headers, the payloads, log the
+            // actions with their data, log the file selections, log everything,
+            // etc."
+            //
+            // console.log(url);
+            // console.log(options);
+            let resp    = this.requestAuth('PUT', url, options);
+            let content = resp.body;
+            // console.log(resp);
+            // console.log(resp.body + '');
+            if ( resp.headers
+                 && resp.headers['content-type']
+                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
+                 && resp.headers['content-type'].startsWith('application/json') ) {
+                content = JSON.parse(content);
+            }
+            return {
+                status  : resp.statusCode,
+                headers : resp.headers,
+                body    : content
             };
-            if ( data && type ) {
-                options.headers['Content-Type'] = type;
-                options.body                    = data;
-            }
-            else if ( data ) {
-                options.json = data;
-            }
-            else {
-                options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-            var resp = this.requestAuth('PUT', url, options);
-            // XDBC PUT /insert returns 200
-            if ( resp.statusCode === 200 || resp.statusCode === 201 || resp.statusCode === 204 ) {
-                return;
-            }
-            // when operation needs a server restart
-            else if ( resp.statusCode === 202 ) {
-                var body = JSON.parse(resp.body).restart;
-                if ( ! body ) {
-                    throw new Error('202 returned NOT for a restart reason?!?');
-                }
-                return Date.parse(body['last-startup'][0].value);
-            }
-            else {
-                throw new Error('Entity not updated: ' + (resp.body.errorResponse
-                                ? resp.body.errorResponse.message : resp.body));
-            }
         }
 
         boundary() {
@@ -469,7 +493,7 @@
                     // TODO: Say "Still waiting...", somehow?
                 }
                 try {
-                    ping = this.requestAuth('GET', this.url('admin', '/timestamp'), {});
+                    ping = this.requestAuth('GET', this.url({ api: 'admin' }, '/timestamp'), {});
                 }
                 catch ( err ) {
                     ping = err;
