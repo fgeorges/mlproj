@@ -216,17 +216,8 @@
         }
 
         write(path, content, force) {
-            if ( ! force ) {
-                try {
-                    // just to detect if file exists
-                    fs.statSync(path);
-                }
-                catch (err) {
-                    // ignore ENOENT, file does not exist
-                    if ( err.code !== 'ENOENT' ) {
-                        throw err;
-                    }
-                }
+            if ( ! force && this.exists(path) ) {
+                throw new Error('File already exists, do not override: ' + path);
             }
             fs.writeFileSync(path, content, 'utf8');
         }
@@ -509,6 +500,17 @@
             }
         }
 
+        exists(path) {
+            return fs.existsSync(path);
+        }
+
+        isDirectory(path) {
+            if ( ! this.exists(path) ) {
+                throw core.error.noSuchFile(path);
+            }
+            return fs.statSync(path).isDirectory();
+        }
+
         dirChildren(dir) {
             var res = [];
             fs.readdirSync(dir).forEach(child => {
@@ -529,20 +531,6 @@
                 res.push(f);
             });
             return res;
-        }
-
-        isDirectory(path) {
-            try {
-                return fs.statSync(path).isDirectory();
-            }
-            catch (err) {
-                if ( err.code === 'ENOENT' ) {
-                    throw core.error.noSuchFile(path);
-                }
-                else {
-                    throw err;
-                }
-            }
         }
 
         static staticResolve(href, base) {
