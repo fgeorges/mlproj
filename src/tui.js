@@ -102,8 +102,12 @@ function execNew(ctxt, args, cmd)
     var dir = ctxt.platform.cwd;
 
     // Check the directory is empty...!
-    if ( fs.readdirSync(dir).length ) {
-        if ( ! read.keyInYNStrict('Directory is not empty, do you want to continue?') ) {
+    if ( ! args.local.force && fs.readdirSync(dir).length ) {
+        const prompt = 'Directory is not empty, do you want to force creation and continue?';
+        if ( read.keyInYNStrict(prompt) ) {
+            args.local.force = true;
+        }
+        else {
             return;
         }
     }
