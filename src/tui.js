@@ -141,7 +141,7 @@ function execNew(ctxt, args, cmd)
     if ( actions.done.length ) {
         ctxt.platform.log(chalk.green('Done') + ':');
         ctxt.platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
-        ctxt.platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].xpdir);
+        ctxt.platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].cmd.xpdir);
     }
     if ( actions.error ) {
         ctxt.platform.log(chalk.red('Error') + ':');
