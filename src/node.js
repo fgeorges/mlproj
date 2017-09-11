@@ -368,8 +368,8 @@
                  && resp.headers['content-type'].startsWith('application/json') ) {
                 body = JSON.parse(body);
             }
-            // console.log(resp);
-            // console.log(resp.body + '');
+            //console.log(resp);
+            //console.log(resp.body + '');
             return {
                 status  : resp.statusCode,
                 headers : resp.headers,
@@ -396,10 +396,12 @@
             else {
                 options.headers['content-type'] = 'application/x-www-form-urlencoded';
             }
+            //console.log(url);
+            //console.log(options);
             let resp    = this.requestAuth('POST', url, options);
             let content = resp.body;
-            // console.log(resp);
-            // console.log(resp.body + '');
+            //console.log(resp);
+            //console.log(resp.body + '');
             if ( resp.headers
                  && content.length
                  && resp.headers['content-type']
@@ -441,12 +443,12 @@
             // actions with their data, log the file selections, log everything,
             // etc."
             //
-            // console.log(url);
-            // console.log(options);
+            //console.log(url);
+            //console.log(options);
             let resp    = this.requestAuth('PUT', url, options);
             let content = resp.body;
-            // console.log(resp);
-            // console.log(resp.body + '');
+            //console.log(resp);
+            //console.log(resp.body + '');
             if ( resp.headers
                  && resp.headers['content-type']
                  // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
@@ -643,10 +645,11 @@
             log('');
         }
 
-        server(name, id, group, content, modules, props) {
+        server(name, id, type, group, content, modules, props) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Server') + ': ' + chalk.bold(chalk.yellow(name)));
+            line(1, 'type',  type);
             line(1, 'group', group);
             id      && line(1, 'id',         id);
             content && line(1, 'content DB', content.name);
