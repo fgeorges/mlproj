@@ -645,6 +645,14 @@
             log('');
         }
 
+        sysDatabase(name) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Database') + ': ' + chalk.bold(chalk.yellow(name)));
+            line(1, '(nothing to show, handled outside of the project)');
+            log('');
+        }
+
         server(name, id, type, group, content, modules, props) {
             const log  = Display.log;
             const line = Display.line;
