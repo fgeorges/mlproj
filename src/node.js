@@ -33,7 +33,9 @@
                 recursive = true;
                 msg       = 'Watch source directory';
             }
-            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => src.uri(d, p)));
+            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => {
+                return p.slice(d.length);
+            }));
         }
     }
 
@@ -58,10 +60,10 @@
                 ignoreInitial: true
             })
                 .on('add', path => {
-                    this.insert(path, pf);
+                    this.insert(path, ctxt);
                 })
                 .on('change', path => {
-                    this.insert(path, pf);
+                    this.insert(path, ctxt);
                 })
                 .on('unlink', path => {
                     pf.log(`TODO: File ${path} has been removed, delete it!`);
@@ -81,10 +83,10 @@
             ;
         }
 
-        insert(path, platform) {
+        insert(path, ctxt) {
             var uri = this.uri(this.path, path.replace(/\\/g, '/'));
             var act = new core.actions.DocInsert(this.db, uri, path);
-            act.execute(platform);
+            act.execute(ctxt);
         }
     }
 
