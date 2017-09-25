@@ -46,7 +46,8 @@
             .command('setup')
             .clazz(core.SetupCommand)
             .desc('Setup the environment on MarkLogic.')
-            .usage('');
+            .usage('[what]')
+            .arg('what');
 
         prg
             .command('load')
@@ -131,7 +132,11 @@
 
         // setup
         prg.help('setup',
-`Create components in the given environment on MarkLogic.  Use the connection
+`Options:
+
+       <what>              the specific component(s) to set up
+
+   Create components in the given environment on MarkLogic.  Use the connection
    details from the environment to connect to MarkLogic.  If (some) components
    already exist, ensure they have the right properties and update them as
    needed.`);
