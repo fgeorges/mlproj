@@ -52,12 +52,11 @@
             .command('load')
             .clazz(core.LoadCommand)
             .desc('Load documents to a database.')
-            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .usage('[-a srv|-b db] [-s src|-/ dir|-1 file] [what]')
             .or()
-                .option('server',   '-a', '--as',       '--server',         'server, get its content database')
-                .option('database', '-b', '--db',       '--database',       'target database')
-                // TODO: --force-db is not documented...
-                .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
+                .option('server',   '-a', '--as',  '--server',          'server, get its content database')
+                .option('database', '-b', '--db',  '--database',        'target database')
+                .option('systemDb', '-B', '--sys', '--system-database', 'the name of the target system db')
                 .end()
             .or()
                 .option('sourceset', '-s', '--src', '--source-set', 'source set to load')
@@ -70,11 +69,11 @@
             .command('deploy')
             .clazz(core.DeployCommand)
             .desc('Deploy modules to a database.')
-            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .usage('[-a srv|-b db] [-s src|-/ dir|-1 file] [what]')
             .or()
-                .option('server',   '-a', '--as',       '--server',         'server, get its modules database')
-                .option('database', '-b', '--db',       '--database',       'target database')
-                .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
+                .option('server',   '-a', '--as',  '--server',          'server, get its modules database')
+                .option('database', '-b', '--db',  '--database',        'target database')
+                .option('systemDb', '-B', '--sys', '--system-database', 'the name of the target system db')
                 .end()
             .or()
                 .option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
@@ -87,11 +86,11 @@
             .command('watch')
             .clazz(node.WatchCommand)
             .desc('Watch modules, deploy them as soon as modified.')
-            .usage('[-a srv|-b db] [-/ dir|-1 file] [what]')
+            .usage('[-a srv|-b db] [-s src|-/ dir|-1 file] [what]')
             .or()
-                .option('server',   '-a', '--as',       '--server',         'server, get its modules database')
-                .option('database', '-b', '--db',       '--database',       'target database')
-                .option('forceDb',  '-B', '--force-db', '--force-database', 'force name of target database')
+                .option('server',   '-a', '--as',  '--server',          'server, get its modules database')
+                .option('database', '-b', '--db',  '--database',        'target database')
+                .option('systemDb', '-B', '--sys', '--system-database', 'the name of the target system db')
                 .end()
             .or()
                 .option('sourceset', '-s', '--src', '--source-set', 'source set to deploy')
@@ -141,12 +140,13 @@
         prg.help('load',
 `Options:
 
-       -a, --as, --server <srv>         server, get its content database
-       -b, --db, --database <db>        target database
-       -s, --src, --source-set <dir>    source set to load
-       -/, --dir, --directory <dir>     directory to load
-       -1, --doc, --document <file>     file to load
-       <what>                           directory or file to load
+       -a, --as, --server <srv>           server, get its content database
+       -b, --db, --database <db>          target database
+       -B, --sys, --system-database <db>  the name of the target system db
+       -s, --src, --source-set <dir>      source set to load
+       -/, --dir, --directory <dir>       directory to load
+       -1, --doc, --document <file>       file to load
+       <what>                             directory or file to load
 
    Target:
 
@@ -156,7 +156,7 @@
    use it.  Or if there is only one database, use it.  Servers and databases
    can be referenced by name or by ID.
 
-   Options --as and --db are mutually exclusive.
+   Options --as, --db and --sys are mutually exclusive.
 
    Content:
 
@@ -184,27 +184,41 @@
         prg.help('deploy',
 `Options:
 
-       -a, --as, --server <srv>         server, get its modules database
-       -b, --db, --database <db>        target database
-       -s, --src, --source-set <dir>    source set to deploy
-       -/, --dir, --directory <dir>     directory to deploy
-       -1, --doc, --document <file>     file to deploy
-       <what>                           directory or file to deploy
+       -a, --as, --server <srv>           server, get its modules database
+       -b, --db, --database <db>          target database
+       -B, --sys, --system-database <db>  the name of the target system db
+       -s, --src, --source-set <dir>      source set to deploy
+       -/, --dir, --directory <dir>       directory to deploy
+       -1, --doc, --document <file>       file to deploy
+       <what>                             directory or file to deploy
 
    Works like the command load, with two exceptions: the default value of
-   <what> is "src/" instead of "data/", and when given a server, it takes its
-   modules database instead of its content database.`);
+   <what> is "src" instead of "data", and when given a server, it takes its
+   modules database instead of its content database.
+
+   Examples:
+
+   The following deploys files under "src/" to the "modules" db:
+
+       mlproj deploy --db modules --dir src/
+
+   Which does the same as the following command (assuming there is exactly
+   one application server in the environment, with its modules database being
+   "modules", and there is a source set with name "src" and dir "src/"):
+
+       mlproj deploy`);
 
         // watch
         prg.help('watch',
 `Options:
 
-       -a, --as, --server <srv>         server, get its modules database
-       -b, --db, --database <db>        target database
-       -s, --src, --source-set <dir>    source set to watch
-       -/, --dir, --directory <dir>     directory to watch
-       -1, --doc, --document <file>     file to watch
-       <what>                           directory or file to watch
+       -a, --as, --server <srv>           server, get its modules database
+       -b, --db, --database <db>          target database
+       -B, --sys, --system-database <db>  the name of the target system db
+       -s, --src, --source-set <dir>      source set to watch
+       -/, --dir, --directory <dir>       directory to watch
+       -1, --doc, --document <file>       file to watch
+       <what>                             directory or file to watch
 
    Works like the command deploy, except it watches the given file or directory
    for changes, and deploy them each when they change on the filesystem.`);
