@@ -100,6 +100,13 @@
                 .arg('what')
                 .end();
 
+        prg
+            .command('run')
+            .clazz(core.RunCommand)
+            .desc('Run a user command.')
+            .usage('cmd')
+            .arg('cmd');
+
         // help
         prg.help('help',
 `Options:
@@ -227,6 +234,15 @@
 
    Works like the command deploy, except it watches the given file or directory
    for changes, and deploy them each when they change on the filesystem.`);
+
+        // setup
+        prg.help('run',
+`Options:
+
+       <cmd>               the name of the user command to run
+
+   Run a user command, given by name.  The user command must exist in the
+   environment.`);
 
         return prg;
     }
@@ -453,17 +469,6 @@
                 let opt = this.args[arg];
                 if ( opt ) {
                     opt.found(res.global, arg, args);
-                }
-                else if ( arg.includes(':') ) {
-                    this.command(arg)
-                        .clazz(core.UserCommand)
-                        .desc('User command ' + arg + '.')
-                    cmd = this.commands[arg];
-                    res.local = [];
-                    while ( args.length ) {
-                        res.local.push(args.shift());
-                    }
-                    res.cmd = arg;
                 }
                 else {
                     cmd = this.commands[arg];
