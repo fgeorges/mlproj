@@ -36,7 +36,7 @@ function execHelp(ctxt, args, prg)
     if ( ! name ) {
 
         ctxt.platform.log(`
-   This is mlproj, version ` + pkg.version + `
+   This is mlproj, version ` + pkg.version + ` (using core ` + ctxt.coreVersion() + `)
 
    Usage:
 
