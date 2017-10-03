@@ -24,29 +24,77 @@
             return true;
         }
 
-        populateActions(actions, db, src) {
-            var path      = src.doc;
-            var recursive = false;
-            var msg       = 'Watch source file';
-            if ( ! path ) {
-                path      = src.prop('dir');
-                recursive = true;
-                msg       = 'Watch source directory';
+        populateActions(actions, db, src, srv) {
+            // simple file
+            if ( src.doc ) {
+                actions.add(new WatchAction('Watch source file', db, src.doc, false, (path, root, ctxt) => {
+                    this.insert(path, root, db, ctxt);
+                }));
             }
-            actions.add(new WatchAction(msg, db, path, recursive, (d, p) => {
-                return p.slice(d.length);
-            }));
+            // rest dir
+            else if ( src.type === 'rest-src' ) {
+                const pf         = actions.ctxt.platform;
+                const dir        = src.prop('dir');
+                const port       = (srv || src.restTarget()).props.port.value;
+                const root       = dir + '/root';
+                const services   = dir + '/services';
+                const transforms = dir + '/transforms';
+                if ( pf.exists(root) ) {
+                    actions.add(new WatchAction('Watch source directory', db, root, true, (path, root, ctxt) => {
+                        this.insert(path, root, db, ctxt);
+                    }));
+                }
+                if ( pf.exists(services) ) {
+                    actions.add(new WatchAction('Watch services directory', db, services, true, (path, root, ctxt) => {
+                        this.install(path, root, src, 'resources', port, ctxt);
+                    }));
+                }
+                if ( pf.exists(transforms) ) {
+                    actions.add(new WatchAction('Watch transforms directory', db, transforms, true, (path, root, ctxt) => {
+                        this.install(path, root, src, 'transforms', port, ctxt);
+                    }));
+                }
+            }
+            // plain dir
+            else {
+                const dir = src.prop('dir');
+                actions.add(new WatchAction('Watch source directory', db, dir, true, (path, root, ctxt) => {
+                    this.insert(path, root, db, ctxt);
+                }));
+            }
+        }
+
+        insert(path, root, db, ctxt) {
+            try {
+                var uri = path.replace(/\\/g, '/').slice(root.length);
+                var act = new core.actions.DocInsert(db, uri, path);
+                act.execute(ctxt);
+            }
+            catch ( err ) {
+                ctxt.display.error(err, ctxt.display.verbose);
+            }
+        }
+
+        install(path, root, src, kind, port, ctxt) {
+            try {
+                var filename = path.replace(/\\/g, '/').slice(root.length + 1);
+                let act      = src.installRestThing(port, kind, filename, path);
+                act.execute(ctxt);
+            }
+            catch ( err ) {
+                ctxt.display.error(err, ctxt.display.verbose);
+            }
         }
     }
 
     class WatchAction extends core.actions.Action
     {
-        constructor(msg, db, path, recursive, uri) {
+        constructor(msg, db, path, recursive, onMatch) {
             super(msg);
             this.db        = db;
             this.path      = path.replace(/\\/g, '/');
             this.recursive = recursive;
-            this.uri       = uri;
+            this.onMatch   = onMatch;
         }
 
         // TODO: Apply the same filtering logic here as in DeployCommand (and
@@ -60,10 +108,10 @@
                 ignoreInitial: true
             })
                 .on('add', path => {
-                    this.insert(path, ctxt);
+                    this.onMatch(path, this.path, ctxt);
                 })
                 .on('change', path => {
-                    this.insert(path, ctxt);
+                    this.onMatch(path, this.path, ctxt);
                 })
                 .on('unlink', path => {
                     pf.log(`TODO: File ${path} has been removed, delete it!`);
@@ -81,12 +129,6 @@
                 //     pf.log(`Raw event info: ${event}, ${path}, ${details}`);
                 // })
             ;
-        }
-
-        insert(path, ctxt) {
-            var uri = this.uri(this.path, path.replace(/\\/g, '/'));
-            var act = new core.actions.DocInsert(this.db, uri, path);
-            act.execute(ctxt);
         }
     }
 
