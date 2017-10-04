@@ -176,7 +176,8 @@ function makeEnviron(ctxt, env, path, params, force)
         return proj.environ(env, params, force);
     }
     else {
-        let res = new core.Environ(ctxt, path);
+        let json = ctxt.platform.json(path);
+        let res  = new core.Environ(ctxt, json);
         res.compile(params, force);
         return res;
     }
