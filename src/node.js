@@ -510,12 +510,38 @@
             return uuid();
         }
 
+        /*~
+         * The parameter `parts` is an array of objects.  Each is either a
+         * document:
+         *
+         *     { uri: '/uri/to/use.xml', path: '/path/on/fs/file.xml' }
+         *
+         * or a metadata part (with optional `uri`, and `body` as metadata part
+         * in http://docs.marklogic.com/guide/rest-dev/bulk):
+         *
+         *     { body: collections: [ '/some/coll' ] }
+         *
+         * The difference between both is done by looking at the presence (or
+         * absence) of `path`.
+         */
         multipart(boundary, parts) {
             let mp = new Multipart(boundary);
             parts.forEach(part => {
-                //mp.header('Content-Type', 'foo/bar');
-                mp.header('Content-Disposition', 'attachment; filename="' + part.uri + '"');
-                mp.body(this.read(part.path));
+                if ( part.path ) {
+                    //mp.header('Content-Type', 'foo/bar');
+                    mp.header('Content-Disposition', 'attachment; filename="' + part.uri + '"');
+                    mp.body(this.read(part.path));
+                }
+                else {
+                    if ( part.uri ) {
+                        mp.header('Content-Disposition', 'attachment; filename="' + part.uri + '"; category=metadata');
+                    }
+                    else {
+                        mp.header('Content-Disposition', 'inline; category=metadata');
+                    }
+                    mp.header('Content-Type', 'application/json');
+                    mp.body(JSON.stringify(part.body));
+                }
             });
             return mp.payload();
         }
