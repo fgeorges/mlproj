@@ -17,7 +17,10 @@
             .map(   'param',    '-p', '--param',            'set/override a parameter value <name:value>')
             .option('user',     '-u', '--user',             'set/override the @user')
             .flag(  'verbose',  '-v', '--verbose',          'verbose mode')
-            .flag(  'password', '-z', '--password',         'ask for password interactively')
+            .or()
+                .flag(  'ipassword', '-z', '--ipassword', 'ask for password interactively')
+                .option('password',  '-Z', '--password',  'set/override the @password')
+                .end()
             .or()
                 .option('environ', '-e', '--environ', 'environment name')
                 .option('file',    '-f', '--file',    'environment file')
@@ -344,6 +347,26 @@
             let arg = _addArgument(this.prg, Arg, Array.from(arguments));
             arg.group = this;
             this.prg.args['@unnamed@'] = arg;
+            this.args.push(arg);
+            return this;
+        }
+
+        option() {
+            let arg = _addArgument(this.prg, Option, Array.from(arguments));
+            arg.flags.forEach(f => {
+                this.keys[f] = arg;
+            });
+            arg.group = this;
+            this.args.push(arg);
+            return this;
+        }
+
+        flag() {
+            let arg = _addArgument(this.prg, Flag, Array.from(arguments));
+            arg.flags.forEach(f => {
+                this.keys[f] = arg;
+            });
+            arg.group = this;
             this.args.push(arg);
             return this;
         }

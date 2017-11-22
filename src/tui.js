@@ -62,7 +62,8 @@ function execHelp(ctxt, args, prg)
        -p, --param <name:value>   set/override a parameter value <name:value>
        -u, --user <user>          set/override the @user
        -v, --verbose              verbose mode
-       -z, --password             ask for password interactively
+       -z, --ipassword            ask for password interactively
+       -Z, --password <pwd>       set/override the @password
 
    Command options:
 
@@ -191,8 +192,11 @@ function execWithProject(ctxt, args, cmd)
     var params   = args.global.param || {};
     var force    = {};
     [ 'code', 'host', 'user' ].forEach(name => force[name] = args.global[name]);
-    if ( args.global.password ) {
+    if ( args.global.ipassword ) {
         force.password = read.question('Password: ', { hideEchoBack: true });
+    }
+    else if ( args.global.password ) {
+        force.password = args.global.password;
     }
     // the project & command
     var environ = makeEnviron(ctxt, env, path, params, force);
