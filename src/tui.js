@@ -47,6 +47,7 @@ function execHelp(ctxt, args, prg)
        help         display help about another command
        new          create a new project in the current directory
        show         display the environment
+       init         initialize a new MarkLogic instance or cluster
        setup        setup the environment on MarkLogic
        load         load documents to a database
        deploy       deploy modules to a database

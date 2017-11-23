@@ -2,6 +2,7 @@
 
 (function() {
 
+    const buf      = require('buffer');
     const fs       = require('fs');
     const os       = require('os');
     const path     = require('path');
@@ -397,36 +398,50 @@
             return resp;
         }
 
+        extractBody(resp) {
+            let body  = resp.body;
+            let ctype = resp.headers && body.length && resp.headers['content-type'];
+            if ( ctype ) {
+                // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
+                if ( ctype.startsWith('application/json') ) {
+                    body = JSON.parse(body);
+                }
+                // TODO: Parse it properly, e.g. "application/xml; charset=UTF-8"
+                else if ( ctype.startsWith('application/xml') ) {
+                    body = body.toString();
+                }
+            }
+            return body;
+        }
+
         get(params, path) {
+            //let tracer  = new HttpTracer();
+            //tracer.params(params, path);
             let url     = this.url(params, path);
             let options = {};
             options.headers = params.headers || {};
             if ( options.headers.accept === undefined ) {
                 options.headers.accept = 'application/json';
             }
-            let resp = this.requestAuth('GET', url, options);
-            let body = resp.body;
-            if ( resp.headers
-                 && resp.headers['content-type']
-                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
-                 && resp.headers['content-type'].startsWith('application/json') ) {
-                body = JSON.parse(body);
-            }
-            //console.log(resp);
-            //console.log(resp.body + '');
-            return {
+            //tracer.request('GET', url, options);
+            let resp   = this.requestAuth('GET', url, options);
+            let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
-                body    : body
+                body    : this.extractBody(resp)
             };
+            //tracer.response(result);
+            return result;
         }
 
         post(params, path, data, mime) {
+            //let tracer  = new HttpTracer();
+            //tracer.params(params, path, data, mime);
             let url     = this.url(params, path);
-            let body    = data || params.body;
-            let type    = mime || params.type;
             let options = {};
             options.headers = params.headers || {};
+            let body    = data || params.body;
+            let type    = mime || params.type || options.headers['content-type'];
             if ( ! options.headers.accept ) {
                 options.headers.accept = 'application/json';
             }
@@ -440,27 +455,20 @@
             else {
                 options.headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            //console.log(url);
-            //console.log(options);
-            let resp    = this.requestAuth('POST', url, options);
-            let content = resp.body;
-            //console.log(resp);
-            //console.log(resp.body + '');
-            if ( resp.headers
-                 && content.length
-                 && resp.headers['content-type']
-                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
-                 && resp.headers['content-type'].startsWith('application/json') ) {
-                content = JSON.parse(content);
-            }
-            return {
+            //tracer.request('POST', url, options);
+            let resp   = this.requestAuth('POST', url, options);
+            let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
-                body    : content
+                body    : this.extractBody(resp)
             };
+            //tracer.response(result);
+            return result;
         }
 
         put(params, path, data, mime) {
+            //let tracer  = new HttpTracer();
+            //tracer.params(params, path, data, mime);
             let url     = this.url(params, path);
             let body    = data || params.body;
             let type    = mime || params.type;
@@ -479,7 +487,6 @@
             else {
                 options.headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            // DEBUG: Left for debug purposes...
             //
             // TODO: Create a proper debug level selection mechanism, with the
             // ability to say, on the command line: "log the HTTP requests, log
@@ -487,23 +494,15 @@
             // actions with their data, log the file selections, log everything,
             // etc."
             //
-            //console.log(url);
-            //console.log(options);
-            let resp    = this.requestAuth('PUT', url, options);
-            let content = resp.body;
-            //console.log(resp);
-            //console.log(resp.body + '');
-            if ( resp.headers
-                 && resp.headers['content-type']
-                 // TODO: Parse it properly, e.g. "application/json; charset=UTF-8"
-                 && resp.headers['content-type'].startsWith('application/json') ) {
-                content = JSON.parse(content);
-            }
-            return {
+            //tracer.request('PUT', url, options);
+            let resp   = this.requestAuth('PUT', url, options);
+            let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
-                body    : content
+                body    : this.extractBody(resp)
             };
+            //tracer.response(result);
+            return result;
         }
 
         boundary() {
@@ -628,6 +627,95 @@
             }
         }
     }
+
+    // Private variable for HttpTracer.
+    // TODO: Allow to set it in a config file and on the command line...
+    const TRACEDIR = '/tmp/mlproj-trace/';
+
+    // Private class for Platform.get(), .post() and .put().
+    class HttpTracer
+    {
+        constructor() {
+            // the stamp to use for this request/response pair
+            this.stamp  = HttpTracer.now();
+        }
+
+        // common implementation to trace parameters, a request or a response
+        trace(type, obj, body) {
+            // write a file synchronously
+            const write = (path, content) => {
+                let fd = fs.openSync(HttpTracer.dir() + path, 'wx');
+                fs.writeSync(fd, content);
+                fs.fsyncSync(fd);
+            };
+            // log the http entity, and maybe its body
+            let base = this.stamp + '-' + type;
+            write(base + '.json', JSON.stringify(obj));
+            if ( body instanceof buf.Buffer ) {
+                write(base + '.bin', body);
+            }
+        }
+
+        params(params, path, data, mime) {
+            const obj = {
+                params:  params,
+                path:    path,
+                data:    data,
+                mime:    mime
+            };
+            // do not include data if it is a (binary) buffer
+            if ( data instanceof buf.Buffer ) {
+                let msg = '<excluded because it is a binary buffer, of length ' + data.length + '>';
+                obj.data = { excluded: msg };
+            }
+            // trace the parameters
+            this.trace('params', obj, data);
+        }
+
+        request(verb, url, options) {
+            const obj = {
+                verb:    verb,
+                url:     url,
+                options: options
+            };
+            // do not include options.body if it is a (binary) buffer
+            if ( options && options.body instanceof buf.Buffer ) {
+                // do not alter the `options` object in place, caller owns it, so make a copy first
+                obj.options = {};
+                Object.keys(options).forEach(k => obj.options[k] = options[k]);
+                let msg = '<excluded because it is a binary buffer, of length ' + options.body.length + '>';
+                obj.options.body = { excluded: msg };
+            }
+            // trace the request
+            this.trace('request', obj, options.body);
+        }
+
+        response(res) {
+            let obj = res;
+            // do not include res.body if it is a (binary) buffer
+            if ( obj.body instanceof buf.Buffer ) {
+                // do not alter the `res` object in place, caller owns it, so make a copy first
+                obj = {};
+                Object.keys(res).forEach(k => obj[k] = res[k]);
+                let msg = '<excluded because it is a binary buffer, of length ' + res.body.length + '>';
+                obj.body = { excluded: msg };
+            }
+            // trace the response
+            this.trace('response', obj, res.body);
+        }
+    }
+
+    HttpTracer.dir = () => {
+        if ( ! HttpTracer.traceDir ) {
+            HttpTracer.traceDir = TRACEDIR + HttpTracer.now() + '/';
+            fs.mkdirSync(HttpTracer.traceDir);
+        }
+        return HttpTracer.traceDir;
+    };
+
+    HttpTracer.now = () => {
+        return new Date().toISOString().replace(/:|\./g, '-');
+    };
 
     // Private variable for Multipart.
     const NL = '\r\n';

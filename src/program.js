@@ -46,6 +46,14 @@
             .usage('');
 
         prg
+            .command('init')
+            .clazz(core.InitCommand)
+            .desc('Initialize a new MarkLogic instance or cluster.')
+            .usage('[-l licensee] [-k license-key]')
+            .option('licensee', '-l', '--licensee', 'authorized licensee of the license key')
+            .option('key',      '-k', '--key',      'license key');
+
+        prg
             .command('setup')
             .clazz(core.SetupCommand)
             .desc('Setup the environment on MarkLogic.')
