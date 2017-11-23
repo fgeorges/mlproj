@@ -946,26 +946,30 @@
             Display.action(indent, '  need to ' + chalk.red(verb) + ' ' + msg, arg);
         }
 
-        error(e, verbose) {
-            switch ( e.name ) {
-            case 'server-no-content':
-                Display.log(chalk.red('Error') + ': The server ' + e.server + ' has no content DB.');
-                Display.log('Are you sure you want to load documents on it?  Check your environ file.');
-                break;
-            case 'server-no-modules':
-                Display.log(chalk.red('Error') + ': The server ' + e.server + ' has no modules DB.');
-                Display.log('There is no need to deploy when server modules are on the filesystem.');
-                break;
-            default:
-                Display.log(chalk.red('Error') + ': ' + e.message);
-            }
-            if ( verbose ) {
-                Display.log();
-                Display.log(chalk.bold('Stacktrace') + ':');
-                Display.log(e.stack);
-            }
+        error(err) {
+            Display.error(err, this.verbose);
         }
     }
+
+    Display.error = (err, verbose) => {
+        switch ( err.name ) {
+        case 'server-no-content':
+            Display.log(chalk.red('Error') + ': The server ' + err.server + ' has no content DB.');
+            Display.log('Are you sure you want to load documents on it?  Check your environ file.');
+            break;
+        case 'server-no-modules':
+            Display.log(chalk.red('Error') + ': The server ' + err.server + ' has no modules DB.');
+            Display.log('There is no need to deploy when server modules are on the filesystem.');
+            break;
+        default:
+            Display.log(chalk.red('Error') + ': ' + err.message);
+        }
+        if ( verbose ) {
+            Display.log();
+            Display.log(chalk.bold('Stacktrace') + ':');
+            Display.log(err.stack);
+        }
+    };
 
     Display.log = msg => {
         if ( msg === undefined ) {

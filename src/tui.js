@@ -161,6 +161,11 @@ function execNew(ctxt, args, cmd)
             ctxt.platform.log(actions.error.error.stack);
         }
     }
+    // TODO: Really. do it here?  Would be better in main()...
+    // Besides, this whole thing is copied three times...
+    if ( actions.error ) {
+        process.exit(1);
+    }
 }
 
 function makeEnviron(ctxt, env, path, params, force)
@@ -240,6 +245,11 @@ function execWithProject(ctxt, args, cmd)
             ctxt.platform.log('Nothing to do.');
         }
     }
+    // TODO: Really. do it here?  Would be better in main()...
+    // Besides, this whole thing is copied three times...
+    if ( actions.error ) {
+        process.exit(1);
+    }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -272,7 +282,8 @@ function main(argv, display)
         }
     }
     catch (err) {
-        ctxt.display.error(err, args.global.verbose);
+        ctxt.display.error(err);
+        process.exit(1);
     }
 }
 
@@ -280,8 +291,6 @@ try {
     main(process.argv.slice(2));
 }
 catch (err) {
-    // here, I think we should always be verbose... (unexpected error)
-    // TODO: ...
-    throw err;
-    //display.error(err, true);
+    Display.error(err, true);
+    process.exit(1);
 }
