@@ -313,8 +313,13 @@
                     throw new Error('Expect WWW-Authenticate for digest, got: ' + header);
                 }
                 return header.substring(7).split(/,\s+/).reduce((obj, s) => {
-                    var parts = s.split('=')
-                    obj[parts[0]] = parts[1].replace(/"/g, '')
+                    var eq = s.indexOf('=');
+                    if ( eq === -1 ) {
+                        throw new Error('Digest parsing: param with no equal sign: ' + s);
+                    }
+                    var name  = s.slice(0, eq);
+                    var value = s.slice(eq + 1);
+                    obj[name] = value.replace(/"/g, '')
                     return obj
                 }, {});
             };
@@ -358,13 +363,24 @@
                     }
                 }
                 // TODO: Handle NC and CNONCE
-                var nc     = '00000001';
-                var cnonce = '4f1ab28fcd820bc5';
+                var nc     = '00000002';
+                var cnonce = '4f1ab28fcd820bc6';
                 var ha1    = md5('ha1', creds[0] + ':' + params.realm + ':' + creds[1]);
 
-                // TODO: `path` not properly provisionned?!?
-                // How could it work?!? (path refers to require('path'), here)
-                // Get it from `url`? (from and after first '/'..., or 3d, because of http://...?)
+                var path;
+                if ( url.startsWith('http://') ) {
+                    path = url.slice(7);
+                }
+                else if ( url.startsWith('https://') ) {
+                    path = url.slice(8);
+                }
+                else {
+                    throw new Error('URL is neither HTTP or HTTPS: ' + url);
+                }
+                var slash = path.indexOf('/');
+                path = slash === -1
+                    ? '/'
+                    : path.slice(slash);
 
                 var ha2    = md5('ha2', method + ':' + path);
                 var resp   = md5('response', [ha1, params.nonce, nc, cnonce, params.qop, ha2].join(':'));
