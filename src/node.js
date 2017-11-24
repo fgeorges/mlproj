@@ -861,6 +861,14 @@
             log('');
         }
 
+        user(props) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('user') + ': ' + chalk.bold(chalk.yellow(props['user-name'].value)));
+            Object.keys(props).forEach(p => this._property(props[p]));
+            log('');
+        }
+
         _property(prop, level) {
             const line = Display.line;
             if ( ! level ) {
