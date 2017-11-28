@@ -256,7 +256,7 @@ function execWithProject(ctxt, args, cmd)
  * The program itself
  */
 
-function main(argv, display)
+function main(argv)
 {
     let prg     = program.makeProgram();
     let args    = prg.parse(argv);
@@ -291,6 +291,6 @@ try {
     main(process.argv.slice(2));
 }
 catch (err) {
-    Display.error(err, true);
+    node.Display.error(err, true);
     process.exit(1);
 }

@@ -864,7 +864,7 @@
         user(props) {
             const log  = Display.log;
             const line = Display.line;
-            log(chalk.bold('user') + ': ' + chalk.bold(chalk.yellow(props['user-name'].value)));
+            log(chalk.bold('User') + ': ' + chalk.bold(chalk.yellow(props['user-name'].value)));
             Object.keys(props).forEach(p => this._property(props[p]));
             log('');
         }
