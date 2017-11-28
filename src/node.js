@@ -431,28 +431,28 @@
         }
 
         get(params, path) {
-            //let tracer  = new HttpTracer();
-            //tracer.params(params, path);
+            let tracer  = new HttpTracer(this.environ);
+            tracer.params(params, path);
             let url     = this.url(params, path);
             let options = {};
             options.headers = params.headers || {};
             if ( options.headers.accept === undefined ) {
                 options.headers.accept = 'application/json';
             }
-            //tracer.request('GET', url, options);
+            tracer.request('GET', url, options);
             let resp   = this.requestAuth('GET', url, options);
             let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
                 body    : this.extractBody(resp)
             };
-            //tracer.response(result);
+            tracer.response(result);
             return result;
         }
 
         post(params, path, data, mime) {
-            //let tracer  = new HttpTracer();
-            //tracer.params(params, path, data, mime);
+            let tracer  = new HttpTracer(this.environ);
+            tracer.params(params, path, data, mime);
             let url     = this.url(params, path);
             let options = {};
             options.headers = params.headers || {};
@@ -471,20 +471,20 @@
             else {
                 options.headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            //tracer.request('POST', url, options);
+            tracer.request('POST', url, options);
             let resp   = this.requestAuth('POST', url, options);
             let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
                 body    : this.extractBody(resp)
             };
-            //tracer.response(result);
+            tracer.response(result);
             return result;
         }
 
         put(params, path, data, mime) {
-            //let tracer  = new HttpTracer();
-            //tracer.params(params, path, data, mime);
+            let tracer  = new HttpTracer(this.environ);
+            tracer.params(params, path, data, mime);
             let url     = this.url(params, path);
             let body    = data || params.body;
             let type    = mime || params.type;
@@ -510,14 +510,14 @@
             // actions with their data, log the file selections, log everything,
             // etc."
             //
-            //tracer.request('PUT', url, options);
+            tracer.request('PUT', url, options);
             let resp   = this.requestAuth('PUT', url, options);
             let result = {
                 status  : resp.statusCode,
                 headers : resp.headers,
                 body    : this.extractBody(resp)
             };
-            //tracer.response(result);
+            tracer.response(result);
             return result;
         }
 
@@ -644,23 +644,20 @@
         }
     }
 
-    // Private variable for HttpTracer.
-    // TODO: Allow to set it in a config file and on the command line...
-    const TRACEDIR = '/tmp/mlproj-trace/';
-
     // Private class for Platform.get(), .post() and .put().
     class HttpTracer
     {
-        constructor() {
+        constructor(environ) {
+            this.environ = environ;
             // the stamp to use for this request/response pair
-            this.stamp  = HttpTracer.now();
+            this.stamp   = HttpTracer.now();
         }
 
         // common implementation to trace parameters, a request or a response
         trace(type, obj, body) {
             // write a file synchronously
             const write = (path, content) => {
-                let fd = fs.openSync(HttpTracer.dir() + path, 'wx');
+                let fd = fs.openSync(HttpTracer.dir(this.environ) + path, 'wx');
                 fs.writeSync(fd, content);
                 fs.fsyncSync(fd);
             };
@@ -721,9 +718,24 @@
         }
     }
 
-    HttpTracer.dir = () => {
+    HttpTracer.dir = (environ) => {
         if ( ! HttpTracer.traceDir ) {
-            HttpTracer.traceDir = TRACEDIR + HttpTracer.now() + '/';
+            let trace = environ.config('trace');
+            if ( ! trace ) {
+                // next time, just return undefined straight away
+                HttpTracer.dir = (environ) => {
+                    return;
+                };
+                return;
+            }
+            let dir = trace.dir;
+            if ( ! dir ) {
+                throw new Error('Trace enabled, but no directory: ' + JSON.stringify(trace));
+            }
+            if ( ! dir.endsWith('/') && ! dir.endsWith('\\') ) {
+                dir += '/';
+            }
+            HttpTracer.traceDir = dir + HttpTracer.now() + '/';
             fs.mkdirSync(HttpTracer.traceDir);
         }
         return HttpTracer.traceDir;
