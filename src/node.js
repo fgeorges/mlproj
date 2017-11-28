@@ -861,6 +861,14 @@
             log('');
         }
 
+        role(props) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Role') + ': ' + chalk.bold(chalk.yellow(props['role-name'].value)));
+            Object.keys(props).forEach(p => this._property(props[p]));
+            log('');
+        }
+
         user(props) {
             const log  = Display.log;
             const line = Display.line;
