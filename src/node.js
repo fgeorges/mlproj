@@ -139,7 +139,7 @@
 
     class Context extends core.Context
     {
-        constructor(dry, verbose) {
+        constructor(dry, verbose, trace) {
             const json = f => {
                 try {
                     return Platform.userJson(f);
@@ -155,6 +155,7 @@
             var conf = json('.mlproj.json') || json('mlproj.json');
             // instantiate the base object
             super(new Display(verbose), new Platform(), conf, dry, verbose);
+            this.trace = trace;
         }
     }
 
@@ -655,17 +656,21 @@
 
         // common implementation to trace parameters, a request or a response
         trace(type, obj, body) {
-            // write a file synchronously
-            const write = (path, content) => {
-                let fd = fs.openSync(HttpTracer.dir(this.environ) + path, 'wx');
-                fs.writeSync(fd, content);
-                fs.fsyncSync(fd);
-            };
-            // log the http entity, and maybe its body
-            let base = this.stamp + '-' + type;
-            write(base + '.json', JSON.stringify(obj));
-            if ( body instanceof buf.Buffer ) {
-                write(base + '.bin', body);
+            const dir = HttpTracer.dir(this.environ);
+            // if trace is enabled...
+            if ( dir ) {
+                // write a file synchronously
+                const write = (path, content) => {
+                    let fd = fs.openSync(dir + path, 'wx');
+                    fs.writeSync(fd, content);
+                    fs.fsyncSync(fd);
+                };
+                // log the http entity, and maybe its body
+                let base = this.stamp + '-' + type;
+                write(base + '.json', JSON.stringify(obj));
+                if ( body instanceof buf.Buffer ) {
+                    write(base + '.bin', body);
+                }
             }
         }
 
@@ -718,19 +723,16 @@
         }
     }
 
+    // cache dir in a static property, to use for all traces in the same mlproj run
     HttpTracer.dir = (environ) => {
         if ( ! HttpTracer.traceDir ) {
-            let trace = environ.config('trace');
-            if ( ! trace ) {
+            let dir = environ.ctxt.trace;
+            if ( ! dir ) {
                 // next time, just return undefined straight away
                 HttpTracer.dir = (environ) => {
                     return;
                 };
                 return;
-            }
-            let dir = trace.dir;
-            if ( ! dir ) {
-                throw new Error('Trace enabled, but no directory: ' + JSON.stringify(trace));
             }
             if ( ! dir.endsWith('/') && ! dir.endsWith('\\') ) {
                 dir += '/';

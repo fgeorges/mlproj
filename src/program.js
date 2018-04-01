@@ -10,13 +10,13 @@
         let prg = new Program();
 
         prg
-            .version('0.23.0')
-            .option('code',     '-c', '--code',             'set/override the @code')
+            .option('code',     '-c', '--code',    'set/override the @code')
             .flag(  'dry',      '-d', '--dry', '--dry-run', 'dry run')
-            .option('host',     '-h', '--host',             'set/override the @host')
-            .map(   'param',    '-p', '--param',            'set/override a parameter value <name:value>')
-            .option('user',     '-u', '--user',             'set/override the @user')
-            .flag(  'verbose',  '-v', '--verbose',          'verbose mode')
+            .option('host',     '-h', '--host',    'set/override the @host')
+            .map(   'param',    '-p', '--param',   'set/override a parameter value <name:value>')
+            .option('trace',    '-t', '--trace',   'the dir to put HTTP traces')
+            .option('user',     '-u', '--user',    'set/override the @user')
+            .flag(  'verbose',  '-v', '--verbose', 'verbose mode')
             .or()
                 .flag(  'ipassword', '-z', '--ipassword', 'ask for password interactively')
                 .option('password',  '-Z', '--password',  'set/override the @password')
@@ -438,11 +438,6 @@
             this.keys     = {};
             this.list     = [];
             this.commands = {};
-        }
-
-        version(ver) {
-            this._version = ver;
-            return this;
         }
 
         flag() {

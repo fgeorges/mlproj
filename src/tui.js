@@ -61,6 +61,7 @@ function execHelp(ctxt, args, prg)
        -f, --file <path>          set the environment file
        -h, --host <host>          set/override the @host
        -p, --param <name:value>   set/override a parameter value <name:value>
+       -t, --trace <dir>          enable and set the dir to put HTTP traces
        -u, --user <user>          set/override the @user
        -v, --verbose              verbose mode
        -z, --ipassword            ask for password interactively
@@ -178,16 +179,22 @@ function makeEnviron(ctxt, env, path, params, force)
         env = 'default';
     }
     // do it (either env or file)
+    let res;
     if ( env ) {
         let proj = new core.Project(ctxt, ctxt.platform.cwd);
-        return proj.environ(env, params, force);
+        res = proj.environ(env, params, force);
     }
     else {
         let json = ctxt.platform.json(path);
-        let res  = new core.Environ(ctxt, json);
+        res = new core.Environ(ctxt, json);
         res.compile(params, force);
-        return res;
     }
+    // set trace if not set on ctxt but set on environ
+    if ( ! ctxt.trace ) {
+        const t = res.config('trace');
+        ctxt.trace = t && t.dir;
+    }
+    return res;
 }
 
 // implementation of the action for any command accepting a project/environment
@@ -262,7 +269,8 @@ function main(argv)
     let args    = prg.parse(argv);
     let dry     = args.global.dry     ? true : false;
     let verbose = args.global.verbose ? true : false;
-    let ctxt    = new node.Context(dry, verbose);
+    let trace   = args.global.trace;
+    let ctxt    = new node.Context(dry, verbose, trace);
     ctxt.platform.log('');
     try {
         if ( ! args.cmd || args.cmd === 'help' ) {
