@@ -139,7 +139,7 @@
 
     class Context extends core.Context
     {
-        constructor(dry, verbose, trace) {
+        constructor(dry, verbose, trace, tracedir) {
             const json = f => {
                 try {
                     return Platform.userJson(f);
@@ -155,7 +155,8 @@
             var conf = json('.mlproj.json') || json('mlproj.json');
             // instantiate the base object
             super(new Display(verbose), new Platform(), conf, dry, verbose);
-            this.trace = trace;
+            this.trace    = trace;
+            this.tracedir = tracedir;
         }
     }
 
@@ -725,22 +726,25 @@
 
     // cache dir in a static property, to use for all traces in the same mlproj run
     HttpTracer.dir = (environ) => {
-        if ( ! HttpTracer.traceDir ) {
-            let dir = environ.ctxt.trace;
-            if ( ! dir ) {
+        if ( ! HttpTracer.tracedir ) {
+            if ( ! environ.ctxt.trace ) {
                 // next time, just return undefined straight away
                 HttpTracer.dir = (environ) => {
                     return;
                 };
                 return;
             }
+            let dir = environ.ctxt.tracedir;
+            if ( ! dir ) {
+                throw new Error('HTTP trace enabled but no dir?!?');
+            }
             if ( ! dir.endsWith('/') && ! dir.endsWith('\\') ) {
                 dir += '/';
             }
-            HttpTracer.traceDir = dir + HttpTracer.now() + '/';
-            fs.mkdirSync(HttpTracer.traceDir);
+            HttpTracer.tracedir = dir + HttpTracer.now() + '/';
+            fs.mkdirSync(HttpTracer.tracedir);
         }
-        return HttpTracer.traceDir;
+        return HttpTracer.tracedir;
     };
 
     HttpTracer.now = () => {

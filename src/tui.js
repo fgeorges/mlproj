@@ -61,7 +61,8 @@ function execHelp(ctxt, args, prg)
        -f, --file <path>          set the environment file
        -h, --host <host>          set/override the @host
        -p, --param <name:value>   set/override a parameter value <name:value>
-       -t, --trace <dir>          enable and set the dir to put HTTP traces
+       -T, --trace                enable HTTP traces
+       -t, --trace-dir <dir>      the dir to put HTTP traces (enable as well)
        -u, --user <user>          set/override the @user
        -v, --verbose              verbose mode
        -z, --ipassword            ask for password interactively
@@ -189,10 +190,32 @@ function makeEnviron(ctxt, env, path, params, force)
         res = new core.Environ(ctxt, json);
         res.compile(params, force);
     }
-    // set trace if not set on ctxt but set on environ
-    if ( ! ctxt.trace ) {
+    // resolve trace options with defaults
+    if ( ctxt.tracedir ) {
+        ctxt.trace = true;
+    }
+    else {
         const t = res.config('trace');
-        ctxt.trace = t && t.dir;
+        if ( ctxt.trace ) {
+            if ( ! t || ! t.dir ) {
+                throw new Error('HTTP trace enabled by option, but no dir given');
+            }
+            ctxt.tracedir = t.dir;
+        }
+        else if ( t ) {
+            if ( t.dir ) {
+                if ( t.enabled || t.enabled === undefined ) {
+                    ctxt.trace    = true;
+                    ctxt.tracedir = t.dir;
+                }
+            }
+            else if ( t.enabled ) {
+                throw new Error('HTTP trace enabled in config, but no dir given');
+            }
+        }
+        else {
+            // no trace option nor config: nothing to do
+        }
     }
     return res;
 }
@@ -265,12 +288,13 @@ function execWithProject(ctxt, args, cmd)
 
 function main(argv)
 {
-    let prg     = program.makeProgram();
-    let args    = prg.parse(argv);
-    let dry     = args.global.dry     ? true : false;
-    let verbose = args.global.verbose ? true : false;
-    let trace   = args.global.trace;
-    let ctxt    = new node.Context(dry, verbose, trace);
+    const prg      = program.makeProgram();
+    const args     = prg.parse(argv);
+    const dry      = args.global.dry     ? true : false;
+    const verbose  = args.global.verbose ? true : false;
+    const trace    = args.global.trace;
+    const tracedir = args.global.tracedir;
+    const ctxt     = new node.Context(dry, verbose, trace, tracedir);
     ctxt.platform.log('');
     try {
         if ( ! args.cmd || args.cmd === 'help' ) {

@@ -10,13 +10,14 @@
         let prg = new Program();
 
         prg
-            .option('code',     '-c', '--code',    'set/override the @code')
+            .option('code',     '-c', '--code',      'set/override the @code')
             .flag(  'dry',      '-d', '--dry', '--dry-run', 'dry run')
-            .option('host',     '-h', '--host',    'set/override the @host')
-            .map(   'param',    '-p', '--param',   'set/override a parameter value <name:value>')
-            .option('trace',    '-t', '--trace',   'the dir to put HTTP traces')
-            .option('user',     '-u', '--user',    'set/override the @user')
-            .flag(  'verbose',  '-v', '--verbose', 'verbose mode')
+            .option('host',     '-h', '--host',      'set/override the @host')
+            .map(   'param',    '-p', '--param',     'set/override a parameter value <name:value>')
+            .flag(  'trace',    '-T', '--trace',     'enable HTTP traces')
+            .option('tracedir', '-t', '--trace-dir', 'the dir to put HTTP traces (enable as well)')
+            .option('user',     '-u', '--user',      'set/override the @user')
+            .flag(  'verbose',  '-v', '--verbose',   'verbose mode')
             .or()
                 .flag(  'ipassword', '-z', '--ipassword', 'ask for password interactively')
                 .option('password',  '-Z', '--password',  'set/override the @password')
