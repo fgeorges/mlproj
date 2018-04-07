@@ -13,6 +13,7 @@
     const crypto   = require('crypto');
     const xml      = require('xml2js');
     const chokidar = require('chokidar');
+    const mmatch   = require("minimatch");
     const core     = require('mlproj-core');
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,6 +169,10 @@
     {
         constructor() {
             super(process.cwd());
+        }
+
+        newMinimatch(pattern, options) {
+            return new mmatch.Minimatch(pattern, options);
         }
 
         mkdir(path, force) {
