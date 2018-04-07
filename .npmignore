@@ -1,0 +1,6 @@
+dev
+.editorconfig
+.git
+.gitignore
+node_modules
+test
