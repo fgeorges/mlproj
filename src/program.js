@@ -50,9 +50,12 @@
             .command('init')
             .clazz(core.InitCommand)
             .desc('Initialize a new MarkLogic instance or cluster.')
-            .usage('[-l licensee] [-k license-key]')
+            .usage('[-k key] [-l licensee] [-m master] [kind hosts...]')
+            .option('key',      '-k', '--key',      'license key')
             .option('licensee', '-l', '--licensee', 'authorized licensee of the license key')
-            .option('key',      '-k', '--key',      'license key');
+            .option('master',   '-m', '--master',   'master host (with optional port)')
+            .arg('kind')
+            .rest('hosts');
 
         prg
             .command('setup')
@@ -148,6 +151,54 @@
 `Display the details of the given environment.  The environment is "resolved"
    before being displayed (variables, dependencies are resolved, parameters
    are injected.)`);
+
+        // show
+        prg.help('init',
+`Options:
+
+       -k, --key <key>        license key
+       -l, --licensee <name>  authorized licensee of the license key
+       -m, --master           master hostname (format "host[:port]")
+       <kind>                 thing to init: host, master, extra or cluster
+       <hosts...>             the hostname(s) of the thing(s) to initialize
+
+   The initialization sequence is essentialy: "init master" to initialize the
+   first node, then "init extra" once for each extra node in the cluster.
+   "init cluster" initializes all nodes at once.
+
+   To initialize a single-node, standalone instance, use "init host" (which
+   is technically the same as "init master", or as "init cluster" with no
+   extra node.)
+
+   If your environ files are correctly configured, you are able to initialize
+   the entire cluster (or single node) by simply invoking "mlproj init".  See
+   the reference documentation for the init command and for environ files for
+   all details and more examples.
+
+   The key and licensee name are the license information to use for the master
+   (or single host.)  When initializing an extra node, you might need to pass
+   the master connection info, using --master.
+
+   Note that there is no real "master" in a cluster (MarkLogic documentation
+   rather uses the term "bootstrap node".)  See the official MarkLogic doc for
+   details.
+
+   Examples:
+
+   The following initializes the host(s) as configured in the environ "prod":
+
+       mlproj -e prod init
+
+   The following adds a new host to a cluster, using the main host in the
+   default environ as the master:
+
+       mlproj init extra some-hostname
+
+   The following initializes the master using the main host in the environ,
+   passing license key and licensee name on the command line, and adds two
+   extra nodes to the cluster:
+
+       mlproj init -k 87365473 -l "My company" cluster host-one host-two`);
 
         // setup
         prg.help('setup',
