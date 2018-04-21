@@ -289,7 +289,7 @@
             if ( this.group ) {
                 this.group.args.forEach(a => {
                     if ( res[a.name] ) {
-                        throw new Error('Arg ' + a.name + ' already set, exclusif with: ' + this.name);
+                        throw new Error('Arg ' + a.name + ' already set, exclusive with: ' + this.name);
                     }
                 });
             }
@@ -368,10 +368,27 @@
 
         found(res, arg, args) {
             super.found(res, arg, args);
-            if ( res[this.name] ) {
-                throw new Error('Unnamed argument  already given: ' + res[this.name]);
+            const n = this.name;
+            if ( res[n] ) {
+                throw new Error(`Argument with name ${n} already given: ${res[n]}`);
             }
-            res[this.name] = arg;
+            res[n] = arg;
+        }
+    }
+
+    class Rest extends Argument
+    {
+        constructor(name, flags, desc) {
+            super(name, flags, desc);
+        }
+
+        found(res, arg, args) {
+            super.found(res, arg, args);
+            const n = this.name;
+            if ( ! res[n] ) {
+                res[n] = [];
+            }
+            res[n].push(arg);
         }
     }
 
@@ -385,12 +402,12 @@
         }
 
         arg(name) {
-            if ( this.prg.args['@unnamed@'] ) {
-                throw new Error('There is already an unnamed arg on command ' + this.prg.name);
+            if ( ! this.prg.extra ) {
+                throw new Error(`Arguments not supported at program level: ${name}`);
             }
             let arg = _addArgument(this.prg, Arg, Array.from(arguments));
             arg.group = this;
-            this.prg.args['@unnamed@'] = arg;
+            this.prg.extra.push(arg);
             this.args.push(arg);
             return this;
         }
@@ -511,11 +528,19 @@
                 if ( opt ) {
                     opt.found(res.local, arg, args);
                 }
-                else if ( cmd.args['@unnamed@'] && ! arg.startsWith('-') ) {
-                    cmd.args['@unnamed@'].found(res.local, arg, args);
+                else if ( arg.startsWith('-') ) {
+                    throw new Error(`No such command option: ${arg}`);
                 }
                 else {
-                    throw new Error('No such command option: ' + arg);
+                    if ( cmd.extra.length ) {
+                        cmd.extra.shift().found(res.local, arg, args);
+                    }
+                    else if ( cmd.extras ) {
+                        cmd.extras.found(res.local, arg, args);
+                    }
+                    else {
+                        throw new Error(`No more argument supported: ${arg}`);
+                    }
                 }
             }
             return res;
@@ -525,11 +550,12 @@
     class Command
     {
         constructor(prg, name) {
-            this.prg  = prg;
-            this.name = name;
-            this.args = {};
-            this.keys = {};
-            this.list = [];
+            this.prg   = prg;
+            this.name  = name;
+            this.args  = {};
+            this.extra = [];
+            this.keys  = {};
+            this.list  = [];
         }
 
         usage(u) {
@@ -578,11 +604,18 @@
         }
 
         arg() {
-            if ( this.args['@unnamed@'] ) {
-                throw new Error('There is already an unnamed arg on command ' + this.name);
-            }
             let arg = _addArgument(this, Arg, Array.from(arguments));
-            this.args['@unnamed@'] = arg;
+            if ( this.extras ) {
+                throw new Error(`Arg ${arg.name} cannot be set after a catch all Rest ${this.extras.name}`);
+            }
+            this.extra.push(arg);
+            this.list.push(arg);
+            return this;
+        }
+
+        rest() {
+            let arg = _addArgument(this, Rest, Array.from(arguments));
+            this.extras = arg;
             this.list.push(arg);
             return this;
         }
