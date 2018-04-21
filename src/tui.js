@@ -15,21 +15,25 @@ const pkg     = require('../package.json');
  */
 
 // start of plain commands, validate forbidden options
-function plainCmdStart(args)
+function plainCmdStart(args, extra)
 {
     // check forbidden options
-    [ 'dry', 'environ', 'file', 'code', 'host', 'user', 'password' ].forEach(name => {
+    let options = [ 'environ', 'file', 'code', 'host', 'user', 'password' ];
+    if ( extra ) {
+        options = options.concat(extra);
+    }
+    options.forEach(name => {
         if ( args.global[name] ) {
-            throw new Error('Option `--' + name + '` not supported for command `' + args.cmd + '`');
+            throw new Error('Option `--' + name + '` not supported');
         }
     });
 }
 
-// implementation of the action for command `new`
+// implementation of the action for command `help`
 function execHelp(ctxt, args, prg)
 {
     // validate options
-    plainCmdStart(args);
+    plainCmdStart(args, 'dry');
 
     // the command
     let name = args.local.cmd;
@@ -102,10 +106,10 @@ function execHelp(ctxt, args, prg)
 function execNew(ctxt, args, cmd)
 {
     // validate options
-    plainCmdStart(args);
+    plainCmdStart(args, 'dry');
     var dir = ctxt.platform.cwd;
 
-    // Check the directory is empty...!
+    // check the directory is empty...
     if ( ! args.local.force && fs.readdirSync(dir).length ) {
         const prompt = 'Directory is not empty, do you want to force creation and continue?';
         if ( read.keyInYNStrict(prompt) ) {
@@ -182,12 +186,12 @@ function makeEnviron(ctxt, env, path, params, force)
     // do it (either env or file)
     let res;
     if ( env ) {
-        let proj = new core.Project(ctxt, ctxt.platform.cwd);
+        const proj = new core.Project(ctxt, ctxt.platform.cwd);
         res = proj.environ(env, params, force);
     }
     else {
-        let json = ctxt.platform.json(path);
-        res = new core.Environ(ctxt, json);
+        const json = ctxt.platform.json(path);
+        res = new core.Environ(ctxt, json, path);
         res.compile(params, force);
     }
     // resolve trace options with defaults
@@ -300,17 +304,14 @@ function main(argv)
         if ( ! args.cmd || args.cmd === 'help' ) {
             execHelp(ctxt, args, prg);
         }
-        else if ( args.cmd === 'new' ) {
-            execNew(
-                ctxt,
-                args,
-                prg.commands[args.cmd]);
-        }
         else {
-            execWithProject(
-                ctxt,
-                args,
-                prg.commands[args.cmd]);
+            let cmd = prg.commands[args.cmd];
+            if ( args.cmd === 'new' ) {
+                execNew(ctxt, args, cmd);
+            }
+            else {
+                execWithProject(ctxt, args, cmd);
+            }
         }
     }
     catch (err) {

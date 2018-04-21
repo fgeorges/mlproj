@@ -532,20 +532,6 @@
             return uuid();
         }
 
-        /*~
-         * The parameter `parts` is an array of objects.  Each is either a
-         * document:
-         *
-         *     { uri: '/uri/to/use.xml', path: '/path/on/fs/file.xml' }
-         *
-         * or a metadata part (with optional `uri`, and `body` as metadata part
-         * in http://docs.marklogic.com/guide/rest-dev/bulk):
-         *
-         *     { body: collections: [ '/some/coll' ] }
-         *
-         * The difference between both is done by looking at the presence (or
-         * absence) of `path`.
-         */
         multipart(boundary, parts) {
             let mp = new Multipart(boundary);
             parts.forEach(part => {
@@ -912,7 +898,12 @@
                 });
             }
             else if ( Array.isArray(prop.value) ) {
-                line(level, prop.prop.label, prop.value.join(', '));
+                const vals = prop.value.map(v => {
+                    return typeof v === 'object' && v['role-name']
+                        ? v['role-name'].value + '/' + v.capability.value
+                        : v;
+                });
+                line(level, prop.prop.label, vals.join(', '));
             }
             else {
                 line(level, prop.prop.label, prop.value);
