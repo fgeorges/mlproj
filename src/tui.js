@@ -189,10 +189,13 @@ function makeEnviron(ctxt, env, path, params, force)
         const proj = new core.Project(ctxt, ctxt.platform.cwd);
         res = proj.environ(env, params, force);
     }
-    else {
+    else if ( path ) {
         const json = ctxt.platform.json(path);
         res = new core.Environ(ctxt, json, path);
         res.compile(params, force);
+    }
+    else {
+        res = new core.FakeEnviron(ctxt, params, force);
     }
     // resolve trace options with defaults
     if ( ctxt.tracedir ) {
