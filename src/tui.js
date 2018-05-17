@@ -2,7 +2,6 @@
 
 "use strict";
 
-const chalk   = require('chalk');
 const fs      = require('fs');
 const read    = require('readline-sync');
 const core    = require('mlproj-core');
@@ -90,7 +89,7 @@ function execHelp(ctxt, args, prg)
             ctxt.platform.log('');
             ctxt.platform.log('   Usage:');
             ctxt.platform.log('');
-            ctxt.platform.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
+            ctxt.platform.log('       mlproj ' + ctxt.platform.bold(name) + ' ' + cmd.usage());
             ctxt.platform.log('');
             ctxt.platform.log('   ' + cmd.help);
             ctxt.platform.log('');
@@ -105,9 +104,11 @@ function execHelp(ctxt, args, prg)
 // implementation of the action for command `new`
 function execNew(ctxt, args, cmd)
 {
+    const pf = ctxt.platform;
+
     // validate options
     plainCmdStart(args, 'dry');
-    var dir = ctxt.platform.cwd;
+    var dir = pf.cwd;
 
     // check the directory is empty...
     if ( ! args.local.force && fs.readdirSync(dir).length ) {
@@ -121,7 +122,7 @@ function execNew(ctxt, args, cmd)
     }
 
     // gather info by asking the user...
-    ctxt.platform.log('--- ' + chalk.bold('Questions') + ' ---');
+    pf.log('--- ' + pf.bold('Questions') + ' ---');
     var loc      = args.local;
     var abbrev   = loc.abbrev || read.question('Project code     : ');
     var dfltName = 'http://mlproj.org/example/' + abbrev;
@@ -141,30 +142,30 @@ function execNew(ctxt, args, cmd)
     // execute the command
     var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt);
     var actions = command.prepare();
-    ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
-           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    pf.log('\n--- ' + pf.bold('Progress') + ' ---'
+           + (ctxt.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
     actions.execute();
-    ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
-           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    pf.log('\n--- ' + pf.bold('Summary') + ' ---'
+           + (ctxt.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
     if ( actions.done.length ) {
-        ctxt.platform.log(chalk.green('Done') + ':');
-        ctxt.platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
-        ctxt.platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].cmd.xpdir);
+        pf.log(pf.green('Done') + ':');
+        pf.log(pf.green('✓') + ' Project created: \t' + loc.abbrev);
+        pf.log(pf.green('→') + ' Check/edit files in:\t' + actions.done[0].cmd.xpdir);
     }
     if ( actions.error ) {
-        ctxt.platform.log(chalk.red('Error') + ':');
-        ctxt.platform.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
-        ctxt.platform.log(actions.error.message);
+        pf.log(pf.red('Error') + ':');
+        pf.log(pf.red('✗') + ' Project creation: \t' + loc.abbrev);
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     if ( actions.todo.length ) {
-        ctxt.platform.log(chalk.yellow('Not done') + ':');
-        ctxt.platform.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
-        ctxt.platform.log(actions.error.message);
+        pf.log(pf.yellow('Not done') + ':');
+        pf.log(pf.yellow('✗') + ' Project creation: \t' + loc.abbrev);
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     // TODO: Really. do it here?  Would be better in main()...
@@ -230,11 +231,12 @@ function makeEnviron(ctxt, env, path, params, force)
 // implementation of the action for any command accepting a project/environment
 function execWithProject(ctxt, args, cmd)
 {
+    const pf = ctxt.platform;
     // the options
-    var env      = args.global.environ;
-    var path     = args.global.file;
-    var params   = args.global.param || {};
-    var force    = {};
+    const env      = args.global.environ;
+    const path     = args.global.file;
+    const params   = args.global.param || {};
+    const force    = {};
     [ 'code', 'host', 'user' ].forEach(name => force[name] = args.global[name]);
     if ( args.global.ipassword ) {
         force.password = read.question('Password: ', { hideEchoBack: true });
@@ -247,39 +249,39 @@ function execWithProject(ctxt, args, cmd)
     var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt, environ);
     // prepare the command
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('--- ' + chalk.bold('Prepare') + ' ---');
+        pf.log('--- ' + pf.bold('Prepare') + ' ---');
     }
     var actions = command.prepare();
     // execute the actions
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
-               + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+        pf.log('\n--- ' + pf.bold('Progress') + ' ---'
+               + (ctxt.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
     }
     actions.execute();
     // display summary and/or error
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
-               + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+        pf.log('\n--- ' + pf.bold('Summary') + ' ---'
+               + (ctxt.dry ? ' (' + pf.red('dry run, not for real') + ')' : ''));
         if ( actions.done.length ) {
-            ctxt.platform.log(chalk.green('Done') + ':');
-            actions.done.forEach(a => a.display(ctxt.platform, 'done'));
+            pf.log(pf.green('Done') + ':');
+            actions.done.forEach(a => a.display(pf, 'done'));
         }
     }
     if ( actions.error ) {
-        ctxt.platform.log(chalk.red('Error') + ':');
-        actions.error.action.display(ctxt.platform, 'error');
-        ctxt.platform.log(actions.error.message);
+        pf.log(pf.red('Error') + ':');
+        actions.error.action.display(pf, 'error');
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     if ( args.cmd !== 'show' ) {
         if ( actions.todo.length ) {
-            ctxt.platform.log(chalk.yellow('Not done') + ':');
-            actions.todo.forEach(a => a.display(ctxt.platform, 'todo'));
+            pf.log(pf.yellow('Not done') + ':');
+            actions.todo.forEach(a => a.display(pf, 'todo'));
         }
         if ( ! actions.done.length && ! actions.error && ! actions.todo.length ) {
-            ctxt.platform.log('Nothing to do.');
+            pf.log('Nothing to do.');
         }
     }
     // TODO: Really. do it here?  Would be better in main()...

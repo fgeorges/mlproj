@@ -273,24 +273,23 @@
             fs.writeFileSync(path, content, 'utf8');
         }
 
-        // TODO: To remove...
         green(s) {
             return chalk.green(s);
         }
 
-        // TODO: To remove...
         yellow(s) {
             return chalk.yellow(s);
         }
 
-        // TODO: To remove...
         red(s) {
             return chalk.red(s);
         }
 
-        // TODO: To remove...
         bold(s) {
-            return chalk.bold(s);
+            // fix display problem in Cmder (shell emulation on Windows)
+            return process.env.ConEmuANSI === 'ON'
+                ? s
+                : chalk.bold(s);
         }
 
         credentials() {
