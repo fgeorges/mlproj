@@ -152,7 +152,7 @@
    before being displayed (variables, dependencies are resolved, parameters
    are injected.)`);
 
-        // show
+        // init
         prg.help('init',
 `Options:
 

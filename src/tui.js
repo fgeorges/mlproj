@@ -251,13 +251,13 @@ function makeEnviron(ctxt, env, path, params, force, cmd)
 function execWithProject(ctxt, args, cmd)
 {
     // lexical sugar
-    const pf    = ctxt.platform;
-    const chalk = ctxt.display.chalk;
+    const pf     = ctxt.platform;
+    const chalk  = ctxt.display.chalk;
     // the options
-    var env      = args.global.environ;
-    var path     = args.global.file;
-    var params   = args.global.param || {};
-    var force    = {};
+    const env    = args.global.environ;
+    const path   = args.global.file;
+    const params = args.global.param || {};
+    const force  = {};
     [ 'code', 'host', 'user' ].forEach(name => force[name] = args.global[name]);
     if ( args.global.ipassword ) {
         force.password = read.question('Password: ', { hideEchoBack: true });

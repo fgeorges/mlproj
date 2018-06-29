@@ -810,6 +810,7 @@
     {
         constructor(verbose) {
             super(verbose);
+            this.chalk = chalk;
         }
 
         // TODO: FIXME: ...
