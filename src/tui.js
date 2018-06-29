@@ -2,7 +2,6 @@
 
 "use strict";
 
-const chalk   = require('chalk');
 const fs      = require('fs');
 const read    = require('readline-sync');
 const core    = require('mlproj-core');
@@ -35,11 +34,15 @@ function execHelp(ctxt, args, prg)
     // validate options
     plainCmdStart(args, 'dry');
 
+    // lexical sugar
+    const pf    = ctxt.platform;
+    const chalk = ctxt.display.chalk;
+
     // the command
     let name = args.local.cmd;
     if ( ! name ) {
 
-        ctxt.platform.log(`
+        pf.log(`
    This is mlproj, version ` + pkg.version + ` (using core ` + ctxt.coreVersion() + `)
 
    Usage:
@@ -82,22 +85,22 @@ function execHelp(ctxt, args, prg)
     else {
         var cmd = prg.commands[name];
         if ( ! cmd ) {
-            ctxt.platform.log('Unknwon command: ' + name);
+            pf.log('Unknwon command: ' + name);
         }
         else {
-            ctxt.platform.log('');
-            ctxt.platform.log('   ' + cmd.desc());
-            ctxt.platform.log('');
-            ctxt.platform.log('   Usage:');
-            ctxt.platform.log('');
-            ctxt.platform.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
-            ctxt.platform.log('');
-            ctxt.platform.log('   ' + cmd.help);
-            ctxt.platform.log('');
-            ctxt.platform.log('   Reference:');
-            ctxt.platform.log('');
-            ctxt.platform.log('       http://mlproj.org/commands#' + name);
-            ctxt.platform.log('');
+            pf.log('');
+            pf.log('   ' + cmd.desc());
+            pf.log('');
+            pf.log('   Usage:');
+            pf.log('');
+            pf.log('       mlproj ' + chalk.bold(name) + ' ' + cmd.usage());
+            pf.log('');
+            pf.log('   ' + cmd.help);
+            pf.log('');
+            pf.log('   Reference:');
+            pf.log('');
+            pf.log('       http://mlproj.org/commands#' + name);
+            pf.log('');
         }
     }
 }
@@ -107,7 +110,11 @@ function execNew(ctxt, args, cmd)
 {
     // validate options
     plainCmdStart(args, 'dry');
-    var dir = ctxt.platform.cwd;
+
+    // lexical sugar
+    const pf    = ctxt.platform;
+    const dir   = ctxt.platform.cwd;
+    const chalk = ctxt.display.chalk;
 
     // check the directory is empty...
     if ( ! args.local.force && fs.readdirSync(dir).length ) {
@@ -121,7 +128,7 @@ function execNew(ctxt, args, cmd)
     }
 
     // gather info by asking the user...
-    ctxt.platform.log('--- ' + chalk.bold('Questions') + ' ---');
+    pf.log('--- ' + chalk.bold('Questions') + ' ---');
     var loc      = args.local;
     var abbrev   = loc.abbrev || read.question('Project code     : ');
     var dfltName = 'http://mlproj.org/example/' + abbrev;
@@ -141,30 +148,30 @@ function execNew(ctxt, args, cmd)
     // execute the command
     var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt);
     var actions = command.prepare();
-    ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+    pf.log('\n--- ' + chalk.bold('Progress') + ' ---'
            + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     actions.execute();
-    ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+    pf.log('\n--- ' + chalk.bold('Summary') + ' ---'
            + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     if ( actions.done.length ) {
-        ctxt.platform.log(chalk.green('Done') + ':');
-        ctxt.platform.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
-        ctxt.platform.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].cmd.xpdir);
+        pf.log(chalk.green('Done') + ':');
+        pf.log(chalk.green('✓') + ' Project created: \t' + loc.abbrev);
+        pf.log(chalk.green('→') + ' Check/edit files in:\t' + actions.done[0].xpdir);
     }
     if ( actions.error ) {
-        ctxt.platform.log(chalk.red('Error') + ':');
-        ctxt.platform.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
-        ctxt.platform.log(actions.error.message);
+        pf.log(chalk.red('Error') + ':');
+        pf.log(chalk.red('✗') + ' Project creation: \t' + loc.abbrev);
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     if ( actions.todo.length ) {
-        ctxt.platform.log(chalk.yellow('Not done') + ':');
-        ctxt.platform.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
-        ctxt.platform.log(actions.error.message);
+        pf.log(chalk.yellow('Not done') + ':');
+        pf.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     // TODO: Really. do it here?  Would be better in main()...
@@ -174,8 +181,41 @@ function execNew(ctxt, args, cmd)
     }
 }
 
-function makeEnviron(ctxt, env, path, params, force)
+function makeEnviron(ctxt, env, path, params, force, cmd)
 {
+    const initTrace = thing => {
+        // resolve trace options with defaults
+        if ( ctxt.tracedir ) {
+            ctxt.trace = true;
+        }
+        else {
+            const t = thing.config('trace');
+            if ( ctxt.trace ) {
+                if ( ! t || ! t.dir ) {
+                    throw new Error('HTTP trace enabled by option, but no dir given');
+                }
+                ctxt.tracedir = t.dir;
+            }
+            else if ( t ) {
+                if ( t.dir ) {
+                    if ( t.enabled || t.enabled === undefined ) {
+                        ctxt.trace    = true;
+                        ctxt.tracedir = t.dir;
+                    }
+                }
+                else if ( t.enabled ) {
+                    throw new Error('HTTP trace enabled in config, but no dir given');
+                }
+            }
+            else {
+                // no trace option nor config: nothing to do
+            }
+        }
+    };
+    // ask to retrieve cluster topology, except in case of init (apis not available yet)
+    if ( cmd !== 'init' ) {
+        ctxt.fetchTopology = true;
+    }
     // invalid and default values
     if ( env && path ) {
         throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
@@ -183,46 +223,26 @@ function makeEnviron(ctxt, env, path, params, force)
     if ( ! env && ! path ) {
         env = 'default';
     }
-    // do it (either env or file)
+    // do it (either env or file or fake)
     let res;
     if ( env ) {
         const proj = new core.Project(ctxt, ctxt.platform.cwd);
+        // init trace before compiling
+        initTrace(proj);
         res = proj.environ(env, params, force);
+        // TODO: Review trace here after having the whole environ available?
     }
     else if ( path ) {
         const json = ctxt.platform.json(path);
         res = new core.Environ(ctxt, json, path);
+        // init trace before compiling
+        initTrace(res);
         res.compile(params, force);
     }
     else {
         res = new core.FakeEnviron(ctxt, params, force);
-    }
-    // resolve trace options with defaults
-    if ( ctxt.tracedir ) {
-        ctxt.trace = true;
-    }
-    else {
-        const t = res.config('trace');
-        if ( ctxt.trace ) {
-            if ( ! t || ! t.dir ) {
-                throw new Error('HTTP trace enabled by option, but no dir given');
-            }
-            ctxt.tracedir = t.dir;
-        }
-        else if ( t ) {
-            if ( t.dir ) {
-                if ( t.enabled || t.enabled === undefined ) {
-                    ctxt.trace    = true;
-                    ctxt.tracedir = t.dir;
-                }
-            }
-            else if ( t.enabled ) {
-                throw new Error('HTTP trace enabled in config, but no dir given');
-            }
-        }
-        else {
-            // no trace option nor config: nothing to do
-        }
+        // init trace
+        initTrace(res);
     }
     return res;
 }
@@ -230,6 +250,9 @@ function makeEnviron(ctxt, env, path, params, force)
 // implementation of the action for any command accepting a project/environment
 function execWithProject(ctxt, args, cmd)
 {
+    // lexical sugar
+    const pf    = ctxt.platform;
+    const chalk = ctxt.display.chalk;
     // the options
     var env      = args.global.environ;
     var path     = args.global.file;
@@ -243,43 +266,43 @@ function execWithProject(ctxt, args, cmd)
         force.password = args.global.password;
     }
     // the project & command
-    var environ = makeEnviron(ctxt, env, path, params, force);
+    var environ = makeEnviron(ctxt, env, path, params, force, args.cmd);
     var command = new (cmd.clazz())(args.cmd, args.global, args.local, ctxt, environ);
     // prepare the command
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('--- ' + chalk.bold('Prepare') + ' ---');
+        pf.log('--- ' + chalk.bold('Prepare') + ' ---');
     }
     var actions = command.prepare();
     // execute the actions
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+        pf.log('\n--- ' + chalk.bold('Progress') + ' ---'
                + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
     }
     actions.execute();
     // display summary and/or error
     if ( args.cmd !== 'show' ) {
-        ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+        pf.log('\n--- ' + chalk.bold('Summary') + ' ---'
                + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
         if ( actions.done.length ) {
-            ctxt.platform.log(chalk.green('Done') + ':');
-            actions.done.forEach(a => a.display(ctxt.platform, 'done'));
+            pf.log(chalk.green('Done') + ':');
+            actions.done.forEach(a => a.display(pf, 'done'));
         }
     }
     if ( actions.error ) {
-        ctxt.platform.log(chalk.red('Error') + ':');
-        actions.error.action.display(ctxt.platform, 'error');
-        ctxt.platform.log(actions.error.message);
+        pf.log(chalk.red('Error') + ':');
+        actions.error.action.display(pf, 'error');
+        pf.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
-            ctxt.platform.log(actions.error.error.stack);
+            pf.log(actions.error.error.stack);
         }
     }
     if ( args.cmd !== 'show' ) {
         if ( actions.todo.length ) {
-            ctxt.platform.log(chalk.yellow('Not done') + ':');
-            actions.todo.forEach(a => a.display(ctxt.platform, 'todo'));
+            pf.log(chalk.yellow('Not done') + ':');
+            actions.todo.forEach(a => a.display(pf, 'todo'));
         }
         if ( ! actions.done.length && ! actions.error && ! actions.todo.length ) {
-            ctxt.platform.log('Nothing to do.');
+            pf.log('Nothing to do.');
         }
     }
     // TODO: Really. do it here?  Would be better in main()...

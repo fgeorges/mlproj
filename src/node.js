@@ -6,7 +6,6 @@
     const fs       = require('fs');
     const os       = require('os');
     const path     = require('path');
-    const chalk    = require('chalk');
     const read     = require('readline-sync');
     const request  = require('sync-request');
     const uuid     = require('uuid');
@@ -15,6 +14,14 @@
     const chokidar = require('chokidar');
     const mmatch   = require("minimatch");
     const core     = require('mlproj-core');
+
+    const chalk    = require('chalk');
+    // bold is wrong on cygwin monitors (incl. cmder), text is not displayed
+    if ( process.env.TERM === 'cygwin' ) {
+        const bold = chalk.styles.bold;
+        bold.open  = '';
+        bold.close = '';
+    }
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The watch command, specific to the Node frontend.
