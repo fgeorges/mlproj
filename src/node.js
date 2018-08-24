@@ -108,6 +108,10 @@
 
         // TODO: Apply the same filtering logic here as in DeployCommand (and
         // share the mecanism with LoadCommand as well), once implemented...
+        //
+        // -> that is, now it is called the "source sets", and we need to
+        //    support their garbage, include and exclude properties
+        //
         execute(ctxt) {
             const pf = ctxt.platform;
             pf.warn(pf.yellow('→') + ' ' + this.msg + ': \t' + this.path);
@@ -446,7 +450,7 @@
 
         get(params, path) {
             let tracer  = new HttpTracer(this.environ);
-            tracer.params(params, path);
+            tracer.params('GET', params, path);
             let url     = this.url(params, path);
             let options = {};
             options.headers = params.headers || {};
@@ -464,9 +468,26 @@
             return result;
         }
 
+        delete(params, path) {
+            let tracer  = new HttpTracer(this.environ);
+            tracer.params('DELETE', params, path);
+            let url     = this.url(params, path);
+            let options = {};
+            options.headers = params.headers || {};
+            tracer.request('DELETE', url, options);
+            let resp   = this.requestAuth('DELETE', url, options);
+            let result = {
+                status  : resp.statusCode,
+                headers : resp.headers,
+                body    : this.extractBody(resp)
+            };
+            tracer.response(result);
+            return result;
+        }
+
         post(params, path, data, mime) {
             let tracer  = new HttpTracer(this.environ);
-            tracer.params(params, path, data, mime);
+            tracer.params('POST', params, path, data, mime);
             let url     = this.url(params, path);
             let options = {};
             options.headers = params.headers || {};
@@ -498,7 +519,7 @@
 
         put(params, path, data, mime) {
             let tracer  = new HttpTracer(this.environ);
-            tracer.params(params, path, data, mime);
+            tracer.params('PUT', params, path, data, mime);
             let url     = this.url(params, path);
             let body    = data || params.body;
             let type    = mime || params.type;
@@ -673,8 +694,9 @@
             }
         }
 
-        params(params, path, data, mime) {
+        params(verb, params, path, data, mime) {
             const obj = {
+                verb:    verb,
                 params:  params,
                 path:    path,
                 data:    data,
