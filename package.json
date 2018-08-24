@@ -1,6 +1,6 @@
 {
   "name": "mlproj",
-  "version": "0.50.0",
+  "version": "0.50.1",
   "description": "Project management for MarkLogic",
   "repository": "https://github.com/fgeorges/mlproj",
   "main": "src/tui.js",
@@ -16,7 +16,7 @@
     "chalk": "^1.1.3",
     "chokidar": "^1.7.0",
     "minimatch": "^3.0.4",
-    "mlproj-core": ">=0.35",
+    "mlproj-core": ">=0.39",
     "readline-sync": "^1.4.6",
     "sync-request": "^4.1.0",
     "uuid": "^3.1.0",
