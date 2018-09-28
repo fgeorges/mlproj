@@ -900,6 +900,14 @@
             log('');
         }
 
+        privilege(props, kind) {
+            const log  = Display.log;
+            const line = Display.line;
+            log(chalk.bold('Privilege ' + kind) + ': ' + chalk.bold(chalk.yellow(props['privilege-name'].value)));
+            Object.keys(props).forEach(p => this._property(props[p]));
+            log('');
+        }
+
         role(props) {
             const log  = Display.log;
             const line = Display.line;
@@ -928,12 +936,19 @@
                 });
             }
             else if ( Array.isArray(prop.value) ) {
+                const isRole = prop.prop.name === 'role';
+                const isPerm = prop.prop.name === 'permission';
+                const isPriv = prop.prop.name === 'privilege';
                 const vals = prop.value.map(v => {
-                    return typeof v === 'object' && v['role-name']
+                    return isPerm
                         ? v['role-name'].value + '/' + v.capability.value
+                        : isPriv
+                        ? v['privilege-name'].value + '/' + v.kind.value
                         : v;
                 });
-                line(level, prop.prop.label, vals.join(', '));
+                if ( vals.length || (!isRole && !isPerm && !isPriv) ) {
+                    line(level, prop.prop.label, vals.join(', '));
+                }
             }
             else {
                 line(level, prop.prop.label, prop.value);
