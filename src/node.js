@@ -996,7 +996,10 @@
             }
             if ( imports.length ) {
                 line(1, 'import graph:');
-                imports.forEach(i => line(i.level + 1, '-> ' + i.href));
+                imports.forEach(i => {
+                    const p = path.relative(process.cwd(), i.href);
+                    line(i.level + 1, '-> ' + p);
+                });
             }
             log();
         }
