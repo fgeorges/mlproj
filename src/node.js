@@ -114,7 +114,7 @@
         //
         execute(ctxt) {
             const pf = ctxt.platform;
-            pf.warn(pf.yellow('→') + ' ' + this.msg + ': \t' + this.path);
+            pf.warn(pf.yellow('→') + ' ' + this.msg, this.path);
             chokidar.watch(this.path, {
                 ignored: /(^|[\/\\])\../,
                 persistent: true,
@@ -133,9 +133,8 @@
                     pf.log('Watcher error: ' + error.filename);
                 })
                 .on('ready', () => {
-                    pf.warn(
-                        pf.green('✓')
-                        + ' Watching for changes, target is ' + this.db.name + '...');
+                    pf.warn(pf.green('✓') + ' Watching for changes to upload to target',
+                            this.db.name);
                 })
                 // raw event details, for debugging...
                 // .on('raw', (event, path, details) => {
@@ -205,28 +204,21 @@
         }
 
         // TODO: To remove...
-        log(msg) {
-            console.log(msg);
+        log(msg, name) {
+            console.log(Display.pad(msg, name));
         }
 
-        warn(msg) {
-            console.warn(msg);
+        warn(msg, name) {
+            console.warn(Display.pad(msg, name));
         }
 
         // TODO: To remove...
         line(indent, name, value) {
-            var s = '';
+            let spaces = '';
             while ( indent-- ) {
-                s += '   ';
+                spaces += '   ';
             }
-            s += name;
-            if ( value !== undefined ) {
-            const PAD = '                        '; // 24 spaces
-                s += ': ';
-                s += PAD.slice(s.length);
-                s += value;
-            }
-            console.log(s);
+            this.log(spaces + name, value);
         }
 
         resolve(href, base) {
@@ -855,7 +847,7 @@
                 forests.forEach(f => line(2, f));
             }
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         sysDatabase(name) {
@@ -863,7 +855,7 @@
             const line = Display.line;
             log(chalk.bold('Database') + ': ' + chalk.bold(chalk.yellow(name)));
             line(1, '(nothing to show, handled outside of the project)');
-            log('');
+            log();
         }
 
         server(name, id, type, group, content, modules, props) {
@@ -881,7 +873,7 @@
                     this._property(props[p]);
                 }
             });
-            log('');
+            log();
         }
 
         source(name, props) {
@@ -889,7 +881,7 @@
             const line = Display.line;
             log(chalk.bold('Source') + ': ' + chalk.bold(chalk.yellow(name)));
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         mimetype(name, props) {
@@ -897,7 +889,7 @@
             const line = Display.line;
             log(chalk.bold('MIME type') + ': ' + chalk.bold(chalk.yellow(name)));
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         privilege(props, kind) {
@@ -905,7 +897,7 @@
             const line = Display.line;
             log(chalk.bold('Privilege ' + kind) + ': ' + chalk.bold(chalk.yellow(props['privilege-name'].value)));
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         role(props) {
@@ -913,7 +905,7 @@
             const line = Display.line;
             log(chalk.bold('Role') + ': ' + chalk.bold(chalk.yellow(props['role-name'].value)));
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         user(props) {
@@ -921,7 +913,7 @@
             const line = Display.line;
             log(chalk.bold('User') + ': ' + chalk.bold(chalk.yellow(props['user-name'].value)));
             Object.keys(props).forEach(p => this._property(props[p]));
-            log('');
+            log();
         }
 
         _property(prop, level) {
@@ -974,18 +966,18 @@
                     line(1, 'cfg.' + cfg.name, cfg.value);
                 }
             });
-            log('');
+            log();
         }
 
         environ(envipath, title, desc, host, user, password, params, apis, commands, imports) {
             const log  = Display.log;
             const line = Display.line;
             log(chalk.bold('Environment') + ': ' + chalk.bold(chalk.yellow(envipath)));
-            title    && line(1, 'title',       title);
-            desc     && line(1, 'desc',        desc);
-            host     && line(1, 'host',        host);
-            user     && line(1, 'user',        user);
-            password && line(1, 'password',    '*****');
+            title    && line(1, 'title',    title);
+            desc     && line(1, 'desc',     desc);
+            host     && line(1, 'host',     host);
+            user     && line(1, 'user',     user);
+            password && line(1, 'password', '*****');
             if ( params.length ) {
                 line(1, 'parameters:');
                 params.forEach(p => line(2, p.name, p.value));
@@ -1006,7 +998,7 @@
                 line(1, 'import graph:');
                 imports.forEach(i => line(i.level + 1, '-> ' + i.href));
             }
-            log('');
+            log();
         }
 
         check(indent, msg, arg) {
@@ -1046,17 +1038,17 @@
         }
     };
 
-    Display.log = msg => {
+    Display.log = (msg, name) => {
         if ( msg === undefined ) {
             console.log();
         }
         else {
-            console.log(msg);
+            console.log(Display.pad(msg, name));
         }
     };
 
     Display.indent = level => {
-        var s = '';
+        let s = '';
         while ( level-- ) {
             s += '   ';
         }
@@ -1064,22 +1056,28 @@
     };
 
     Display.line = (indent, name, value) => {
-        var s = Display.indent(indent);
-        s += name;
-        if ( value !== undefined ) {
-            const PAD = '                        '; // 24 spaces
-            s += ': ' + PAD.slice(s.length) + value;
-        }
-        Display.log(s);
+        Display.log(Display.indent(indent) + name, value);
     };
 
     Display.action = (indent, msg, arg) => {
-        var s = Display.indent(indent);
-        s += msg;
-        if ( arg ) {
-            s += ': \t' + arg;
+        Display.log(Display.indent(indent) + msg, arg);
+    };
+
+    Display.COLWIDTH = 36;
+
+    Display.pad = (msg, name) => {
+        if ( name ) {
+            // adjust "colwidth" as escape sequences do not "consume" any column
+            const singles = msg.match(/\u001b\[[0-9]m/g);
+            const doubles = msg.match(/\u001b\[[0-9][0-9]m/g);
+            const snum    = (singles || []).length;
+            const dnum    = (doubles || []).length;
+            const width   = Display.COLWIDTH + (snum * 4) + (dnum * 5);
+            return (msg + ':  ').padEnd(width) + name;
         }
-        Display.log(s);
+        else {
+            return msg;
+        }
     };
 
     module.exports = {
