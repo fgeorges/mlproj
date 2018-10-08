@@ -108,8 +108,6 @@ function execHelp(ctxt, args, prg)
 // implementation of the action for command `new`
 function execNew(ctxt, args, cmd)
 {
-    const pf = ctxt.platform;
-
     // validate options
     plainCmdStart(args, 'dry');
 
