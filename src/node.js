@@ -1076,10 +1076,19 @@
             const snum    = (singles || []).length;
             const dnum    = (doubles || []).length;
             const width   = Display.COLWIDTH + (snum * 4) + (dnum * 5);
-            return (msg + ':  ').padEnd(width) + name;
+            return Display.padEnd(msg + ':  ', width) + name;
         }
         else {
             return msg;
+        }
+    };
+
+    Display.padEnd = (str, width) => {
+        if ( str.length >= width ) {
+            return str;
+        }
+        else {
+            return str + ' '.repeat(width - str.length);
         }
     };
 
