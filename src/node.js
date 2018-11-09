@@ -11,7 +11,7 @@
     const uuid     = require('uuid');
     const crypto   = require('crypto');
     const xml      = require('xml2js');
-    const chokidar = require('chokidar');
+    const watch    = require('node-watch');
     const mmatch   = require("minimatch");
     const core     = require('mlproj-core');
 
@@ -99,9 +99,10 @@
     class WatchAction extends core.actions.Action
     {
         constructor(msg, db, path, recursive, onMatch) {
-            super(msg);
+            let p = path.replace(/\\/g, '/');
+            super([ msg, p ]);
             this.db        = db;
-            this.path      = path.replace(/\\/g, '/');
+            this.path      = p;
             this.recursive = recursive;
             this.onMatch   = onMatch;
         }
@@ -114,33 +115,38 @@
         //
         execute(ctxt) {
             const pf = ctxt.platform;
-            pf.warn(pf.yellow('→') + ' ' + this.msg, this.path);
-            chokidar.watch(this.path, {
-                ignored: /(^|[\/\\])\../,
-                persistent: true,
-                ignoreInitial: true
+            pf.warn(pf.yellow('→') + ' ' + this.msg[0], this.msg[1]);
+            watch(this.path, {
+                recursive: true,
+                filter: f => {
+                    if ( fs.existsSync(f) && fs.statSync(f).isDirectory() ) {
+                        return false;
+                    }
+                    const tokens = f.split(/[\/\\]/);
+                    const last   = tokens.pop();
+                    // TODO: Didn't I remove another use of startsWith because
+                    // it was too recent?
+                    return ! (last.startsWith('.') || last.endsWith('~'));
+                }
             })
-                .on('add', path => {
-                    this.onMatch(path, this.path, ctxt);
+                .on('change', (type, path) => {
+                    if ( type === 'update' ) {
+                        this.onMatch(path, this.path, ctxt);
+                    }
+                    else if ( type === 'remove' ) {
+                        pf.log(`TODO: File ${path} has been removed, delete it!`);
+                    }
+                    else {
+                        pf.warn(pf.red('✗') + ' Error watching for changes',
+                                'Invalid change type: ' + type);
+                    }
                 })
-                .on('change', path => {
-                    this.onMatch(path, this.path, ctxt);
+                .on('error', (err) => {
+                    pf.warn(pf.red('✗') + ' Error watching for changes', new String(err));
                 })
-                .on('unlink', path => {
-                    pf.log(`TODO: File ${path} has been removed, delete it!`);
-                })
-                .on('error', error => {
-                    pf.log('Watcher error: ' + error.filename);
-                })
-                .on('ready', () => {
-                    pf.warn(pf.green('✓') + ' Watching for changes to upload to target',
-                            this.db.name);
-                })
-                // raw event details, for debugging...
-                // .on('raw', (event, path, details) => {
-                //     pf.log(`Raw event info: ${event}, ${path}, ${details}`);
-                // })
-            ;
+                .on('close', function() {
+                    pf.warn(pf.yellow('→') + ' Stopping the watcher');
+                });
         }
     }
 
