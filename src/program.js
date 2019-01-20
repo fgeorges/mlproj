@@ -44,7 +44,8 @@
             .command('show')
             .clazz(core.ShowCommand)
             .desc('Display the environment.')
-            .usage('');
+            .usage('[-j]')
+            .flag('json', '-j', '--json', 'dump resolved environ as JSON');
 
         prg
             .command('init')
