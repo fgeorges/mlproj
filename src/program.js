@@ -38,7 +38,8 @@
             .clazz(core.NewCommand)
             .desc('Create a new project in the current directory.')
             .usage('[-f]')
-            .flag('force', '-f', '--force', 'force overwriting files');
+            .flag('force',  '-f', '--force',                 'force overwriting files')
+            .flag('gradle', '-g', '--gradle', '--ml-gradle', 'migrate project from mlGradle');
 
         prg
             .command('show')

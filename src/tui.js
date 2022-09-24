@@ -170,9 +170,51 @@ function execNew(ctxt, args, cmd)
         pf.log(chalk.yellow('Not done') + ':');
         pf.log(chalk.yellow('✗') + ' Project creation: \t' + loc.abbrev);
         pf.log(actions.error.message);
+    }
+    // TODO: Really. do it here?  Would be better in main()...
+    // Besides, this whole thing is copied three times...
+    if ( actions.error ) {
+        process.exit(1);
+    }
+}
+
+// implementation of the action for any command NOT accepting a project/environment
+// (except of help and new, which are special)
+function execPlain(ctxt, args, cmd, clazz)
+{
+    // validate options
+    plainCmdStart(args);
+
+    // the command
+    var command = new (clazz || cmd.clazz())(args.cmd, args.global, args.local, ctxt);
+    // prepare the command
+    ctxt.platform.log('--- ' + chalk.bold('Prepare') + ' ---');
+    var actions = command.prepare();
+    // execute the actions
+    ctxt.platform.log('\n--- ' + chalk.bold('Progress') + ' ---'
+           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    actions.execute();
+    // display summary and/or error
+    ctxt.platform.log('\n--- ' + chalk.bold('Summary') + ' ---'
+           + (ctxt.dry ? ' (' + chalk.red('dry run, not for real') + ')' : ''));
+    if ( actions.done.length ) {
+        ctxt.platform.log(chalk.green('Done') + ':');
+        actions.done.forEach(a => a.display(ctxt.platform, 'done'));
+    }
+    if ( actions.error ) {
+        ctxt.platform.log(chalk.red('Error') + ':');
+        actions.error.action.display(ctxt.platform, 'error');
+        ctxt.platform.log(actions.error.message);
         if ( ctxt.verbose && actions.error.error && actions.error.error.stack ) {
             pf.log(actions.error.error.stack);
         }
+    }
+    if ( actions.todo.length ) {
+        ctxt.platform.log(chalk.yellow('Not done') + ':');
+        actions.todo.forEach(a => a.display(ctxt.platform, 'todo'));
+    }
+    if ( ! actions.done.length && ! actions.error && ! actions.todo.length ) {
+        ctxt.platform.log('Nothing to do.');
     }
     // TODO: Really. do it here?  Would be better in main()...
     // Besides, this whole thing is copied three times...
@@ -335,7 +377,10 @@ function main(argv)
         }
         else {
             let cmd = prg.commands[args.cmd];
-            if ( args.cmd === 'new' ) {
+            if ( args.cmd === 'new' && args.local.gradle ) {
+                execPlain(ctxt, args, cmd, core.MigrateGradleCommand);
+            }
+            else if ( args.cmd === 'new' ) {
                 execNew(ctxt, args, cmd);
             }
             else {
