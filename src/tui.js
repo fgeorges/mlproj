@@ -221,6 +221,9 @@ function makeEnviron(ctxt, env, path, params, force, cmd)
         throw new Error('Both `environ` and `path` set: ' + env + ', ' + path);
     }
     if ( ! env && ! path ) {
+
+// TODO: Only if `xproject/` exists...
+
         env = 'default';
     }
     // do it (either env or file or fake)

@@ -26,18 +26,48 @@ Use `mlproj help` for an overview.  Go to http://mlproj.org/ for all details.
 
 ## TODO
 
-**SOURCES**
+** New command: `generate` or something like that, to create a new component,
+but just on the screen (`create` sounds good actually, as opposed to `add`):
 
+    $ mlproj create rewriter > plumbing/rewriter.xml
+    Add the URI of the rewriter to you app server, using the property
+    "rewriter", so it looks something like the following:
+    
+        "servers": [{
+            "name":     "@{code}",
+            "rewriter": "/plumbing/rewriter.xml"
+        }]
+
+**SOURCES** (keep them path relative to proj dir?, or CWD in case of -f)
+
+- ADD TESTS...! (for all items below...)
+- 
 - support sources as is (only includes/excludes), in new and load
 - wrap file path list generation (filtering, all that)
 - add support for garbage (w/ default value)
 - add support for @defaults
 - test @defaults in xproject/mlproj.json and ~/.mlproj.json
+- 
+- adapt watch to use the same filtering...
+- add URI calculation support (decl. (root, prefix...) + function)
 - link sources to databases and servers
+- 
 - add support for filter
 - add support for feeder
 - add URI calculation support (decl. (root, prefix...) + function)
 - add way to link to a JS file + function name (for filter, feeder, and uri)
+
+Before code/functions, make it possible to serialize space files back.
+
+Needs refactoring, difference between space (file) and environ (includes
+resolution through imports, Spaces store JSON, Environ components, etc.)
+
+So create class Environ, with a set of Spaces, move resolution functions from
+Space to Environ, and keep a clean separation between both classes.
+
+Then write a serialization function which is deterministic, human-friendly and
+stable.  Use it in command new as well.
+
 
 In commands.js:
 // ************
@@ -63,6 +93,9 @@ In commands.js:
 - edit environment files from the Console
 - word lexicons
 - add support for triggers in environs
+- add confirmation level for deploy, load, setup, etc.
+  (so ask for confirmation for TEST, and for extra critical red-alert-level
+  confirmation for PROD...)
 
 Support the following scenario (e.g. for the EXPath ML Console):
 
